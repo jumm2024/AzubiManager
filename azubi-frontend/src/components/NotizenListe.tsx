@@ -36,7 +36,7 @@ export default function NotizenListe() {
   const [titel, setTitel] = useState('');
   const [inhalt, setInhalt] = useState('');
   const [kategorie, setKategorie] = useState('Beobachtung');
-  const [azubiId, setAzubiId] = useState<number | null>(null);
+  const [azubiIds, setAzubiIds] = useState<number[]>([]);
   const [fehler, setFehler] = useState('');
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
@@ -59,7 +59,7 @@ export default function NotizenListe() {
       setTitel('');
       setInhalt('');
       setKategorie('Beobachtung');
-      setAzubiId(null);
+      setAzubiIds([]);
     },
     onError: (error: any) => {
       const d = error.response?.data;
@@ -85,7 +85,7 @@ export default function NotizenListe() {
       titel: titel.trim(),
       inhalt: inhalt.trim(),
       kategorie,
-      azubiId: azubiId || undefined,
+      azubiIds: azubiIds.length > 0 ? azubiIds.join(',') : undefined,
     });
   };
 
@@ -142,14 +142,18 @@ export default function NotizenListe() {
                 placeholder="Notizinhalt..." required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer zuweisen</label>
-              <select value={azubiId || ''} onChange={(e) => setAzubiId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                <option value="">Keine Zuweisung</option>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer</label>
+              <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
                 {teilnehmer?.map((t: any) => (
-                  <option key={t.id} value={t.id}>{t.vorname} {t.nachname}</option>
+                  <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
+                    <input type="checkbox" checked={azubiIds.includes(t.id)}
+                      onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
+                      className="w-4 h-4 rounded accent-blue-600" />
+                    {t.vorname} {t.nachname}
+                  </label>
                 ))}
-              </select>
+                {(!teilnehmer || teilnehmer.length === 0) && <p className="text-xs text-gray-400 px-2">Keine Teilnehmer</p>}
+              </div>
             </div>
 
             {fehler && (

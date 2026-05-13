@@ -23,7 +23,7 @@ export default function AufgabenListe() {
   const [beschreibung, setBeschreibung] = useState('');
   const [prioritaet, setPrioritaet] = useState('Mittel');
   const [faelligkeitsdatum, setFaelligkeitsdatum] = useState('');
-  const [azubiId, setAzubiId] = useState<number | null>(null);
+  const [azubiIds, setAzubiIds] = useState<number[]>([]);
   const [istGlobal, setIstGlobal] = useState(false);
   const [fehler, setFehler] = useState('');
   const [detailAufgabe, setDetailAufgabe] = useState<Aufgabe | null>(null);
@@ -58,7 +58,7 @@ export default function AufgabenListe() {
       setBeschreibung('');
       setPrioritaet('Mittel');
       setFaelligkeitsdatum('');
-      setAzubiId(null);
+      setAzubiIds([]);
       setFehler('');
     },
     onError: (error: any) => {
@@ -75,7 +75,10 @@ export default function AufgabenListe() {
 
   const toggleMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.toggleErledigt(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['aufgaben'] }); ladeBadges(); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
+      try { ladeBadges(); } catch {}
+    },
   });
 
   const loescheMutation = useMutation({
@@ -100,7 +103,7 @@ export default function AufgabenListe() {
       prioritaet,
       faelligkeitsdatum,
       istGlobal,
-      azubiId: azubiId || undefined,
+      azubiIds: azubiIds.length > 0 ? azubiIds.join(',') : undefined,
     });
   };
 
@@ -205,14 +208,18 @@ export default function AufgabenListe() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer zuweisen</label>
-                <select value={azubiId || ''} onChange={(e) => setAzubiId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                  <option value="">Keine Zuweisung</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer (mehrere wählbar)</label>
+                <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
                   {teilnehmer?.map((t: any) => (
-                    <option key={t.id} value={t.id}>{t.vorname} {t.nachname}</option>
+                    <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
+                      <input type="checkbox" checked={azubiIds.includes(t.id)}
+                        onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
+                        className="w-4 h-4 rounded accent-blue-600" />
+                      {t.vorname} {t.nachname}
+                    </label>
                   ))}
-                </select>
+                  {(!teilnehmer || teilnehmer.length === 0) && <p className="text-xs text-gray-400 px-2">Keine Teilnehmer</p>}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="istGlobal" checked={istGlobal} onChange={(e) => setIstGlobal(e.target.checked)}
@@ -327,7 +334,7 @@ export default function AufgabenListe() {
                   {detailAufgabe.erledigt ? 'Erledigt' : 'Offen'}
                 </p>
               </div>
-              <div>
+              <div className="col-span-2">
                 <span className="text-gray-400">Zugewiesen an</span>
                 <p className="font-medium text-gray-700 mt-0.5">{detailAufgabe.azubiName || 'Niemand'}</p>
               </div>

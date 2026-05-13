@@ -95,7 +95,7 @@ export default function TeilnehmerListe() {
       vorname: vorname.trim(),
       nachname: nachname.trim(),
       gruppe,
-      lehrjahr,
+      lehrjahr: hatLehrjahr ? lehrjahr : 1,
       abteilung: abteilung.trim() || undefined,
     };
     if (ausbildungsstart) body.ausbildungsstart = ausbildungsstart;
@@ -196,16 +196,20 @@ export default function TeilnehmerListe() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="z.B. IT" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
-                <input type="date" value={ausbildungsstart} onChange={(e) => setAusbildungsstart(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ende</label>
-                <input type="date" value={ausbildungsende} onChange={(e) => setAusbildungsende(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
+              {gruppe === 'Ausbildung' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
+                    <input type="date" value={ausbildungsstart} onChange={(e) => setAusbildungsstart(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ende</label>
+                    <input type="date" value={ausbildungsende} onChange={(e) => setAusbildungsende(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                  </div>
+                </>
+              )}
             </div>
 
             {fehler && (

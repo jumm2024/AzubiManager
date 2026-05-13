@@ -13,5 +13,6 @@ namespace AzubiManager.Api.Models.DTOs
         public string Kategorie { get; set; } = "Beobachtung";
 
         public int? AzubiId { get; set; }
+        public string? AzubiIds { get; set; }
     }
 }

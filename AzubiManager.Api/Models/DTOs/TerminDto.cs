@@ -10,6 +10,7 @@
         public string Kategorie { get; set; } = "Sonstiges";
         public string? Ort { get; set; }
         public int? AzubiId { get; set; }
+        public string? AzubiIds { get; set; }
         public string? AzubiName { get; set; }
         public int AusbilderId { get; set; }
     }

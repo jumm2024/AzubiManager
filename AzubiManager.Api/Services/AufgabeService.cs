@@ -34,7 +34,7 @@ namespace AzubiManager.Api.Services
             if (erledigt.HasValue)
                 query = query.Where(a => a.Erledigt == erledigt.Value);
 
-            return await query
+            var result = await query
                 .OrderBy(a => a.Faelligkeitsdatum)
                 .Select(a => new AufgabeDto
                 {
@@ -45,10 +45,26 @@ namespace AzubiManager.Api.Services
                     Faelligkeitsdatum = a.Faelligkeitsdatum,
                     Erledigt = a.Erledigt,
                     IstGlobal = a.IstGlobal,
-                    AzubiId = a.AzubiId,
-                    AzubiName = a.Azubi != null ? a.Azubi.Vorname + " " + a.Azubi.Nachname : null,
+                    AzubiIds = a.AzubiIds,
                     AusbilderId = a.AusbilderId
                 }).ToListAsync();
+
+            // Azubi-Namen für IDs auflösen
+            var alleIds = result.Where(r => !string.IsNullOrEmpty(r.AzubiIds))
+                .SelectMany(r => r.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                .Select(int.Parse).Distinct().ToList();
+            var namenMap = await _db.Teilnehmer.AsNoTracking()
+                .Where(t => alleIds.Contains(t.Id))
+                .ToDictionaryAsync(t => t.Id, t => t.Vorname + " " + t.Nachname);
+
+            foreach (var aufgabe in result.Where(r => r.AzubiIds != null))
+            {
+                var ids = aufgabe.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse).ToList();
+                aufgabe.AzubiName = string.Join(", ", ids.Where(id => namenMap.ContainsKey(id)).Select(id => namenMap[id]));
+            }
+
+            return result;
         }
 
         public async Task<AufgabeDto> ErstellenAsync(AufgabeErstellenDto dto)
@@ -61,6 +77,7 @@ namespace AzubiManager.Api.Services
                 Faelligkeitsdatum = dto.Faelligkeitsdatum,
                 IstGlobal = dto.IstGlobal,
                 AzubiId = dto.AzubiId,
+                AzubiIds = dto.AzubiIds,
                 AusbilderId = _currentUser.BenutzerId
             };
 
@@ -94,7 +111,7 @@ namespace AzubiManager.Api.Services
             var aufgabe = await _db.Aufgaben.FindAsync(id);
             if (aufgabe == null) return false;
 
-            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId)
+            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId && !aufgabe.IstGlobal)
                 throw new UnauthorizedAccessException();
 
             _db.Aufgaben.Remove(aufgabe);
@@ -107,7 +124,7 @@ namespace AzubiManager.Api.Services
             var aufgabe = await _db.Aufgaben.FindAsync(id);
             if (aufgabe == null) return false;
 
-            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId)
+            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId && !aufgabe.IstGlobal)
                 throw new UnauthorizedAccessException();
 
             aufgabe.Erledigt = !aufgabe.Erledigt;
@@ -118,8 +135,18 @@ namespace AzubiManager.Api.Services
         private async Task<AufgabeDto> AlsDtoAsync(int id)
         {
             var a = await _db.Aufgaben.AsNoTracking()
-                .Include(x => x.Azubi)
                 .FirstAsync(x => x.Id == id);
+
+            var namen = "";
+            if (!string.IsNullOrEmpty(a.AzubiIds))
+            {
+                var ids = a.AzubiIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+                var namenListe = await _db.Teilnehmer.AsNoTracking()
+                    .Where(t => ids.Contains(t.Id))
+                    .Select(t => t.Vorname + " " + t.Nachname)
+                    .ToListAsync();
+                namen = string.Join(", ", namenListe);
+            }
 
             return new AufgabeDto
             {
@@ -130,8 +157,8 @@ namespace AzubiManager.Api.Services
                 Faelligkeitsdatum = a.Faelligkeitsdatum,
                 Erledigt = a.Erledigt,
                 IstGlobal = a.IstGlobal,
-                AzubiId = a.AzubiId,
-                AzubiName = a.Azubi != null ? a.Azubi.Vorname + " " + a.Azubi.Nachname : null,
+                AzubiIds = a.AzubiIds,
+                AzubiName = namen,
                 AusbilderId = a.AusbilderId
             };
         }

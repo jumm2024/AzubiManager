@@ -15,6 +15,7 @@ namespace AzubiManager.Api.Models.DTOs
         public DateOnly Faelligkeitsdatum { get; set; }
 
         public int? AzubiId { get; set; }
+        public string? AzubiIds { get; set; }
         public bool IstGlobal { get; set; }
     }
 }

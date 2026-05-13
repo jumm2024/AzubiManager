@@ -18,62 +18,55 @@ namespace AzubiManager.Api.Services
 
         public async Task<List<TerminDto>> AlleAbrufenAsync()
         {
-            var query = _db.Termine.AsNoTracking()
-                .Where(t => t.AusbilderId == _currentUser.BenutzerId);
-
+            IQueryable<Termin> query;
             if (_currentUser.IstAdmin)
                 query = _db.Termine.AsNoTracking();
+            else
+                query = _db.Termine.AsNoTracking().Where(t => t.AusbilderId == _currentUser.BenutzerId);
 
-            return await query
-                .OrderBy(t => t.Datum)
-                .Select(t => new TerminDto
-                {
-                    Id = t.Id,
-                    Titel = t.Titel,
-                    Beschreibung = t.Beschreibung,
-                    Datum = t.Datum,
-                    Endzeit = t.Endzeit,
-                    Kategorie = t.Kategorie,
-                    Ort = t.Ort,
-                    AzubiId = t.AzubiId,
-                    AzubiName = t.Azubi != null ? t.Azubi.Vorname + " " + t.Azubi.Nachname : null,
-                    AusbilderId = t.AusbilderId
-                }).ToListAsync();
+            var result = await query.OrderBy(t => t.Datum).Select(t => new TerminDto
+            {
+                Id = t.Id, Titel = t.Titel, Beschreibung = t.Beschreibung, Datum = t.Datum,
+                Endzeit = t.Endzeit, Kategorie = t.Kategorie, Ort = t.Ort,
+                AzubiIds = t.AzubiIds, AusbilderId = t.AusbilderId
+            }).ToListAsync();
+
+            var alleIds = result.Where(r => !string.IsNullOrEmpty(r.AzubiIds))
+                .SelectMany(r => r.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                .Select(int.Parse).Distinct().ToList();
+            var namenMap = await _db.Teilnehmer.AsNoTracking()
+                .Where(t => alleIds.Contains(t.Id))
+                .ToDictionaryAsync(t => t.Id, t => t.Vorname + " " + t.Nachname);
+            foreach (var t in result.Where(r => r.AzubiIds != null))
+            {
+                var ids = t.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+                t.AzubiName = string.Join(", ", ids.Where(id => namenMap.ContainsKey(id)).Select(id => namenMap[id]));
+            }
+            return result;
         }
 
         public async Task<TerminDto> ErstellenAsync(TerminErstellenDto dto)
         {
             var termin = new Termin
             {
-                Titel = dto.Titel,
-                Beschreibung = dto.Beschreibung,
-                Datum = dto.Datum,
-                Endzeit = dto.Endzeit,
-                Kategorie = dto.Kategorie,
-                Ort = dto.Ort,
-                AzubiId = dto.AzubiId,
+                Titel = dto.Titel, Beschreibung = dto.Beschreibung, Datum = dto.Datum,
+                Endzeit = dto.Endzeit, Kategorie = dto.Kategorie, Ort = dto.Ort,
+                AzubiId = dto.AzubiId, AzubiIds = dto.AzubiIds,
                 AusbilderId = _currentUser.BenutzerId
             };
-
             _db.Termine.Add(termin);
             await _db.SaveChangesAsync();
 
-            return await _db.Termine.AsNoTracking()
-                .Include(t => t.Azubi)
-                .Where(t => t.Id == termin.Id)
-                .Select(t => new TerminDto
-                {
-                    Id = t.Id,
-                    Titel = t.Titel,
-                    Beschreibung = t.Beschreibung,
-                    Datum = t.Datum,
-                    Endzeit = t.Endzeit,
-                    Kategorie = t.Kategorie,
-                    Ort = t.Ort,
-                    AzubiId = t.AzubiId,
-                    AzubiName = t.Azubi != null ? t.Azubi.Vorname + " " + t.Azubi.Nachname : null,
-                    AusbilderId = t.AusbilderId
-                }).FirstAsync();
+            var ids = termin.AzubiIds?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList() ?? new();
+            var namen = ids.Count > 0 ? await _db.Teilnehmer.AsNoTracking()
+                .Where(t => ids.Contains(t.Id)).Select(t => t.Vorname + " " + t.Nachname).ToListAsync() : new();
+            return new TerminDto
+            {
+                Id = termin.Id, Titel = termin.Titel, Beschreibung = termin.Beschreibung,
+                Datum = termin.Datum, Endzeit = termin.Endzeit, Kategorie = termin.Kategorie,
+                Ort = termin.Ort, AzubiIds = termin.AzubiIds,
+                AzubiName = string.Join(", ", namen), AusbilderId = termin.AusbilderId
+            };
         }
 
         public async Task<bool> LoeschenAsync(int id)
@@ -82,7 +75,6 @@ namespace AzubiManager.Api.Services
             if (termin == null) return false;
             if (!_currentUser.IstAdmin && termin.AusbilderId != _currentUser.BenutzerId)
                 throw new UnauthorizedAccessException();
-
             _db.Termine.Remove(termin);
             await _db.SaveChangesAsync();
             return true;

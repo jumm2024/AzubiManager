@@ -25,6 +25,7 @@ namespace AzubiManager.Api.Validators
 
             RuleFor(x => x.Ausbildungsende)
                 .GreaterThan(x => x.Ausbildungsstart)
+                .When(x => x.Ausbildungsstart != default && x.Ausbildungsende != default)
                 .WithMessage("Ausbildungsende muss nach dem Ausbildungsstart liegen");
         }
     }

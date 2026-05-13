@@ -25,6 +25,8 @@ namespace AzubiManager.Api.Models
         public int? AzubiId { get; set; }
         public Teilnehmer? Azubi { get; set; }
 
+        public string? AzubiIds { get; set; } // Komma-getrennt, z.B. "1,3,5"
+
         // Besitzer (Ausbilder)
         public int AusbilderId { get; set; }
         public Benutzer? Ausbilder { get; set; }
