@@ -1,0 +1,265 @@
+import { useOutletContext } from 'react-router-dom';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { teilnehmerApi } from '../api/client';
+
+interface Teilnehmer {
+  id: number;
+  vorname: string;
+  nachname: string;
+  gruppe: string;
+  lehrjahr: number;
+  abteilung?: string;
+  ausbildungsstart?: string;
+  ausbildungsende?: string;
+  geburtsdatum?: string;
+}
+
+const gruppen = ['Ausbildung', 'BVB', 'Erprober', 'Praktikant'];
+const gruppePunkte: Record<string, string> = {
+  Ausbildung: 'bg-blue-500',
+  BVB: 'bg-orange-500',
+  Erprober: 'bg-green-500',
+  Praktikant: 'bg-purple-500',
+};
+const gruppeFarben: Record<string, string> = {
+  Ausbildung: 'bg-blue-100 text-blue-700',
+  BVB: 'bg-orange-100 text-orange-700',
+  Erprober: 'bg-green-100 text-green-700',
+  Praktikant: 'bg-purple-100 text-purple-700',
+};
+
+export default function TeilnehmerListe() {
+  const [gruppeFilter, setGruppeFilter] = useState('');
+  const [vorname, setVorname] = useState('');
+  const [nachname, setNachname] = useState('');
+  const [gruppe, setGruppe] = useState('Ausbildung');
+  const [lehrjahr, setLehrjahr] = useState(1);
+  const hatLehrjahr = gruppe === 'Ausbildung';
+  const [abteilung, setAbteilung] = useState('');
+  const [ausbildungsstart, setAusbildungsstart] = useState('');
+  const [ausbildungsende, setAusbildungsende] = useState('');
+  const [fehler, setFehler] = useState('');
+  const [erfolg, setErfolg] = useState('');
+  const queryClient = useQueryClient();
+  const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
+
+  const { data, isLoading } = useQuery<Teilnehmer[]>({
+    queryKey: ['teilnehmer', gruppeFilter],
+    queryFn: () => teilnehmerApi.alle(gruppeFilter || undefined).then(res => res.data)
+  });
+
+  const erstelleMutation = useMutation({
+    mutationFn: (d: any) => teilnehmerApi.erstellen(d),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
+      ladeBadges();
+      setVorname('');
+      setNachname('');
+      setGruppe('Ausbildung');
+      setLehrjahr(1);
+      setAbteilung('');
+      setAusbildungsstart('');
+      setAusbildungsende('');
+      setFehler('');
+      setErfolg('Teilnehmer erstellt');
+      setTimeout(() => setErfolg(''), 3000);
+    },
+    onError: (error: any) => {
+      const d = error.response?.data;
+      if (typeof d === 'string') setFehler(d);
+      else if (d?.title) setFehler(d.title);
+      else setFehler('Unbekannter Fehler beim Erstellen');
+    }
+  });
+
+  const loescheMutation = useMutation({
+    mutationFn: (id: number) => teilnehmerApi.loeschen(id),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teilnehmer'] }); ladeBadges(); },
+  });
+
+  const handleErstellen = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFehler('');
+    if (!vorname.trim()) { setFehler('Vorname ist erforderlich'); return; }
+    if (vorname.trim().length < 2) { setFehler('Vorname muss mindestens 2 Zeichen haben'); return; }
+    if (!nachname.trim()) { setFehler('Nachname ist erforderlich'); return; }
+    if (nachname.trim().length < 2) { setFehler('Nachname muss mindestens 2 Zeichen haben'); return; }
+    if (gruppe === 'Ausbildung') {
+      if (!ausbildungsstart) { setFehler('Ausbildungsstart ist erforderlich'); return; }
+      if (!ausbildungsende) { setFehler('Ausbildungsende ist erforderlich'); return; }
+      if (ausbildungsstart >= ausbildungsende) { setFehler('Ende muss nach dem Start liegen'); return; }
+    }
+
+    const body: any = {
+      vorname: vorname.trim(),
+      nachname: nachname.trim(),
+      gruppe,
+      lehrjahr,
+      abteilung: abteilung.trim() || undefined,
+    };
+    if (ausbildungsstart) body.ausbildungsstart = ausbildungsstart;
+    if (ausbildungsende) body.ausbildungsende = ausbildungsende;
+    erstelleMutation.mutate(body);
+  };
+
+  const counts = gruppen.map(g => ({
+    gruppe: g,
+    count: data ? data.filter(t => t.gruppe === g).length : 0,
+  }));
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <span className="ml-3 text-gray-500">Lade Teilnehmer...</span>
+    </div>
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Teilnehmer</h2>
+
+      <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-gray-400" />
+            <div>
+              <p className="text-sm text-gray-500">Gesamt</p>
+              <p className="text-2xl font-bold">{data?.length || 0}</p>
+            </div>
+          </div>
+        </div>
+        {counts.map(({ gruppe: g, count }) => (
+          <div key={g} className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${gruppePunkte[g] || 'bg-gray-400'}`} />
+              <div>
+                <p className="text-sm text-gray-500">{g}</p>
+                <p className="text-2xl font-bold">{count}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {erfolg && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">{erfolg}</div>
+      )}
+
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+        {['', ...gruppen].map(g => (
+          <button key={g || 'alle'} onClick={() => setGruppeFilter(g)}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              gruppeFilter === g ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}>
+            {g || 'Alle'}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Neuen Teilnehmer anlegen</h3>
+          <form onSubmit={handleErstellen} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vorname *</label>
+                <input type="text" value={vorname} onChange={(e) => setVorname(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Vorname" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nachname *</label>
+                <input type="text" value={nachname} onChange={(e) => setNachname(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Nachname" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gruppe</label>
+                <select value={gruppe} onChange={(e) => { setGruppe(e.target.value); if (e.target.value !== 'Ausbildung') setLehrjahr(0); else if (lehrjahr === 0) setLehrjahr(1); }}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  {gruppen.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              {hatLehrjahr && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lehrjahr</label>
+                  <select value={lehrjahr} onChange={(e) => setLehrjahr(Number(e.target.value))}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    {[1,2,3,4].map(j => <option key={j} value={j}>{j}</option>)}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Abteilung</label>
+                <input type="text" value={abteilung} onChange={(e) => setAbteilung(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="z.B. IT" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
+                <input type="date" value={ausbildungsstart} onChange={(e) => setAusbildungsstart(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ende</label>
+                <input type="date" value={ausbildungsende} onChange={(e) => setAusbildungsende(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+
+            {fehler && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{fehler}</div>
+            )}
+
+            <button type="submit" disabled={erstelleMutation.isPending}
+              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              {erstelleMutation.isPending ? 'Wird erstellt...' : 'Teilnehmer erstellen'}
+            </button>
+          </form>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Alle Teilnehmer ({data?.length || 0})</h3>
+          <div className="space-y-2">
+            {data?.map((t: Teilnehmer) => (
+              <div key={t.id} className="p-4 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold shrink-0">
+                      {t.vorname[0]}{t.nachname[0]}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-800">{t.vorname} {t.nachname}</h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${gruppeFarben[t.gruppe] || 'bg-gray-100 text-gray-600'}`}>
+                          {t.gruppe}
+                        </span>
+                        {t.gruppe === 'Ausbildung' && t.lehrjahr > 0 && (
+                          <span className="text-xs text-gray-400">{t.lehrjahr}. Ausbildungsjahr</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => { if (confirm('Teilnehmer loeschen?')) loescheMutation.mutate(t.id); }}
+                    className="text-red-400 hover:text-red-600 shrink-0 text-xs mt-1">Loeschen</button>
+                </div>
+                {t.abteilung || (t.ausbildungsstart && t.ausbildungsstart !== '0001-01-01') ? (
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 ml-[52px]">
+                    {t.abteilung && <span>{t.abteilung}</span>}
+                    {t.ausbildungsstart && t.ausbildungsstart !== '0001-01-01' && (
+                      <span>{new Date(t.ausbildungsstart).toLocaleDateString('de-DE')} - {t.ausbildungsende && t.ausbildungsende !== '0001-01-01' ? new Date(t.ausbildungsende).toLocaleDateString('de-DE') : ''}</span>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+            {data?.length === 0 && (
+              <p className="text-gray-400 text-center py-8 text-sm">Keine Teilnehmer vorhanden</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

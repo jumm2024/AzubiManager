@@ -1,0 +1,152 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { tagesstatusApi, teilnehmerApi } from '../api/client';
+
+const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklaert'];
+
+const statusFarben: Record<string, string> = {
+  Anwesend: 'bg-green-500',
+  Schule: 'bg-blue-500',
+  Praktikum: 'bg-purple-500',
+  Termin: 'bg-indigo-500',
+  Urlaub: 'bg-yellow-500',
+  Krank: 'bg-red-400',
+  'Kind krank': 'bg-pink-400',
+  Freigestellt: 'bg-teal-500',
+  Entschuldigt: 'bg-emerald-500',
+  Unentschuldigt: 'bg-orange-500',
+  Ungeklaert: 'bg-gray-400',
+};
+
+const statusBgFarben: Record<string, string> = {
+  Anwesend: 'bg-green-50 border-green-200 text-green-700',
+  Schule: 'bg-blue-50 border-blue-200 text-blue-700',
+  Praktikum: 'bg-purple-50 border-purple-200 text-purple-700',
+  Termin: 'bg-indigo-50 border-indigo-200 text-indigo-700',
+  Urlaub: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+  Krank: 'bg-red-50 border-red-200 text-red-700',
+  'Kind krank': 'bg-pink-50 border-pink-200 text-pink-700',
+  Freigestellt: 'bg-teal-50 border-teal-200 text-teal-700',
+  Entschuldigt: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+  Unentschuldigt: 'bg-orange-50 border-orange-200 text-orange-700',
+  Ungeklaert: 'bg-gray-50 border-gray-200 text-gray-700',
+};
+
+export default function TagesstatusListe() {
+  const heute = new Date().toISOString().slice(0, 10);
+  const [datum, setDatum] = useState(heute);
+  const [lokaleStatus, setLokaleStatus] = useState<Record<number, string>>({});
+  const [importMsg, setImportMsg] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: statusData, isLoading } = useQuery({
+    queryKey: ['tagesstatus', datum],
+    queryFn: () => tagesstatusApi.alleFuerDatum(datum).then(res => res.data),
+  });
+
+  const { data: alleTeilnehmer } = useQuery({
+    queryKey: ['teilnehmer'],
+    queryFn: () => teilnehmerApi.alle().then(res => res.data),
+  });
+
+  const setzenMutation = useMutation({
+    mutationFn: (d: any) => tagesstatusApi.setzen(d),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] }),
+  });
+
+  const mergeData = alleTeilnehmer?.map((t: any) => {
+    const existing = statusData?.find((s: any) => s.azubiId === t.id);
+    return { ...t, statusId: existing?.id, status: existing?.status || '', bemerkung: existing?.bemerkung || '' };
+  }) || [];
+
+  const statusCounts = statusListe.map(s => ({
+    status: s,
+    count: mergeData.filter((t: any) => t.status === s).length,
+  }));
+
+  const handleStatusChange = (azubiId: number, neuerStatus: string) => {
+    setLokaleStatus(prev => ({ ...prev, [azubiId]: neuerStatus }));
+    setzenMutation.mutate({ azubiId, datum, status: neuerStatus });
+  };
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <span className="ml-3 text-gray-500">Lade Tagesstatus...</span>
+    </div>
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Tagesstatus</h2>
+        {importMsg && <span className="text-sm text-green-600">{importMsg}</span>}
+        <div className="flex items-center gap-3">
+          <input type="file" accept=".xlsx" onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setImportMsg('');
+            try {
+              const res = await tagesstatusApi.import(file);
+              setImportMsg(`${res.data.imported} Einträge importiert`);
+              queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] });
+            } catch { setImportMsg('Import fehlgeschlagen'); }
+            e.target.value = '';
+          }} className="hidden" id="excel-import" />
+          <label htmlFor="excel-import"
+            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer">
+            Excel Import
+          </label>
+          <button onClick={async () => {
+            const res = await tagesstatusApi.export(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a'); a.href = url; a.download = `Tagesstatus_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
+            URL.revokeObjectURL(url);
+          }}
+            className="px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
+            Excel Export
+          </button>
+          <input type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
+            className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-6 gap-4 mb-8">
+        {statusCounts.map(({ status: s, count }) => (
+          <div key={s} className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${statusFarben[s] || 'bg-gray-400'}`} />
+              <div>
+                <p className="text-sm text-gray-500">{s}</p>
+                <p className="text-2xl font-bold">{count}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="divide-y divide-gray-100">
+          {mergeData.map((t: any) => (
+            <div key={t.id} className="flex items-center gap-4 px-6 py-3 transition-colors hover:bg-gray-50">
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold shrink-0 text-sm">
+                {t.vorname?.[0]}{t.nachname?.[0]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-800 text-sm">{t.vorname} {t.nachname}</p>
+                <p className="text-xs text-gray-400">{t.gruppe}{t.gruppe === 'Ausbildung' ? ` - Lehrjahr ${t.lehrjahr}` : ''}</p>
+              </div>
+              <select value={lokaleStatus[t.id] ?? t.status} onChange={(e) => handleStatusChange(t.id, e.target.value)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border outline-none ${
+                  (lokaleStatus[t.id] ?? t.status) ? statusBgFarben[lokaleStatus[t.id] ?? t.status] : 'text-gray-600 bg-white border-gray-200'
+                }`}>
+                <option value="">Status waehlen</option>
+                {statusListe.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
