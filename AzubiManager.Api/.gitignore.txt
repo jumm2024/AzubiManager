@@ -1,0 +1,23 @@
+# .NET Build-Ordner
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+
+# Benutzer-Einstellungen
+*.DotSettings.user
+
+# Node (falls Frontend später dazu kommt)
+node_modules/
+dist/
+
+# Entwicklungseinstellungen mit Passwörtern
+appsettings.Development.json
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
