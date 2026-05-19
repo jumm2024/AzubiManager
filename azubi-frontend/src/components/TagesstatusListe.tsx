@@ -111,18 +111,92 @@ export default function TagesstatusListe() {
         </div>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
-        <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div className="text-sm text-amber-800">
-          <p className="font-semibold mb-1">Excel-Import Hinweise</p>
-          <ul className="list-disc list-inside space-y-0.5 text-amber-700">
-            <li>Nur Excel-Dateien (<code className="bg-amber-100 px-1 rounded">.xlsx</code>, <code className="bg-amber-100 px-1 rounded">.xls</code>) werden akzeptiert</li>
-            <li>Erforderliche Spalten: <strong>Teilnehmer</strong> (Spalte A), <strong>Kurs</strong> (Spalte B), <strong>Buchungsbeginn</strong> (Spalte C), <strong>Buchungsende</strong> (Spalte D)</li>
-            <li>Ab Spalte E folgen die Tages-Status-Kürzel pro Tag des Monats</li>
-            <li>Gültige Status-Kürzel: <code className="bg-amber-100 px-1 rounded">A</code> (Anwesend), <code className="bg-amber-100 px-1 rounded">S</code> (Schule), <code className="bg-amber-100 px-1 rounded">P</code> (Praktikum), <code className="bg-amber-100 px-1 rounded">T</code> (Termin), <code className="bg-amber-100 px-1 rounded">U</code> (Urlaub), <code className="bg-amber-100 px-1 rounded">K</code> (Krank), <code className="bg-amber-100 px-1 rounded">KK</code> (Kind krank), <code className="bg-amber-100 px-1 rounded">FD</code> (Freigestellt), <code className="bg-amber-100 px-1 rounded">FE</code> (Entschuldigt), <code className="bg-amber-100 px-1 rounded">FU</code> (Unentschuldigt), <code className="bg-amber-100 px-1 rounded">UN</code> (Ungeklärt)</li>
-          </ul>
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-semibold text-gray-800">Excel-Import Hinweise</h3>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Erforderliche Spalten</p>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">A</span>
+                <span className="text-sm text-gray-700">Teilnehmer</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">B</span>
+                <span className="text-sm text-gray-700">Kurs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">C</span>
+                <span className="text-sm text-gray-700">Buchungsbeginn</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">D</span>
+                <span className="text-sm text-gray-700">Buchungsende</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">E+</span>
+                <span className="text-sm text-gray-700">Tages-Status (pro Tag)</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status-Kürzel</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-green-50">
+                <span className="text-xs font-bold text-green-700 w-6">A</span>
+                <span className="text-xs text-green-600">Anwesend</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-blue-50">
+                <span className="text-xs font-bold text-blue-700 w-6">S</span>
+                <span className="text-xs text-blue-600">Schule</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-purple-50">
+                <span className="text-xs font-bold text-purple-700 w-6">P</span>
+                <span className="text-xs text-purple-600">Praktikum</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-indigo-50">
+                <span className="text-xs font-bold text-indigo-700 w-6">T</span>
+                <span className="text-xs text-indigo-600">Termin</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-yellow-50">
+                <span className="text-xs font-bold text-yellow-700 w-6">U</span>
+                <span className="text-xs text-yellow-600">Urlaub</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-red-50">
+                <span className="text-xs font-bold text-red-700 w-6">K</span>
+                <span className="text-xs text-red-600">Krank</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-pink-50">
+                <span className="text-xs font-bold text-pink-700 w-6">KK</span>
+                <span className="text-xs text-pink-600">Kind krank</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-teal-50">
+                <span className="text-xs font-bold text-teal-700 w-6">FD</span>
+                <span className="text-xs text-teal-600">Freigestellt</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-50">
+                <span className="text-xs font-bold text-emerald-700 w-6">FE</span>
+                <span className="text-xs text-emerald-600">Entschuldigt</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-orange-50">
+                <span className="text-xs font-bold text-orange-700 w-6">FU</span>
+                <span className="text-xs text-orange-600">Unentschuldigt</span>
+              </div>
+              <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-50 col-span-2">
+                <span className="text-xs font-bold text-gray-700 w-6">UN</span>
+                <span className="text-xs text-gray-600">Ungeklärt</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
