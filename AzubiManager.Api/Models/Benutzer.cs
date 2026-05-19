@@ -22,6 +22,7 @@ namespace AzubiManager.Api.Models
         public string Rolle { get; set; } = "Ausbilder";
 
         public DateTime ErstelltAm { get; set; } = DateTime.UtcNow;
+        public bool PasswortGeandert { get; set; }
 
         // Navigation: Ein Ausbilder kann viele Teilnehmer haben
         public ICollection<Teilnehmer> Teilnehmer { get; set; } = new List<Teilnehmer>();

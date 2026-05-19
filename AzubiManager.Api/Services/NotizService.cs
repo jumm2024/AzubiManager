@@ -66,6 +66,32 @@ namespace AzubiManager.Api.Services
             };
         }
 
+        public async Task<NotizDto?> AktualisierenAsync(int id, NotizAktualisierenDto dto)
+        {
+            var notiz = await _db.Notizen.FindAsync(id);
+            if (notiz == null) return null;
+            if (!_currentUser.IstAdmin && notiz.AusbilderId != _currentUser.BenutzerId)
+                throw new UnauthorizedAccessException();
+
+            notiz.Titel = dto.Titel;
+            notiz.Inhalt = dto.Inhalt;
+            notiz.Kategorie = dto.Kategorie;
+            notiz.AzubiId = dto.AzubiId;
+            notiz.AzubiIds = dto.AzubiIds;
+
+            await _db.SaveChangesAsync();
+
+            var ids = notiz.AzubiIds?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList() ?? new();
+            var namen = ids.Count > 0 ? await _db.Teilnehmer.AsNoTracking()
+                .Where(t => ids.Contains(t.Id)).Select(t => t.Vorname + " " + t.Nachname).ToListAsync() : new();
+            return new NotizDto
+            {
+                Id = notiz.Id, Titel = notiz.Titel, Inhalt = notiz.Inhalt,
+                Kategorie = notiz.Kategorie, AzubiIds = notiz.AzubiIds,
+                AzubiName = string.Join(", ", namen), AusbilderId = notiz.AusbilderId, ErstelltAm = notiz.ErstelltAm
+            };
+        }
+
         public async Task<bool> LoeschenAsync(int id)
         {
             var notiz = await _db.Notizen.FindAsync(id);

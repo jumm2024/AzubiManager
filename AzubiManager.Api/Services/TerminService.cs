@@ -69,6 +69,36 @@ namespace AzubiManager.Api.Services
             };
         }
 
+        public async Task<TerminDto?> AktualisierenAsync(int id, TerminAktualisierenDto dto)
+        {
+            var termin = await _db.Termine.FindAsync(id);
+            if (termin == null) return null;
+            if (!_currentUser.IstAdmin && termin.AusbilderId != _currentUser.BenutzerId)
+                throw new UnauthorizedAccessException();
+
+            termin.Titel = dto.Titel;
+            termin.Beschreibung = dto.Beschreibung;
+            termin.Datum = dto.Datum;
+            termin.Endzeit = dto.Endzeit;
+            termin.Kategorie = dto.Kategorie;
+            termin.Ort = dto.Ort;
+            termin.AzubiId = dto.AzubiId;
+            termin.AzubiIds = dto.AzubiIds;
+
+            await _db.SaveChangesAsync();
+
+            var ids = termin.AzubiIds?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList() ?? new();
+            var namen = ids.Count > 0 ? await _db.Teilnehmer.AsNoTracking()
+                .Where(t => ids.Contains(t.Id)).Select(t => t.Vorname + " " + t.Nachname).ToListAsync() : new();
+            return new TerminDto
+            {
+                Id = termin.Id, Titel = termin.Titel, Beschreibung = termin.Beschreibung,
+                Datum = termin.Datum, Endzeit = termin.Endzeit, Kategorie = termin.Kategorie,
+                Ort = termin.Ort, AzubiIds = termin.AzubiIds,
+                AzubiName = string.Join(", ", namen), AusbilderId = termin.AusbilderId
+            };
+        }
+
         public async Task<bool> LoeschenAsync(int id)
         {
             var termin = await _db.Termine.FindAsync(id);

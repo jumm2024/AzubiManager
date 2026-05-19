@@ -35,7 +35,8 @@ namespace AzubiManager.Api.Services
                 Vorname = dto.Vorname,
                 Nachname = dto.Nachname,
                 Rolle = "Ausbilder", // Standard-Rolle
-                ErstelltAm = DateTime.UtcNow
+                ErstelltAm = DateTime.UtcNow,
+                PasswortGeandert = false
             };
 
             _db.Benutzer.Add(benutzer);
@@ -77,6 +78,7 @@ namespace AzubiManager.Api.Services
                 throw new UnauthorizedAccessException("Altes Passwort ist falsch");
 
             benutzer.PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.NeuesPasswort, 12);
+            benutzer.PasswortGeandert = true;
             await _db.SaveChangesAsync();
         }
 
@@ -103,7 +105,7 @@ namespace AzubiManager.Api.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15), // Kurzlebig = sicher
+                expires: DateTime.UtcNow.AddMinutes(240),
                 signingCredentials: credentials
             );
 
@@ -113,7 +115,8 @@ namespace AzubiManager.Api.Services
                 Benutzername = benutzer.Benutzername,
                 Rolle = benutzer.Rolle,
                 Vorname = benutzer.Vorname,
-                BenutzerId = benutzer.Id
+                BenutzerId = benutzer.Id,
+                PasswortGeandert = benutzer.PasswortGeandert
             };
         }
     }

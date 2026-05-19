@@ -27,6 +27,13 @@ export default function AufgabenListe() {
   const [istGlobal, setIstGlobal] = useState(false);
   const [fehler, setFehler] = useState('');
   const [detailAufgabe, setDetailAufgabe] = useState<Aufgabe | null>(null);
+  const [bearbeitenAufgabe, setBearbeitenAufgabe] = useState<Aufgabe | null>(null);
+  const [bearbeitenTitel, setBearbeitenTitel] = useState('');
+  const [bearbeitenBeschreibung, setBearbeitenBeschreibung] = useState('');
+  const [bearbeitenPrioritaet, setBearbeitenPrioritaet] = useState('Mittel');
+  const [bearbeitenFaelligkeitsdatum, setBearbeitenFaelligkeitsdatum] = useState('');
+  const [bearbeitenIstGlobal, setBearbeitenIstGlobal] = useState(false);
+  const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
@@ -85,6 +92,61 @@ export default function AufgabenListe() {
     mutationFn: (id: number) => aufgabenApi.loeschen(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['aufgaben'] }); ladeBadges(); },
   });
+
+  const aktualisierenMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => aufgabenApi.aktualisieren(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
+      ladeBadges();
+      setBearbeitenAufgabe(null);
+    },
+    onError: (error: any) => {
+      const data = error.response?.data;
+      if (typeof data === 'string') {
+        setFehler(data);
+      } else if (data?.title) {
+        setFehler(data.title);
+      } else {
+        setFehler('Fehler beim Aktualisieren');
+      }
+    }
+  });
+
+  const handleBearbeitenOeffnen = (aufgabe: Aufgabe) => {
+    setBearbeitenAufgabe(aufgabe);
+    setBearbeitenTitel(aufgabe.titel);
+    setBearbeitenBeschreibung(aufgabe.beschreibung || '');
+    setBearbeitenPrioritaet(aufgabe.prioritaet);
+    setBearbeitenFaelligkeitsdatum(aufgabe.faelligkeitsdatum.slice(0, 10));
+    setBearbeitenIstGlobal(aufgabe.istGlobal || false);
+    setBearbeitenAzubiIds(aufgabe.azubiId ? [aufgabe.azubiId] : []);
+    setFehler('');
+  };
+
+  const handleAktualisieren = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFehler('');
+    if (!bearbeitenAufgabe) return;
+    if (!bearbeitenTitel.trim()) {
+      setFehler('Titel ist erforderlich');
+      return;
+    }
+    if (!bearbeitenFaelligkeitsdatum) {
+      setFehler('Fälligkeitsdatum ist erforderlich');
+      return;
+    }
+    aktualisierenMutation.mutate({
+      id: bearbeitenAufgabe.id,
+      data: {
+        titel: bearbeitenTitel.trim(),
+        beschreibung: bearbeitenBeschreibung.trim() || undefined,
+        prioritaet: bearbeitenPrioritaet,
+        faelligkeitsdatum: bearbeitenFaelligkeitsdatum,
+        istGlobal: bearbeitenIstGlobal,
+        azubiIds: bearbeitenAzubiIds.length > 0 ? bearbeitenAzubiIds.join(',') : undefined,
+      }
+    });
+  };
 
   const handleErstellen = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,63 +302,59 @@ export default function AufgabenListe() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Aufgaben</h3>
+            <span className="text-xs text-gray-400">{data?.length || 0} Einträge</span>
           </div>
-          <div className="px-6 py-2 bg-gray-50/50 flex items-center gap-3 text-xs font-medium text-gray-400 border-b border-gray-100">
-            <div className="w-[18px] shrink-0" />
-            <div className="w-2 shrink-0" />
-            <div className="flex-1">Titel</div>
-            <div className="w-20 text-center">Priorität</div>
-            <div className="w-24 text-center">Fälligkeit</div>
-            {artFilter !== 'eigene' && <div className="w-24 text-center">Teilnehmer</div>}
-            <div className="w-8 shrink-0" />
-          </div>
-          <div className="divide-y divide-gray-50">
+          <div className="p-3 space-y-2">
             {data?.map((aufgabe: Aufgabe) => (
               <div key={aufgabe.id} onClick={() => setDetailAufgabe(aufgabe)}
-                className={`flex items-center gap-3 px-6 py-3.5 transition-all cursor-pointer ${
+                className={`group flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                   aufgabe.erledigt
-                    ? 'opacity-40'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-gray-50/50 border-gray-100 opacity-60'
+                    : 'bg-white border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5'
                 }`}>
-                <input
-                  type="checkbox"
-                  checked={aufgabe.erledigt}
-                  onChange={() => toggleMutation.mutate(aufgabe.id)}
-                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0"
-                />
-                <span className={`w-2 h-2 rounded-full shrink-0 ${
-                  aufgabe.prioritaet === 'Hoch' ? 'bg-red-500' :
-                  aufgabe.prioritaet === 'Mittel' ? 'bg-amber-400' : 'bg-green-500'
+                <div className={`w-1 self-stretch rounded-full shrink-0 mt-0.5 ${
+                  aufgabe.prioritaet === 'Hoch' ? 'bg-red-400' :
+                  aufgabe.prioritaet === 'Mittel' ? 'bg-amber-400' : 'bg-green-400'
                 }`} />
+                <input type="checkbox" checked={aufgabe.erledigt}
+                  onChange={() => toggleMutation.mutate(aufgabe.id)}
+                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <span className={`text-sm truncate block ${aufgabe.erledigt ? 'text-gray-400 line-through' : 'text-gray-800 font-medium'}`}>
-                    {aufgabe.titel}
-                  </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className={`text-sm truncate ${aufgabe.erledigt ? 'text-gray-400 line-through' : 'text-gray-800 font-medium'}`}>
+                      {aufgabe.titel}
+                    </span>
+                    <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={(e) => { e.stopPropagation(); handleBearbeitenOeffnen(aufgabe); }}
+                        className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">✎</button>
+                      <button onClick={(e) => { e.stopPropagation(); if (confirm('Aufgabe löschen?')) loescheMutation.mutate(aufgabe.id); }}
+                        className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">✕</button>
+                    </div>
+                  </div>
                   {aufgabe.beschreibung && (
-                    <span className="text-xs text-gray-400 truncate block">{aufgabe.beschreibung}</span>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{aufgabe.beschreibung}</p>
                   )}
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded ${
+                      aufgabe.prioritaet === 'Hoch' ? 'text-red-600 bg-red-50' :
+                      aufgabe.prioritaet === 'Mittel' ? 'text-amber-600 bg-amber-50' : 'text-green-600 bg-green-50'
+                    }`}>
+                      {aufgabe.prioritaet}
+                    </span>
+                    <span className={`text-[11px] ${
+                      !aufgabe.erledigt && new Date(aufgabe.faelligkeitsdatum) < new Date()
+                        ? 'text-red-500 font-medium'
+                        : 'text-gray-400'
+                    }`}>
+                      {new Date(aufgabe.faelligkeitsdatum).toLocaleDateString('de-DE')}
+                    </span>
+                    {aufgabe.azubiName && (
+                      <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{aufgabe.azubiName}</span>
+                    )}
+                  </div>
                 </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded shrink-0 ${
-                  aufgabe.prioritaet === 'Hoch' ? 'text-red-600 bg-red-50' :
-                  aufgabe.prioritaet === 'Mittel' ? 'text-amber-600 bg-amber-50' : 'text-green-600 bg-green-50'
-                }`}>
-                  {aufgabe.prioritaet}
-                </span>
-                <span className="text-xs text-gray-400 w-24 text-center shrink-0">
-                  {new Date(aufgabe.faelligkeitsdatum).toLocaleDateString('de-DE')}
-                </span>
-                {artFilter !== 'eigene' && (
-                  <span className="text-xs text-gray-400 w-24 text-center truncate shrink-0">
-                    {aufgabe.azubiName || '—'}
-                  </span>
-                )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); if (confirm('Aufgabe löschen?')) loescheMutation.mutate(aufgabe.id); }}
-                  className="text-gray-300 hover:text-red-500 text-xs shrink-0 transition-colors w-8 text-center">
-                  ✕
-                </button>
               </div>
             ))}
             {data?.length === 0 && (
@@ -349,9 +407,86 @@ export default function AufgabenListe() {
               <label className="text-sm text-gray-600 cursor-pointer select-none" onClick={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}>
                 {detailAufgabe.erledigt ? 'Als offen markieren' : 'Als erledigt markieren'}
               </label>
+              <button onClick={() => { handleBearbeitenOeffnen(detailAufgabe); setDetailAufgabe(null); }}
+                className="ml-2 text-sm text-blue-500 hover:text-blue-700 font-medium">Bearbeiten</button>
               <button onClick={() => { if (confirm('Aufgabe löschen?')) { loescheMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); } }}
-                className="ml-auto text-sm text-red-500 hover:text-red-700 font-medium">Löschen</button>
+                className="ml-2 text-sm text-red-500 hover:text-red-700 font-medium">Löschen</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {bearbeitenAufgabe && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setBearbeitenAufgabe(null)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Aufgabe bearbeiten</h3>
+              <button onClick={() => setBearbeitenAufgabe(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+            <form onSubmit={handleAktualisieren} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+                <input type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Aufgabentitel" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+                <textarea value={bearbeitenBeschreibung} onChange={(e) => setBearbeitenBeschreibung(e.target.value)} rows={2}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  placeholder="Beschreibung (optional)" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
+                  <select value={bearbeitenPrioritaet} onChange={(e) => setBearbeitenPrioritaet(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="Hoch">Hoch</option>
+                    <option value="Mittel">Mittel</option>
+                    <option value="Niedrig">Niedrig</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
+                  <input type="date" value={bearbeitenFaelligkeitsdatum} onChange={(e) => setBearbeitenFaelligkeitsdatum(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer (mehrere wählbar)</label>
+                <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
+                  {teilnehmer?.map((t: any) => (
+                    <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
+                      <input type="checkbox" checked={bearbeitenAzubiIds.includes(t.id)}
+                        onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
+                        className="w-4 h-4 rounded accent-blue-600" />
+                      {t.vorname} {t.nachname}
+                    </label>
+                  ))}
+                  {(!teilnehmer || teilnehmer.length === 0) && <p className="text-xs text-gray-400 px-2">Keine Teilnehmer</p>}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="bearbeitenIstGlobal" checked={bearbeitenIstGlobal} onChange={(e) => setBearbeitenIstGlobal(e.target.checked)}
+                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
+                <label htmlFor="bearbeitenIstGlobal" className="text-sm text-gray-600 cursor-pointer select-none">Für alle Ausbilder sichtbar</label>
+              </div>
+
+              {fehler && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{fehler}</div>
+              )}
+
+              <div className="flex gap-2">
+                <button type="submit" disabled={aktualisierenMutation.isPending}
+                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  {aktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                </button>
+                <button type="button" onClick={() => setBearbeitenAufgabe(null)}
+                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                  Abbrechen
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

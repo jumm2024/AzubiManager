@@ -22,6 +22,8 @@ export const authApi = {
     api.post('/auth/login', { benutzername, passwort }),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
+  passwortAendern: (altesPasswort: string, neuesPasswort: string) =>
+    api.post('/auth/passwort-aendern', { altesPasswort, neuesPasswort }),
 };
 
 export const dashboardApi = {
@@ -50,11 +52,13 @@ export const aufgabenApi = {
 export const notizenApi = {
   alle: () => api.get('/notizen'),
   erstellen: (data: any) => api.post('/notizen', data),
+  aktualisieren: (id: number, data: any) => api.put(`/notizen/${id}`, data),
   loeschen: (id: number) => api.delete(`/notizen/${id}`),
 };
 export const termineApi = {
   alle: () => api.get('/termine'),
   erstellen: (data: any) => api.post('/termine', data),
+  aktualisieren: (id: number, data: any) => api.put(`/termine/${id}`, data),
   loeschen: (id: number) => api.delete(`/termine/${id}`),
 };
 export const tagesstatusApi = {

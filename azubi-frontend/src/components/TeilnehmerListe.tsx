@@ -41,6 +41,14 @@ export default function TeilnehmerListe() {
   const [ausbildungsende, setAusbildungsende] = useState('');
   const [fehler, setFehler] = useState('');
   const [erfolg, setErfolg] = useState('');
+  const [bearbeitenTeilnehmer, setBearbeitenTeilnehmer] = useState<Teilnehmer | null>(null);
+  const [bearbeitenVorname, setBearbeitenVorname] = useState('');
+  const [bearbeitenNachname, setBearbeitenNachname] = useState('');
+  const [bearbeitenGruppe, setBearbeitenGruppe] = useState('Ausbildung');
+  const [bearbeitenLehrjahr, setBearbeitenLehrjahr] = useState(1);
+  const [bearbeitenAbteilung, setBearbeitenAbteilung] = useState('');
+  const [bearbeitenAusbildungsstart, setBearbeitenAusbildungsstart] = useState('');
+  const [bearbeitenAusbildungsende, setBearbeitenAusbildungsende] = useState('');
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
@@ -77,6 +85,59 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.loeschen(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teilnehmer'] }); ladeBadges(); },
   });
+
+  const aktualisierenMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => teilnehmerApi.aktualisieren(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
+      ladeBadges();
+      setBearbeitenTeilnehmer(null);
+      setErfolg('Teilnehmer aktualisiert');
+      setTimeout(() => setErfolg(''), 3000);
+    },
+    onError: (error: any) => {
+      const d = error.response?.data;
+      if (typeof d === 'string') setFehler(d);
+      else if (d?.title) setFehler(d.title);
+      else setFehler('Fehler beim Aktualisieren');
+    }
+  });
+
+  const handleBearbeitenOeffnen = (t: Teilnehmer) => {
+    setBearbeitenTeilnehmer(t);
+    setBearbeitenVorname(t.vorname);
+    setBearbeitenNachname(t.nachname);
+    setBearbeitenGruppe(t.gruppe);
+    setBearbeitenLehrjahr(t.lehrjahr);
+    setBearbeitenAbteilung(t.abteilung || '');
+    setBearbeitenAusbildungsstart(t.ausbildungsstart ? t.ausbildungsstart.slice(0, 10) : '');
+    setBearbeitenAusbildungsende(t.ausbildungsende ? t.ausbildungsende.slice(0, 10) : '');
+    setFehler('');
+  };
+
+  const handleAktualisieren = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFehler('');
+    if (!bearbeitenTeilnehmer) return;
+    if (!bearbeitenVorname.trim()) { setFehler('Vorname ist erforderlich'); return; }
+    if (!bearbeitenNachname.trim()) { setFehler('Nachname ist erforderlich'); return; }
+    if (bearbeitenGruppe === 'Ausbildung') {
+      if (!bearbeitenAusbildungsstart) { setFehler('Ausbildungsstart ist erforderlich'); return; }
+      if (!bearbeitenAusbildungsende) { setFehler('Ausbildungsende ist erforderlich'); return; }
+      if (bearbeitenAusbildungsstart >= bearbeitenAusbildungsende) { setFehler('Ende muss nach dem Start liegen'); return; }
+    }
+
+    const body: any = {
+      vorname: bearbeitenVorname.trim(),
+      nachname: bearbeitenNachname.trim(),
+      gruppe: bearbeitenGruppe,
+      lehrjahr: bearbeitenGruppe === 'Ausbildung' ? bearbeitenLehrjahr : 1,
+      abteilung: bearbeitenAbteilung.trim() || undefined,
+      ausbildungsstart: bearbeitenAusbildungsstart || undefined,
+      ausbildungsende: bearbeitenAusbildungsende || undefined,
+    };
+    aktualisierenMutation.mutate({ id: bearbeitenTeilnehmer.id, data: body });
+  };
 
   const handleErstellen = (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,47 +284,131 @@ export default function TeilnehmerListe() {
           </form>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Alle Teilnehmer ({data?.length || 0})</h3>
-          <div className="space-y-2">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-gray-800">Alle Teilnehmer</h3>
+            <span className="text-xs text-gray-400">{data?.length || 0} Einträge</span>
+          </div>
+          <div className="p-3 space-y-2">
             {data?.map((t: Teilnehmer) => (
-              <div key={t.id} className="p-4 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold shrink-0">
-                      {t.vorname[0]}{t.nachname[0]}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-800">{t.vorname} {t.nachname}</h4>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${gruppeFarben[t.gruppe] || 'bg-gray-100 text-gray-600'}`}>
-                          {t.gruppe}
-                        </span>
-                        {t.gruppe === 'Ausbildung' && t.lehrjahr > 0 && (
-                          <span className="text-xs text-gray-400">{t.lehrjahr}. Ausbildungsjahr</span>
-                        )}
-                      </div>
+              <div key={t.id} className="group flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 ${
+                  t.gruppe === 'Ausbildung' ? 'bg-blue-500' :
+                  t.gruppe === 'BVB' ? 'bg-orange-500' :
+                  t.gruppe === 'Erprober' ? 'bg-green-500' : 'bg-purple-500'
+                }`}>
+                  {t.vorname[0]}{t.nachname[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-medium text-gray-800 text-sm">{t.vorname} {t.nachname}</h4>
+                    <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleBearbeitenOeffnen(t)}
+                        className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">Bearbeiten</button>
+                      <button onClick={() => { if (confirm('Teilnehmer loeschen?')) loescheMutation.mutate(t.id); }}
+                        className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
                     </div>
                   </div>
-                  <button onClick={() => { if (confirm('Teilnehmer loeschen?')) loescheMutation.mutate(t.id); }}
-                    className="text-red-400 hover:text-red-600 shrink-0 text-xs mt-1">Loeschen</button>
-                </div>
-                {t.abteilung || (t.ausbildungsstart && t.ausbildungsstart !== '0001-01-01') ? (
-                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 ml-[52px]">
-                    {t.abteilung && <span>{t.abteilung}</span>}
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${gruppeFarben[t.gruppe] || 'bg-gray-100 text-gray-600'}`}>
+                      {t.gruppe}
+                    </span>
+                    {t.gruppe === 'Ausbildung' && t.lehrjahr > 0 && (
+                      <span className="text-[11px] text-gray-400">{t.lehrjahr}. Ausbildungsjahr</span>
+                    )}
+                    {t.abteilung && (
+                      <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{t.abteilung}</span>
+                    )}
                     {t.ausbildungsstart && t.ausbildungsstart !== '0001-01-01' && (
-                      <span>{new Date(t.ausbildungsstart).toLocaleDateString('de-DE')} - {t.ausbildungsende && t.ausbildungsende !== '0001-01-01' ? new Date(t.ausbildungsende).toLocaleDateString('de-DE') : ''}</span>
+                      <span className="text-[11px] text-gray-400">
+                        {new Date(t.ausbildungsstart).toLocaleDateString('de-DE')} – {t.ausbildungsende && t.ausbildungsende !== '0001-01-01' ? new Date(t.ausbildungsende).toLocaleDateString('de-DE') : '?'}
+                      </span>
                     )}
                   </div>
-                ) : null}
+                </div>
               </div>
             ))}
             {data?.length === 0 && (
-              <p className="text-gray-400 text-center py-8 text-sm">Keine Teilnehmer vorhanden</p>
+              <p className="text-gray-400 text-center py-10 text-sm">Keine Teilnehmer vorhanden</p>
             )}
           </div>
         </div>
       </div>
+      {bearbeitenTeilnehmer && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setBearbeitenTeilnehmer(null)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Teilnehmer bearbeiten</h3>
+              <button onClick={() => setBearbeitenTeilnehmer(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+            <form onSubmit={handleAktualisieren} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vorname *</label>
+                  <input type="text" value={bearbeitenVorname} onChange={(e) => setBearbeitenVorname(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nachname *</label>
+                  <input type="text" value={bearbeitenNachname} onChange={(e) => setBearbeitenNachname(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Gruppe</label>
+                  <select value={bearbeitenGruppe} onChange={(e) => { setBearbeitenGruppe(e.target.value); if (e.target.value !== 'Ausbildung') setBearbeitenLehrjahr(0); else if (bearbeitenLehrjahr === 0) setBearbeitenLehrjahr(1); }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    {gruppen.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                {bearbeitenGruppe === 'Ausbildung' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Lehrjahr</label>
+                    <select value={bearbeitenLehrjahr} onChange={(e) => setBearbeitenLehrjahr(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                      {[1,2,3,4].map(j => <option key={j} value={j}>{j}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Abteilung</label>
+                  <input type="text" value={bearbeitenAbteilung} onChange={(e) => setBearbeitenAbteilung(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="z.B. IT" />
+                </div>
+                {bearbeitenGruppe === 'Ausbildung' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
+                      <input type="date" value={bearbeitenAusbildungsstart} onChange={(e) => setBearbeitenAusbildungsstart(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ende</label>
+                      <input type="date" value={bearbeitenAusbildungsende} onChange={(e) => setBearbeitenAusbildungsende(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {fehler && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{fehler}</div>
+              )}
+
+              <div className="flex gap-2">
+                <button type="submit" disabled={aktualisierenMutation.isPending}
+                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  {aktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                </button>
+                <button type="button" onClick={() => setBearbeitenTeilnehmer(null)}
+                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                  Abbrechen
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

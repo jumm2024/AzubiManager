@@ -20,6 +20,17 @@ namespace AzubiManager.Api.Controllers
         public async Task<ActionResult<TerminDto>> Erstellen([FromBody] TerminErstellenDto dto)
             => Ok(await _service.ErstellenAsync(dto));
 
+        [HttpPut("{id}")]
+        public async Task<ActionResult<TerminDto>> Aktualisieren(int id, [FromBody] TerminAktualisierenDto dto)
+        {
+            try
+            {
+                var result = await _service.AktualisierenAsync(id, dto);
+                return result == null ? NotFound() : Ok(result);
+            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> Loeschen(int id)
         {

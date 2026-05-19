@@ -7,5 +7,6 @@
         public string Rolle { get; set; } = string.Empty;
         public string? Vorname { get; set; }
         public int BenutzerId { get; set; }
+        public bool PasswortGeandert { get; set; }
     }
 }

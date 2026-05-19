@@ -33,10 +33,10 @@ namespace AzubiManager.Api.Controllers
                     HttpOnly = true,
                     Secure = false, // true in Produktion (HTTPS)
                     SameSite = SameSiteMode.Lax,
-                    Expires = DateTime.UtcNow.AddMinutes(15)
+                    Expires = DateTime.UtcNow.AddMinutes(240)
                 });
 
-                return Ok(new { response.BenutzerId, response.Benutzername, response.Rolle, response.Vorname });
+                return Ok(new { response.BenutzerId, response.Benutzername, response.Rolle, response.Vorname, response.PasswortGeandert });
             }
             catch (UnauthorizedAccessException)
             {
