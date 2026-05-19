@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagesstatusApi, teilnehmerApi } from '../api/client';
+import { Upload, Download, FileText, CalendarDays } from 'lucide-react';
 
 const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklaert'];
 
@@ -82,48 +83,72 @@ export default function TagesstatusListe() {
         <h2 className="text-2xl font-bold text-gray-800">Tagesstatus</h2>
         {importMsg && <span className="text-sm text-green-600">{importMsg}</span>}
         <div className="flex items-center gap-3">
-          <input type="file" accept=".xlsx,.xls" onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            setImportMsg('');
-            try {
-              const res = await tagesstatusApi.import(file);
-              setImportMsg(`${res.data.imported} Einträge importiert`);
-              queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] });
-            } catch { setImportMsg('Import fehlgeschlagen'); }
-            e.target.value = '';
-          }} className="hidden" id="excel-import" />
-          <label htmlFor="excel-import"
-            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer">
-            Excel Import
-          </label>
-          <button onClick={async () => {
-            const res = await tagesstatusApi.export(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
-            const url = URL.createObjectURL(res.data);
-            const a = document.createElement('a'); a.href = url; a.download = `Tagesstatus_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
-            URL.revokeObjectURL(url);
-          }}
-            className="px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
-            Excel Export
-          </button>
-          <button onClick={async () => {
-            const res = await tagesstatusApi.bericht(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
-            const url = URL.createObjectURL(res.data);
-            const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
-            URL.revokeObjectURL(url);
-          }}
-            className="px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
-            Azubi-Bericht
-          </button>
-          <button onClick={async () => {
-            const res = await tagesstatusApi.berichtGesamt();
-            const url = URL.createObjectURL(res.data);
-            const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_Gesamt.xlsx`; a.click();
-            URL.revokeObjectURL(url);
-          }}
-            className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
-            Gesamt-Bericht
-          </button>
+          <div className="relative group">
+            <input type="file" accept=".xlsx,.xls" onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setImportMsg('');
+              try {
+                const res = await tagesstatusApi.import(file);
+                setImportMsg(`${res.data.imported} Einträge importiert`);
+                queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] });
+              } catch { setImportMsg('Import fehlgeschlagen'); }
+              e.target.value = '';
+            }} className="hidden" id="excel-import" />
+            <label htmlFor="excel-import"
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer">
+              <Upload className="w-4 h-4" />
+              Import
+            </label>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Excel-Datei hochladen (.xlsx/.xls)
+            </div>
+          </div>
+          <div className="relative group">
+            <button onClick={async () => {
+              const res = await tagesstatusApi.export(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
+              const url = URL.createObjectURL(res.data);
+              const a = document.createElement('a'); a.href = url; a.download = `Tagesstatus_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
+              URL.revokeObjectURL(url);
+            }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Tagesstatus-Tabelle für diesen Monat
+            </div>
+          </div>
+          <div className="relative group">
+            <button onClick={async () => {
+              const res = await tagesstatusApi.bericht(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
+              const url = URL.createObjectURL(res.data);
+              const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
+              URL.revokeObjectURL(url);
+            }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
+              <FileText className="w-4 h-4" />
+              Monats-Bericht
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Status-Zusammenfassung pro Azubi für diesen Monat
+            </div>
+          </div>
+          <div className="relative group">
+            <button onClick={async () => {
+              const res = await tagesstatusApi.berichtGesamt();
+              const url = URL.createObjectURL(res.data);
+              const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_Gesamt.xlsx`; a.click();
+              URL.revokeObjectURL(url);
+            }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
+              <CalendarDays className="w-4 h-4" />
+              Gesamt-Bericht
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Status-Zusammenfassung aller Zeiten + Ausbildungszeiträume
+            </div>
+          </div>
           <input id="tagesstatus-datum" name="datum" type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
             className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
         </div>
