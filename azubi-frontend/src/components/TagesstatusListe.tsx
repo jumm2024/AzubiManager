@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagesstatusApi, teilnehmerApi } from '../api/client';
 import { Upload, Download, FileText, CalendarDays } from 'lucide-react';
 
-const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklaert'];
+const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklärt'];
 
 const statusFarben: Record<string, string> = {
   Anwesend: 'bg-green-500',
@@ -16,7 +16,7 @@ const statusFarben: Record<string, string> = {
   Freigestellt: 'bg-teal-500',
   Entschuldigt: 'bg-emerald-500',
   Unentschuldigt: 'bg-orange-500',
-  Ungeklaert: 'bg-gray-400',
+  'Ungeklärt': 'bg-gray-400',
 };
 
 const statusBgFarben: Record<string, string> = {
@@ -30,7 +30,7 @@ const statusBgFarben: Record<string, string> = {
   Freigestellt: 'bg-teal-50 border-teal-200 text-teal-700',
   Entschuldigt: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   Unentschuldigt: 'bg-orange-50 border-orange-200 text-orange-700',
-  Ungeklaert: 'bg-gray-50 border-gray-200 text-gray-700',
+  'Ungeklärt': 'bg-gray-50 border-gray-200 text-gray-700',
 };
 
 export default function TagesstatusListe() {
@@ -257,7 +257,7 @@ export default function TagesstatusListe() {
                 <span className="text-xs text-orange-600">Unentschuldigt</span>
               </div>
               <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-50 col-span-2">
-                <span className="text-xs font-bold text-gray-700 w-6">UN</span>
+                <span className="text-xs font-bold text-gray-700 w-6">Ung</span>
                 <span className="text-xs text-gray-600">Ungeklärt</span>
               </div>
             </div>
@@ -375,7 +375,7 @@ export default function TagesstatusListe() {
                   <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">B</span> Kurs</div>
                   <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">C</span> Buchungsbeginn</div>
                   <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">D</span> Buchungsende</div>
-                  <div className="flex items-center gap-1.5 col-span-2"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">E+</span> Tages-Status (A, S, P, T, U, K, KK, FD, FE, FU, UN)</div>
+                  <div className="flex items-center gap-1.5 col-span-2"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">E+</span> Tages-Status (A, S, P, T, U, K, KK, FD, FE, FU, Ung)</div>
                 </div>
               </div>
             </div>

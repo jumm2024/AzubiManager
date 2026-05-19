@@ -37,7 +37,7 @@ export default function Dashboard() {
     { label: 'Freigestellt', wert: data?.freigestellt, color: 'bg-teal-500', bg: 'bg-teal-50' },
     { label: 'Entschuldigt', wert: data?.entschuldigt, color: 'bg-emerald-500', bg: 'bg-emerald-50' },
     { label: 'Unentschuldigt', wert: data?.unentschuldigt, color: 'bg-orange-500', bg: 'bg-orange-50' },
-    { label: 'Ungeklaert', wert: data?.ungeklaert, color: 'bg-gray-400', bg: 'bg-gray-50' },
+    { label: 'Ungeklärt', wert: data?.ungeklaert, color: 'bg-gray-400', bg: 'bg-gray-50' },
   ];
 
   if (isLoading) return (

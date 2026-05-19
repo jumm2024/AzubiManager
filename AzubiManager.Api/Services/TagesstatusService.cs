@@ -107,6 +107,8 @@ namespace AzubiManager.Api.Services
             ["FD"] = "Freigestellt",
             ["FE"] = "Entschuldigt",
             ["FU"] = "Unentschuldigt",
+            ["Ung"] = "Ungeklärt",
+            ["UN"] = "Ungeklärt",
         };
 
         private static string MapStatus(string? raw)
