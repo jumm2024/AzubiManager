@@ -8,7 +8,7 @@ export default function MainLayout() {
 
   const ladeBadges = async () => {
     try {
-      const [_dashboardRes, teilnehmerRes, aufgabenRes, termineRes, notizenRes] = await Promise.all([
+      const [, teilnehmerRes, aufgabenRes, termineRes, notizenRes] = await Promise.all([
         dashboardApi.get(),
         teilnehmerApi.alle().catch(() => ({ data: [] })),
         aufgabenApi.alle(false).catch(() => ({ data: [] })),
@@ -28,8 +28,9 @@ export default function MainLayout() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void ladeBadges();
-  }, []); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
 
   return (
     <div className="flex min-h-screen">

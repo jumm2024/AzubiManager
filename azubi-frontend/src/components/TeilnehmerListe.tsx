@@ -52,13 +52,13 @@ export default function TeilnehmerListe() {
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
-  const { data, isLoading } = useQuery<Teilnehmer[]>({
+  const { data, isLoading } = useQuery({
     queryKey: ['teilnehmer', gruppeFilter],
-    queryFn: () => teilnehmerApi.alle(gruppeFilter || undefined).then(res => res.data)
+    queryFn: () => teilnehmerApi.alle(gruppeFilter || undefined).then(res => res.data as unknown as Teilnehmer[])
   });
 
   const erstelleMutation = useMutation({
-    mutationFn: (d: any) => teilnehmerApi.erstellen(d),
+    mutationFn: (d: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string }) => teilnehmerApi.erstellen(d),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
       ladeBadges();
@@ -73,7 +73,7 @@ export default function TeilnehmerListe() {
       setErfolg('Teilnehmer erstellt');
       setTimeout(() => setErfolg(''), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const d = error.response?.data;
       if (typeof d === 'string') setFehler(d);
       else if (d?.title) setFehler(d.title);
@@ -87,7 +87,7 @@ export default function TeilnehmerListe() {
   });
 
   const aktualisierenMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => teilnehmerApi.aktualisieren(id, data),
+    mutationFn: ({ id, data }: { id: number; data: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string } }) => teilnehmerApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
       ladeBadges();
@@ -95,7 +95,7 @@ export default function TeilnehmerListe() {
       setErfolg('Teilnehmer aktualisiert');
       setTimeout(() => setErfolg(''), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const d = error.response?.data;
       if (typeof d === 'string') setFehler(d);
       else if (d?.title) setFehler(d.title);
@@ -127,7 +127,7 @@ export default function TeilnehmerListe() {
       if (bearbeitenAusbildungsstart >= bearbeitenAusbildungsende) { setFehler('Ende muss nach dem Start liegen'); return; }
     }
 
-    const body: any = {
+    const body: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string } = {
       vorname: bearbeitenVorname.trim(),
       nachname: bearbeitenNachname.trim(),
       gruppe: bearbeitenGruppe,
@@ -152,7 +152,7 @@ export default function TeilnehmerListe() {
       if (ausbildungsstart >= ausbildungsende) { setFehler('Ende muss nach dem Start liegen'); return; }
     }
 
-    const body: any = {
+    const body: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string } = {
       vorname: vorname.trim(),
       nachname: nachname.trim(),
       gruppe,

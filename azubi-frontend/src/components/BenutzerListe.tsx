@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { benutzerApi } from '../api/client';
+import type { Benutzer } from '../api/client';
 import api from '../api/client';
 
 export default function BenutzerListe() {
@@ -25,7 +26,7 @@ export default function BenutzerListe() {
   });
 
   const erstelleMutation = useMutation({
-    mutationFn: (data: any) => benutzerApi.erstellen(data),
+    mutationFn: (data: { benutzername: string; passwort: string; vorname?: string; nachname?: string; rolle: string }) => benutzerApi.erstellen(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['benutzer'] });
       setNeuerBenutzername('');
@@ -36,7 +37,7 @@ export default function BenutzerListe() {
       setErfolg('Benutzer erfolgreich erstellt');
       setTimeout(() => setErfolg(''), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const data = error.response?.data;
       if (typeof data === 'string') {
         setFehler(data);
@@ -62,7 +63,7 @@ export default function BenutzerListe() {
       setErfolg('Passwort erfolgreich zurueckgesetzt');
       setTimeout(() => setErfolg(''), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const data = error.response?.data;
       if (typeof data === 'string') {
         setFehler(data);
@@ -116,8 +117,8 @@ export default function BenutzerListe() {
     });
   };
 
-  const adminCount = benutzer?.filter((u: any) => u.rolle === 'Admin').length || 0;
-  const ausbilderCount = benutzer?.filter((u: any) => u.rolle === 'Ausbilder').length || 0;
+  const adminCount = benutzer?.filter((u: Benutzer) => u.rolle === 'Admin').length || 0;
+  const ausbilderCount = benutzer?.filter((u: Benutzer) => u.rolle === 'Ausbilder').length || 0;
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
@@ -274,7 +275,7 @@ export default function BenutzerListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Alle Benutzer ({benutzer?.length || 0})</h3>
           <div className="space-y-2">
-            {benutzer?.map((u: any) => (
+            {benutzer?.map((u: Benutzer) => (
               <div key={u.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold shrink-0">

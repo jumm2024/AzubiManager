@@ -34,8 +34,9 @@ export default function Sidebar({ badges }: SidebarProps) {
       setPwAlt('');
       setPwNeu('');
       setTimeout(() => setPwModal(false), 1500);
-    } catch (err: any) {
-      const d = err.response?.data;
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: string | { fehler?: string } } };
+      const d = error.response?.data;
       if (typeof d === 'string') setPwFehler(d);
       else if (d?.fehler) setPwFehler(d.fehler);
       else setPwFehler('Fehler beim Ändern');

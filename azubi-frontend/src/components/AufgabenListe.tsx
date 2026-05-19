@@ -2,6 +2,7 @@ import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aufgabenApi, teilnehmerApi } from '../api/client';
+import type { Teilnehmer } from '../api/client';
 
 interface Aufgabe {
   id: number;
@@ -57,7 +58,7 @@ export default function AufgabenListe() {
   });
 
   const erstelleMutation = useMutation({
-    mutationFn: (data: any) => aufgabenApi.erstellen(data),
+    mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
       ladeBadges();
@@ -68,7 +69,7 @@ export default function AufgabenListe() {
       setAzubiIds([]);
       setFehler('');
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const data = error.response?.data;
       if (typeof data === 'string') {
         setFehler(data);
@@ -84,7 +85,7 @@ export default function AufgabenListe() {
     mutationFn: (id: number) => aufgabenApi.toggleErledigt(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
-      try { ladeBadges(); } catch {}
+      try { ladeBadges(); } catch { /* ignore */ }
     },
   });
 
@@ -94,13 +95,13 @@ export default function AufgabenListe() {
   });
 
   const aktualisierenMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => aufgabenApi.aktualisieren(id, data),
+    mutationFn: ({ id, data }: { id: number; data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string } }) => aufgabenApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
       ladeBadges();
       setBearbeitenAufgabe(null);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const data = error.response?.data;
       if (typeof data === 'string') {
         setFehler(data);
@@ -272,7 +273,7 @@ export default function AufgabenListe() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer (mehrere wählbar)</label>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
-                  {teilnehmer?.map((t: any) => (
+                  {teilnehmer?.map((t: Teilnehmer) => (
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                       <input type="checkbox" checked={azubiIds.includes(t.id)}
                         onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
@@ -455,7 +456,7 @@ export default function AufgabenListe() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer (mehrere wählbar)</label>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
-                  {teilnehmer?.map((t: any) => (
+                  {teilnehmer?.map((t: Teilnehmer) => (
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                       <input type="checkbox" checked={bearbeitenAzubiIds.includes(t.id)}
                         onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}

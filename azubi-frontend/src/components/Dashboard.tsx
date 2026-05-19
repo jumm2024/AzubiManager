@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi, termineApi, notizenApi } from '../api/client';
+import type { Termin, Notiz, Aufgabe } from '../api/client';
 
 export default function Dashboard() {
   const { data, isLoading } = useQuery({
@@ -11,8 +12,8 @@ export default function Dashboard() {
     queryKey: ['termine', 'anstehend'],
     queryFn: () => termineApi.alle().then(res =>
       res.data
-        .filter((t: any) => new Date(t.datum) >= new Date())
-        .sort((a: any, b: any) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
+        .filter((t: Termin) => new Date(t.datum) >= new Date())
+        .sort((a: Termin, b: Termin) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
         .slice(0, 5)
     ),
   });
@@ -21,7 +22,7 @@ export default function Dashboard() {
     queryKey: ['notizen', 'dashboard'],
     queryFn: () => notizenApi.alle().then(res =>
       res.data
-        .sort((a: any, b: any) => new Date(b.erstelltAm).getTime() - new Date(a.erstelltAm).getTime())
+        .sort((a: Notiz, b: Notiz) => new Date(b.erstelltAm).getTime() - new Date(a.erstelltAm).getTime())
         .slice(0, 5)
     ),
   });
@@ -118,7 +119,7 @@ export default function Dashboard() {
         </div>
         {termine && termine.length > 0 ? (
           <div className="space-y-2">
-            {termine.map((t: any) => {
+            {termine.map((t: Termin) => {
               const start = new Date(t.datum);
               const end = t.endzeit ? new Date(t.endzeit) : null;
               const isToday = start.toDateString() === new Date().toDateString();
@@ -173,7 +174,7 @@ export default function Dashboard() {
           </div>
           {data.aufgabenHeute?.length > 0 ? (
             <div className="space-y-1">
-              {data.aufgabenHeute.map((aufgabe: any) => (
+              {data.aufgabenHeute.map((aufgabe: Aufgabe) => (
                 <div key={aufgabe.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors">
                   <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${
                     aufgabe.prioritaet === 'Hoch' ? 'bg-red-500' : 
@@ -204,7 +205,7 @@ export default function Dashboard() {
           </div>
           {notizen && notizen.length > 0 ? (
             <div className="space-y-2">
-              {notizen.map((n: any) => (
+              {notizen.map((n: Notiz) => (
                 <div key={n.id} className="p-3 rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all bg-white">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="font-medium text-gray-800 text-sm">{n.titel}</h4>

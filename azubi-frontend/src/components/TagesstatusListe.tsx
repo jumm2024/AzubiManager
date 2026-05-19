@@ -50,18 +50,18 @@ export default function TagesstatusListe() {
   });
 
   const setzenMutation = useMutation({
-    mutationFn: (d: any) => tagesstatusApi.setzen(d),
+    mutationFn: (d: { azubiId: number; datum: string; status: string; bemerkung?: string }) => tagesstatusApi.setzen(d),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] }),
   });
 
-  const mergeData = alleTeilnehmer?.map((t: any) => {
-    const existing = statusData?.find((s: any) => s.azubiId === t.id);
-    return { ...t, statusId: existing?.id, status: existing?.status || '', bemerkung: existing?.bemerkung || '' };
+  const mergeData = (alleTeilnehmer as unknown as { id: number; vorname: string; nachname: string; gruppe: string; lehrjahr: number }[])?.map((t) => {
+    const existing = statusData?.find((s) => (s as { azubiId?: number }).azubiId === t.id);
+    return { ...t, statusId: existing?.id, status: (existing as { status?: string })?.status || '', bemerkung: (existing as { bemerkung?: string })?.bemerkung || '' };
   }) || [];
 
   const statusCounts = statusListe.map(s => ({
     status: s,
-    count: mergeData.filter((t: any) => t.status === s).length,
+    count: mergeData.filter((t: { status: string }) => t.status === s).length,
   }));
 
   const handleStatusChange = (azubiId: number, neuerStatus: string) => {
@@ -127,7 +127,7 @@ export default function TagesstatusListe() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
         <div className="divide-y divide-gray-100">
-          {mergeData.map((t: any) => (
+          {mergeData.map((t: { id: number; vorname: string; nachname: string; gruppe: string; lehrjahr: number; status: string; statusId?: number; bemerkung: string }) => (
             <div key={t.id} className="flex items-center gap-4 px-6 py-3 transition-colors hover:bg-gray-50">
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold shrink-0 text-sm">
                 {t.vorname?.[0]}{t.nachname?.[0]}
