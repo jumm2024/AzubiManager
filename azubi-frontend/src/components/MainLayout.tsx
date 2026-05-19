@@ -35,7 +35,7 @@ export default function MainLayout() {
   return (
     <div className="flex min-h-screen">
       <Sidebar badges={badges} />
-      <main className="ml-[260px] flex-1 p-8 bg-gray-50">
+      <main className="ml-[280px] flex-1 p-8 bg-[#F9F5F0]">
         <Outlet context={{ ladeBadges }} />
       </main>
     </div>
