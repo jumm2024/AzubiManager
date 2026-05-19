@@ -245,20 +245,20 @@ export default function AufgabenListe() {
           <form onSubmit={handleErstellen} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
-                <input type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
+                <label htmlFor="aufgabe-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+                <input id="aufgabe-titel" name="titel" type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Aufgabentitel" required />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
-                <textarea value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} rows={2}
+                <label htmlFor="aufgabe-beschreibung" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+                <textarea id="aufgabe-beschreibung" name="beschreibung" value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} rows={2}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                   placeholder="Beschreibung (optional)" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
-                <select value={prioritaet} onChange={(e) => setPrioritaet(e.target.value)}
+                <label htmlFor="aufgabe-prioritaet" className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
+                <select id="aufgabe-prioritaet" name="prioritaet" value={prioritaet} onChange={(e) => setPrioritaet(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                   <option value="Hoch">Hoch</option>
                   <option value="Mittel">Mittel</option>
@@ -266,8 +266,8 @@ export default function AufgabenListe() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
-                <input type="date" value={faelligkeitsdatum} onChange={(e) => setFaelligkeitsdatum(e.target.value)}
+                <label htmlFor="aufgabe-faelligkeit" className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
+                <input id="aufgabe-faelligkeit" name="faelligkeitsdatum" type="date" value={faelligkeitsdatum} onChange={(e) => setFaelligkeitsdatum(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
               </div>
               <div>
@@ -275,7 +275,7 @@ export default function AufgabenListe() {
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
                   {teilnehmer?.map((t: Teilnehmer) => (
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
-                      <input type="checkbox" checked={azubiIds.includes(t.id)}
+                      <input type="checkbox" name={`aufgabe-azubi-${t.id}`} checked={azubiIds.includes(t.id)}
                         onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
                         className="w-4 h-4 rounded accent-blue-600" />
                       {t.vorname} {t.nachname}
@@ -285,7 +285,7 @@ export default function AufgabenListe() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="istGlobal" checked={istGlobal} onChange={(e) => setIstGlobal(e.target.checked)}
+                <input type="checkbox" id="istGlobal" name="istGlobal" checked={istGlobal} onChange={(e) => setIstGlobal(e.target.checked)}
                   className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
                 <label htmlFor="istGlobal" className="text-sm text-gray-600 cursor-pointer select-none">Für alle Ausbilder sichtbar</label>
               </div>
@@ -319,7 +319,7 @@ export default function AufgabenListe() {
                   aufgabe.prioritaet === 'Hoch' ? 'bg-red-400' :
                   aufgabe.prioritaet === 'Mittel' ? 'bg-amber-400' : 'bg-green-400'
                 }`} />
-                <input type="checkbox" checked={aufgabe.erledigt}
+                <input type="checkbox" id={`aufgabe-done-${aufgabe.id}`} name={`aufgabe-done-${aufgabe.id}`} checked={aufgabe.erledigt}
                   onChange={() => toggleMutation.mutate(aufgabe.id)}
                   className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -403,9 +403,9 @@ export default function AufgabenListe() {
               </div>
             </div>
             <div className="flex gap-2 mt-6 pt-4 border-t border-gray-100">
-              <input type="checkbox" checked={detailAufgabe.erledigt} onChange={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}
+              <input type="checkbox" id="detail-aufgabe-done" name="detail-aufgabe-done" checked={detailAufgabe.erledigt} onChange={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}
                 className="w-4 h-4 rounded accent-blue-600 cursor-pointer mt-0.5" />
-              <label className="text-sm text-gray-600 cursor-pointer select-none" onClick={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}>
+              <label htmlFor="detail-aufgabe-done" className="text-sm text-gray-600 cursor-pointer select-none" onClick={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}>
                 {detailAufgabe.erledigt ? 'Als offen markieren' : 'Als erledigt markieren'}
               </label>
               <button onClick={() => { handleBearbeitenOeffnen(detailAufgabe); setDetailAufgabe(null); }}
@@ -426,21 +426,21 @@ export default function AufgabenListe() {
             </div>
             <form onSubmit={handleAktualisieren} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
-                <input type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
+                <label htmlFor="edit-aufgabe-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+                <input id="edit-aufgabe-titel" name="titel" type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Aufgabentitel" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
-                <textarea value={bearbeitenBeschreibung} onChange={(e) => setBearbeitenBeschreibung(e.target.value)} rows={2}
+                <label htmlFor="edit-aufgabe-beschreibung" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+                <textarea id="edit-aufgabe-beschreibung" name="beschreibung" value={bearbeitenBeschreibung} onChange={(e) => setBearbeitenBeschreibung(e.target.value)} rows={2}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                   placeholder="Beschreibung (optional)" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
-                  <select value={bearbeitenPrioritaet} onChange={(e) => setBearbeitenPrioritaet(e.target.value)}
+                  <label htmlFor="edit-aufgabe-prioritaet" className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
+                  <select id="edit-aufgabe-prioritaet" name="prioritaet" value={bearbeitenPrioritaet} onChange={(e) => setBearbeitenPrioritaet(e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                     <option value="Hoch">Hoch</option>
                     <option value="Mittel">Mittel</option>
@@ -448,8 +448,8 @@ export default function AufgabenListe() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
-                  <input type="date" value={bearbeitenFaelligkeitsdatum} onChange={(e) => setBearbeitenFaelligkeitsdatum(e.target.value)}
+                  <label htmlFor="edit-aufgabe-faelligkeit" className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
+                  <input id="edit-aufgabe-faelligkeit" name="faelligkeitsdatum" type="date" value={bearbeitenFaelligkeitsdatum} onChange={(e) => setBearbeitenFaelligkeitsdatum(e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
                 </div>
               </div>
@@ -458,7 +458,7 @@ export default function AufgabenListe() {
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
                   {teilnehmer?.map((t: Teilnehmer) => (
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
-                      <input type="checkbox" checked={bearbeitenAzubiIds.includes(t.id)}
+                      <input type="checkbox" name={`edit-aufgabe-azubi-${t.id}`} checked={bearbeitenAzubiIds.includes(t.id)}
                         onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
                         className="w-4 h-4 rounded accent-blue-600" />
                       {t.vorname} {t.nachname}
@@ -468,7 +468,7 @@ export default function AufgabenListe() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="bearbeitenIstGlobal" checked={bearbeitenIstGlobal} onChange={(e) => setBearbeitenIstGlobal(e.target.checked)}
+                <input type="checkbox" id="bearbeitenIstGlobal" name="istGlobal" checked={bearbeitenIstGlobal} onChange={(e) => setBearbeitenIstGlobal(e.target.checked)}
                   className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
                 <label htmlFor="bearbeitenIstGlobal" className="text-sm text-gray-600 cursor-pointer select-none">Für alle Ausbilder sichtbar</label>
               </div>

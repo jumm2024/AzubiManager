@@ -106,7 +106,7 @@ export default function TagesstatusListe() {
             className="px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
             Excel Export
           </button>
-          <input type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
+          <input id="tagesstatus-datum" name="datum" type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
             className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function TagesstatusListe() {
                 <p className="font-medium text-gray-800 text-sm">{t.vorname} {t.nachname}</p>
                 <p className="text-xs text-gray-400">{t.gruppe}{t.gruppe === 'Ausbildung' ? ` - Lehrjahr ${t.lehrjahr}` : ''}</p>
               </div>
-              <select value={lokaleStatus[t.id] ?? t.status} onChange={(e) => handleStatusChange(t.id, e.target.value)}
+              <select id={`status-${t.id}`} name={`status-${t.id}`} value={lokaleStatus[t.id] ?? t.status} onChange={(e) => handleStatusChange(t.id, e.target.value)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border outline-none ${
                   (lokaleStatus[t.id] ?? t.status) ? statusBgFarben[lokaleStatus[t.id] ?? t.status] : 'text-gray-600 bg-white border-gray-200'
                 }`}>

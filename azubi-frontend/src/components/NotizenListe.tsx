@@ -170,21 +170,21 @@ export default function NotizenListe() {
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Neue Notiz erstellen</h3>
           <form onSubmit={handleErstellen} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
-              <input type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
+              <label htmlFor="notiz-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+              <input id="notiz-titel" name="titel" type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="Titel" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
-              <select value={kategorie} onChange={(e) => setKategorie(e.target.value)}
+              <label htmlFor="notiz-kategorie" className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
+              <select id="notiz-kategorie" name="kategorie" value={kategorie} onChange={(e) => setKategorie(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                 {kategorien.map(k => <option key={k} value={k}>{k}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Inhalt *</label>
-              <textarea value={inhalt} onChange={(e) => setInhalt(e.target.value)} rows={4}
+              <label htmlFor="notiz-inhalt" className="block text-sm font-medium text-gray-700 mb-1">Inhalt *</label>
+              <textarea id="notiz-inhalt" name="inhalt" value={inhalt} onChange={(e) => setInhalt(e.target.value)} rows={4}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                 placeholder="Notizinhalt..." required />
             </div>
@@ -193,7 +193,7 @@ export default function NotizenListe() {
               <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
                 {teilnehmer?.map((t: Teilnehmer) => (
                   <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
-                    <input type="checkbox" checked={azubiIds.includes(t.id)}
+                    <input type="checkbox" name={`azubi-${t.id}`} checked={azubiIds.includes(t.id)}
                       onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
                       className="w-4 h-4 rounded accent-blue-600" />
                     {t.vorname} {t.nachname}
@@ -267,20 +267,20 @@ export default function NotizenListe() {
             </div>
             <form onSubmit={handleAktualisieren} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
-                <input type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
+                <label htmlFor="edit-notiz-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+                <input id="edit-notiz-titel" name="titel" type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
-                <select value={bearbeitenKategorie} onChange={(e) => setBearbeitenKategorie(e.target.value)}
+                <label htmlFor="edit-notiz-kategorie" className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
+                <select id="edit-notiz-kategorie" name="kategorie" value={bearbeitenKategorie} onChange={(e) => setBearbeitenKategorie(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                   {kategorien.map(k => <option key={k} value={k}>{k}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Inhalt *</label>
-                <textarea value={bearbeitenInhalt} onChange={(e) => setBearbeitenInhalt(e.target.value)} rows={4}
+                <label htmlFor="edit-notiz-inhalt" className="block text-sm font-medium text-gray-700 mb-1">Inhalt *</label>
+                <textarea id="edit-notiz-inhalt" name="inhalt" value={bearbeitenInhalt} onChange={(e) => setBearbeitenInhalt(e.target.value)} rows={4}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none" required />
               </div>
               <div>
@@ -288,7 +288,7 @@ export default function NotizenListe() {
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-xl p-2 space-y-1">
                   {teilnehmer?.map((t: Teilnehmer) => (
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
-                      <input type="checkbox" checked={bearbeitenAzubiIds.includes(t.id)}
+                      <input type="checkbox" name={`edit-azubi-${t.id}`} checked={bearbeitenAzubiIds.includes(t.id)}
                         onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
                         className="w-4 h-4 rounded accent-blue-600" />
                       {t.vorname} {t.nachname}

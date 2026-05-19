@@ -141,13 +141,13 @@ export default function Sidebar({ badges }: SidebarProps) {
             </div>
             <form onSubmit={handlePwAendern} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Altes Passwort</label>
-                <input type="password" value={pwAlt} onChange={(e) => setPwAlt(e.target.value)}
+                <label htmlFor="sidebar-pw-alt" className="block text-sm font-medium text-gray-700 mb-1">Altes Passwort</label>
+                <input id="sidebar-pw-alt" name="altesPasswort" type="password" value={pwAlt} onChange={(e) => setPwAlt(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort</label>
-                <input type="password" value={pwNeu} onChange={(e) => setPwNeu(e.target.value)}
+                <label htmlFor="sidebar-pw-neu" className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort</label>
+                <input id="sidebar-pw-neu" name="neuesPasswort" type="password" value={pwNeu} onChange={(e) => setPwNeu(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required minLength={6} />
               </div>
 

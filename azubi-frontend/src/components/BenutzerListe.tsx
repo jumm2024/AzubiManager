@@ -175,8 +175,10 @@ export default function BenutzerListe() {
           <form onSubmit={handleErstellen} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Vorname</label>
+                <label htmlFor="benutzer-vorname" className="block text-sm font-medium text-gray-700 mb-1">Vorname</label>
                 <input
+                  id="benutzer-vorname"
+                  name="vorname"
                   type="text"
                   value={vorname}
                   onChange={(e) => setVorname(e.target.value)}
@@ -185,8 +187,10 @@ export default function BenutzerListe() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nachname</label>
+                <label htmlFor="benutzer-nachname" className="block text-sm font-medium text-gray-700 mb-1">Nachname</label>
                 <input
+                  id="benutzer-nachname"
+                  name="nachname"
                   type="text"
                   value={nachname}
                   onChange={(e) => setNachname(e.target.value)}
@@ -195,8 +199,10 @@ export default function BenutzerListe() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Benutzername *</label>
+                <label htmlFor="benutzer-benutzername" className="block text-sm font-medium text-gray-700 mb-1">Benutzername *</label>
                 <input
+                  id="benutzer-benutzername"
+                  name="benutzername"
                   type="text"
                   value={neuerBenutzername}
                   onChange={(e) => setNeuerBenutzername(e.target.value)}
@@ -206,8 +212,10 @@ export default function BenutzerListe() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Passwort *</label>
+                <label htmlFor="benutzer-passwort" className="block text-sm font-medium text-gray-700 mb-1">Passwort *</label>
                 <input
+                  id="benutzer-passwort"
+                  name="passwort"
                   type="password"
                   value={neuesPasswort}
                   onChange={(e) => setNeuesPasswort(e.target.value)}
@@ -217,8 +225,10 @@ export default function BenutzerListe() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rolle</label>
+                <label htmlFor="benutzer-rolle" className="block text-sm font-medium text-gray-700 mb-1">Rolle</label>
                 <select
+                  id="benutzer-rolle"
+                  name="rolle"
                   value={neueRolle}
                   onChange={(e) => setNeueRolle(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white"
@@ -249,14 +259,14 @@ export default function BenutzerListe() {
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Eigenes Passwort ändern</h3>
           <form onSubmit={handlePwAendern} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Altes Passwort</label>
-              <input type="password" value={altesPw} onChange={(e) => setAltesPw(e.target.value)}
+              <label htmlFor="pw-alt" className="block text-sm font-medium text-gray-700 mb-1">Altes Passwort</label>
+              <input id="pw-alt" name="altesPasswort" type="password" value={altesPw} onChange={(e) => setAltesPw(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="Altes Passwort" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort</label>
-              <input type="password" value={neuesEigenesPw} onChange={(e) => setNeuesEigenesPw(e.target.value)}
+              <label htmlFor="pw-neu" className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort</label>
+              <input id="pw-neu" name="neuesPasswort" type="password" value={neuesEigenesPw} onChange={(e) => setNeuesEigenesPw(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="Neues Passwort (min. 6 Zeichen)" required />
             </div>
@@ -321,6 +331,8 @@ export default function BenutzerListe() {
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Passwort zuruecksetzen</h3>
             <p className="text-sm text-gray-500 mb-4">Benutzer: <strong>{pwModal.name}</strong></p>
             <input
+              id="pw-reset"
+              name="passwort"
               type="password"
               value={pwValue}
               onChange={(e) => setPwValue(e.target.value)}
