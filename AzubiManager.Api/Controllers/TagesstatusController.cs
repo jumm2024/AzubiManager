@@ -66,6 +66,17 @@ namespace AzubiManager.Api.Controllers
         }
 
         /// <summary>
+        /// Azubi-Bericht Export mit Status-Zusammenfassung
+        /// </summary>
+        [HttpGet("bericht/{year}/{month}")]
+        public async Task<IActionResult> Bericht(int year, int month)
+        {
+            var data = await _service.AzubiBerichtExportAsync(year, month);
+            return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"AzubiBericht_{year}_{month:D2}.xlsx");
+        }
+
+        /// <summary>
         /// Excel-Import
         /// </summary>
         [HttpPost("import")]
