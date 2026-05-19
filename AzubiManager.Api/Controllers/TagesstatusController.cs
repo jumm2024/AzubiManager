@@ -91,7 +91,7 @@ namespace AzubiManager.Api.Controllers
         /// Excel-Import
         /// </summary>
         [HttpPost("import")]
-        public async Task<ActionResult> Import()
+        public async Task<ActionResult> Import([FromQuery] int year, [FromQuery] int month)
         {
             var file = Request.Form.Files.FirstOrDefault();
             if (file == null || file.Length == 0)
@@ -100,7 +100,7 @@ namespace AzubiManager.Api.Controllers
             using var stream = new MemoryStream();
             await file.CopyToAsync(stream);
             var data = stream.ToArray();
-            var count = await _service.ExcelImportAsync(data);
+            var count = await _service.ExcelImportAsync(data, year, month);
 
             // Datei speichern für tägliches Update
             try

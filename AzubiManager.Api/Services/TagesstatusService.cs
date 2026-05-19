@@ -118,7 +118,7 @@ namespace AzubiManager.Api.Services
         /// <summary>
         /// Excel-Import: Überschreibt alle Status für den Monat
         /// </summary>
-        public async Task<int> ExcelImportAsync(byte[] fileData)
+        public async Task<int> ExcelImportAsync(byte[] fileData, int year, int month)
         {
             using var stream = new MemoryStream(fileData);
             using var workbook = new XLWorkbook(stream);
@@ -146,11 +146,7 @@ namespace AzubiManager.Api.Services
 
             if (tage.Count == 0) return 0;
 
-            // Monat/Jahr ermitteln (aus dem Datepicker oder aktuell)
-            var monat = DateTime.Now.Month;
-            var jahr = DateTime.Now.Year;
-
-            Console.WriteLine($"Gefundene Tage: {tage.Count} (Monat {monat}/{jahr})");
+            Console.WriteLine($"Gefundene Tage: {tage.Count} (Monat {month}/{year})");
             Console.WriteLine($"Erste Tag-Spalte: {tage[0].Col}, Letzte: {tage[^1].Col}");
 
             var imported = 0;
@@ -312,7 +308,7 @@ namespace AzubiManager.Api.Services
                     var statusWert = MapStatus(statusRaw);
                     if (string.IsNullOrEmpty(statusWert)) continue;
 
-                    var datum = new DateOnly(jahr, monat, tag);
+                    var datum = new DateOnly(year, month, tag);
                     var existing = await _db.TagesstatusListe
                         .FirstOrDefaultAsync(s => s.AzubiId == azubi.Id && s.Datum == datum);
 

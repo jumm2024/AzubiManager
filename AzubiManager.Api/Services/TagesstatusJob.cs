@@ -56,7 +56,7 @@ public class TagesstatusJob : BackgroundService
 
             using var scope = _services.CreateScope();
             var service = scope.ServiceProvider.GetRequiredService<TagesstatusService>();
-            var imported = await service.ExcelImportAsync(data);
+            var imported = await service.ExcelImportAsync(data, DateTime.Now.Year, DateTime.Now.Month);
             _logger.LogInformation("Tägliches Update: {Count} Einträge aktualisiert/importiert", imported);
         }
         catch (Exception ex)
