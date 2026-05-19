@@ -116,8 +116,8 @@ export default function TermineListe() {
       data: {
         titel: bearbeitenTitel.trim(),
         beschreibung: bearbeitenBeschreibung.trim() || undefined,
-        datum: new Date(bearbeitenDatum).toISOString(),
-        endzeit: bearbeitenEndzeit ? new Date(bearbeitenEndzeit).toISOString() : undefined,
+        datum: bearbeitenDatum,
+        endzeit: bearbeitenEndzeit || undefined,
         kategorie: bearbeitenKategorie,
         ort: bearbeitenOrt.trim() || undefined,
         azubiIds: bearbeitenAzubiIds.length > 0 ? bearbeitenAzubiIds.join(',') : undefined,
@@ -134,8 +134,8 @@ export default function TermineListe() {
     erstelleMutation.mutate({
       titel: titel.trim(),
       beschreibung: beschreibung.trim() || undefined,
-      datum: new Date(datum).toISOString(),
-      endzeit: endzeit ? new Date(endzeit).toISOString() : undefined,
+      datum: datum,
+      endzeit: endzeit || undefined,
       kategorie,
       ort: ort.trim() || undefined,
       azubiIds: azubiIds.length > 0 ? azubiIds.join(',') : undefined,
