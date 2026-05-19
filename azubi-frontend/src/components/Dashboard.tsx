@@ -144,7 +144,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     {t.beschreibung && (
-                      <p className="text-[11px] text-gray-400 mt-1.5 truncate">{t.beschreibung}</p>
+                      <p className="text-xs text-gray-400 mt-1.5">{t.beschreibung}</p>
                     )}
                   </div>
                 </div>
