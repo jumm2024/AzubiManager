@@ -115,6 +115,15 @@ export default function TagesstatusListe() {
             className="px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
             Azubi-Bericht
           </button>
+          <button onClick={async () => {
+            const res = await tagesstatusApi.berichtGesamt();
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_Gesamt.xlsx`; a.click();
+            URL.revokeObjectURL(url);
+          }}
+            className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
+            Gesamt-Bericht
+          </button>
           <input id="tagesstatus-datum" name="datum" type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
             className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
         </div>

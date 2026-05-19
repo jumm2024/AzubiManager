@@ -125,6 +125,7 @@ export const tagesstatusApi = {
   loeschen: (id: number) => api.delete(`/tagesstatus/${id}`),
   export: (year: number, month: number) => api.get(`/tagesstatus/export/${year}/${month}`, { responseType: 'blob' }),
   bericht: (year: number, month: number) => api.get(`/tagesstatus/bericht/${year}/${month}`, { responseType: 'blob' }),
+  berichtGesamt: () => api.get('/tagesstatus/bericht/gesamt', { responseType: 'blob' }),
   import: (file: File) => { const fd = new FormData(); fd.append('file', file); return api.post('/tagesstatus/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } }); },
 };
 

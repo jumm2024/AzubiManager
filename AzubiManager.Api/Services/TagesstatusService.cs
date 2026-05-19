@@ -467,6 +467,69 @@ namespace AzubiManager.Api.Services
         }
 
         /// <summary>
+        /// Azubi-Bericht als Excel-Export mit Status-Zusammenfassung (Gesamtzeitraum)
+        /// </summary>
+        public async Task<byte[]> AzubiBerichtGesamtExportAsync()
+        {
+            IQueryable<Teilnehmer> azubiQuery = _db.Teilnehmer.AsNoTracking();
+
+            if (!_currentUser.IstAdmin)
+                azubiQuery = azubiQuery.Where(a => a.AusbilderId == _currentUser.BenutzerId);
+
+            var azubis = await azubiQuery
+                .OrderBy(a => a.Nachname).ThenBy(a => a.Vorname)
+                .ToListAsync();
+
+            var statusListe = await _db.TagesstatusListe
+                .AsNoTracking()
+                .ToListAsync();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Azubi-Bericht Gesamt");
+
+            // Header
+            var header = new[] { "Name", "Gruppe", "LJ", "Von", "Bis", "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt", "Gesamt" };
+            for (int i = 0; i < header.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = header[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.LightGray;
+                ws.Cell(1, i + 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            }
+
+            // Daten
+            for (int i = 0; i < azubis.Count; i++)
+            {
+                var azubi = azubis[i];
+                var azubiStatus = statusListe.Where(s => s.AzubiId == azubi.Id).ToList();
+
+                ws.Cell(i + 2, 1).Value = $"{azubi.Nachname}, {azubi.Vorname}";
+                ws.Cell(i + 2, 2).Value = azubi.Gruppe ?? "";
+                ws.Cell(i + 2, 3).Value = azubi.Lehrjahr;
+                ws.Cell(i + 2, 4).Value = azubi.Ausbildungsstart != default ? azubi.Ausbildungsstart.ToString("dd.MM.yyyy") : "";
+                ws.Cell(i + 2, 5).Value = azubi.Ausbildungsende != default ? azubi.Ausbildungsende.ToString("dd.MM.yyyy") : "";
+                ws.Cell(i + 2, 6).Value = azubiStatus.Count(s => s.Status == "Anwesend");
+                ws.Cell(i + 2, 7).Value = azubiStatus.Count(s => s.Status == "Schule");
+                ws.Cell(i + 2, 8).Value = azubiStatus.Count(s => s.Status == "Praktikum");
+                ws.Cell(i + 2, 9).Value = azubiStatus.Count(s => s.Status == "Termin");
+                ws.Cell(i + 2, 10).Value = azubiStatus.Count(s => s.Status == "Urlaub");
+                ws.Cell(i + 2, 11).Value = azubiStatus.Count(s => s.Status == "Krank");
+                ws.Cell(i + 2, 12).Value = azubiStatus.Count(s => s.Status == "Kind krank");
+                ws.Cell(i + 2, 13).Value = azubiStatus.Count(s => s.Status == "Freigestellt");
+                ws.Cell(i + 2, 14).Value = azubiStatus.Count(s => s.Status == "Entschuldigt");
+                ws.Cell(i + 2, 15).Value = azubiStatus.Count(s => s.Status == "Unentschuldigt");
+                ws.Cell(i + 2, 16).Value = azubiStatus.Count(s => s.Status == "Ungeklärt");
+                ws.Cell(i + 2, 17).Value = azubiStatus.Count;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
+        /// <summary>
         /// Status für ein Datum + Azubi löschen
         /// </summary>
         public async Task<bool> LoeschenAsync(int id)
