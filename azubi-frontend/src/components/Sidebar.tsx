@@ -111,7 +111,7 @@ export default function Sidebar({ badges }: SidebarProps) {
             <Zap className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-[15px] font-bold text-gray-800 tracking-tight">AzubiManager</h1>
+            <h1 className="text-[15px] font-bold text-gray-800 tracking-tight">BBW AusbilderHub</h1>
             <p className="text-[11px] text-gray-500 font-medium">{user?.rolle === 'Admin' ? 'System Admin' : user?.rolle}</p>
           </div>
         </div>
