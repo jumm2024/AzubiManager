@@ -119,9 +119,9 @@ export default function TagesstatusListe() {
           <p className="font-semibold mb-1">Excel-Import Hinweise</p>
           <ul className="list-disc list-inside space-y-0.5 text-amber-700">
             <li>Nur Excel-Dateien (<code className="bg-amber-100 px-1 rounded">.xlsx</code>, <code className="bg-amber-100 px-1 rounded">.xls</code>) werden akzeptiert</li>
-            <li>Erforderliche Spalten: <strong>Vorname</strong>, <strong>Nachname</strong>, <strong>Datum</strong>, <strong>Status</strong></li>
-            <li>Status muss einer der folgenden Werte sein: Anwesend, Schule, Praktikum, Termin, Urlaub, Krank, Kind krank, Freigestellt, Entschuldigt, Unentschuldigt, Ungeklärt</li>
-            <li>Datum-Format: <code className="bg-amber-100 px-1 rounded">TT.MM.JJJJ</code> oder <code className="bg-amber-100 px-1 rounded">JJJJ-MM-TT</code></li>
+            <li>Erforderliche Spalten: <strong>Teilnehmer</strong> (Spalte A), <strong>Kurs</strong> (Spalte B), <strong>Buchungsbeginn</strong> (Spalte C), <strong>Buchungsende</strong> (Spalte D)</li>
+            <li>Ab Spalte E folgen die Tages-Status-Kürzel pro Tag des Monats</li>
+            <li>Gültige Status-Kürzel: <code className="bg-amber-100 px-1 rounded">A</code> (Anwesend), <code className="bg-amber-100 px-1 rounded">S</code> (Schule), <code className="bg-amber-100 px-1 rounded">P</code> (Praktikum), <code className="bg-amber-100 px-1 rounded">U</code> (Urlaub), <code className="bg-amber-100 px-1 rounded">FT</code> (Feiertag), <code className="bg-amber-100 px-1 rounded">WE</code> (Wochenende), <code className="bg-amber-100 px-1 rounded">FD</code> (Frei)</li>
           </ul>
         </div>
       </div>
