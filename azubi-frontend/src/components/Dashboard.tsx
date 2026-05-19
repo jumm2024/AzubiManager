@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { dashboardApi, termineApi } from '../api/client';
+import { dashboardApi, termineApi, notizenApi } from '../api/client';
 
 export default function Dashboard() {
   const { data, isLoading } = useQuery({
@@ -13,6 +13,15 @@ export default function Dashboard() {
       res.data
         .filter((t: any) => new Date(t.datum) >= new Date())
         .sort((a: any, b: any) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
+        .slice(0, 5)
+    ),
+  });
+
+  const { data: notizen } = useQuery({
+    queryKey: ['notizen', 'dashboard'],
+    queryFn: () => notizenApi.alle().then(res =>
+      res.data
+        .sort((a: any, b: any) => new Date(b.erstelltAm).getTime() - new Date(a.erstelltAm).getTime())
         .slice(0, 5)
     ),
   });
@@ -156,7 +165,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Aufgaben heute</h3>
@@ -185,6 +194,35 @@ export default function Dashboard() {
             </div>
           ) : (
             <p className="text-gray-400 text-center py-8 text-sm">Keine Aufgaben fuer heute</p>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Notizen</h3>
+            <span className="ml-auto text-xs text-gray-400">{notizen?.length || 0} Eintraege</span>
+          </div>
+          {notizen && notizen.length > 0 ? (
+            <div className="space-y-2">
+              {notizen.map((n: any) => (
+                <div key={n.id} className="p-3 rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all bg-white">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-medium text-gray-800 text-sm">{n.titel}</h4>
+                    <span className="text-[10px] text-gray-400 shrink-0">
+                      {new Date(n.erstelltAm).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                    </span>
+                  </div>
+                  {n.inhalt && (
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{n.inhalt}</p>
+                  )}
+                  {n.azubiName && (
+                    <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mt-1 inline-block">{n.azubiName}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-center py-8 text-sm">Keine Notizen vorhanden</p>
           )}
         </div>
       </div>
