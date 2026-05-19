@@ -82,7 +82,7 @@ export default function TagesstatusListe() {
         <h2 className="text-2xl font-bold text-gray-800">Tagesstatus</h2>
         {importMsg && <span className="text-sm text-green-600">{importMsg}</span>}
         <div className="flex items-center gap-3">
-          <input type="file" accept=".xlsx" onChange={async (e) => {
+          <input type="file" accept=".xlsx,.xls" onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
             setImportMsg('');
@@ -108,6 +108,21 @@ export default function TagesstatusListe() {
           </button>
           <input id="tagesstatus-datum" name="datum" type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
             className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+        </div>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
+        <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div className="text-sm text-amber-800">
+          <p className="font-semibold mb-1">Excel-Import Hinweise</p>
+          <ul className="list-disc list-inside space-y-0.5 text-amber-700">
+            <li>Nur Excel-Dateien (<code className="bg-amber-100 px-1 rounded">.xlsx</code>, <code className="bg-amber-100 px-1 rounded">.xls</code>) werden akzeptiert</li>
+            <li>Erforderliche Spalten: <strong>Vorname</strong>, <strong>Nachname</strong>, <strong>Datum</strong>, <strong>Status</strong></li>
+            <li>Status muss einer der folgenden Werte sein: Anwesend, Schule, Praktikum, Termin, Urlaub, Krank, Kind krank, Freigestellt, Entschuldigt, Unentschuldigt, Ungeklärt</li>
+            <li>Datum-Format: <code className="bg-amber-100 px-1 rounded">TT.MM.JJJJ</code> oder <code className="bg-amber-100 px-1 rounded">JJJJ-MM-TT</code></li>
+          </ul>
         </div>
       </div>
 
