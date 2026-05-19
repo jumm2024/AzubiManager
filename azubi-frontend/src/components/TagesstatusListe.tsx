@@ -232,6 +232,7 @@ export default function TagesstatusListe() {
                 <div className="text-sm text-amber-800">
                   <p className="font-semibold mb-1">Wichtig: Monat prüfen!</p>
                   <p>Die Daten werden in den unten gewählten Monat importiert. Bitte stelle sicher, dass der Monat zur Excel-Datei passt.</p>
+                  <p className="mt-1 font-medium">Nur Excel-Dateien (.xlsx, .xls) werden akzeptiert.</p>
                 </div>
               </div>
 
