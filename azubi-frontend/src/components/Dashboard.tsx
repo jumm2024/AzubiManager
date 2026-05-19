@@ -100,7 +100,63 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-800">Anstehende Termine</h3>
+            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">{termine?.length || 0} Eintraege</span>
+          </div>
+        </div>
+        {termine && termine.length > 0 ? (
+          <div className="space-y-2">
+            {termine.map((t: any) => {
+              const start = new Date(t.datum);
+              const end = t.endzeit ? new Date(t.endzeit) : null;
+              const isToday = start.toDateString() === new Date().toDateString();
+              return (
+                <div key={t.id} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all bg-white group">
+                  <div className="flex flex-col items-center gap-1 w-14 shrink-0">
+                    <span className="text-xs font-bold text-gray-400 uppercase">
+                      {start.toLocaleDateString('de-DE', { month: 'short' })}
+                    </span>
+                    <span className={`text-xl font-bold leading-none ${isToday ? 'text-blue-600' : 'text-gray-800'}`}>
+                      {start.getDate()}
+                    </span>
+                    {isToday && <span className="text-[10px] font-semibold text-blue-600">Heute</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-800 text-sm">{t.titel}</h4>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                        {start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {end && (
+                        <span className="text-[11px] text-gray-400">– {end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
+                      )}
+                      {t.ort && (
+                        <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{t.ort}</span>
+                      )}
+                      {t.kategorie && t.kategorie !== 'Sonstiges' && (
+                        <span className="text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{t.kategorie}</span>
+                      )}
+                      {t.azubiName && (
+                        <span className="text-[11px] text-gray-500 bg-indigo-50 px-2 py-0.5 rounded">{t.azubiName}</span>
+                      )}
+                    </div>
+                    {t.beschreibung && (
+                      <p className="text-[11px] text-gray-400 mt-1.5 truncate">{t.beschreibung}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-center py-8 text-sm">Keine anstehenden Termine</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Aufgaben heute</h3>
@@ -129,31 +185,6 @@ export default function Dashboard() {
             </div>
           ) : (
             <p className="text-gray-400 text-center py-8 text-sm">Keine Aufgaben fuer heute</p>
-          )}
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Anstehende Termine</h3>
-            <span className="ml-auto text-xs text-gray-400">Nächste 5</span>
-          </div>
-          {termine && termine.length > 0 ? (
-            <div className="space-y-1">
-              {termine.map((t: any) => (
-                <div key={t.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0" />
-                  <span className="flex-1 text-sm text-gray-700 min-w-0 truncate">{t.titel}</span>
-                  <span className="text-xs text-gray-400 shrink-0">
-                    {new Date(t.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  {t.azubiName && (
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg shrink-0">{t.azubiName}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8 text-sm">Keine anstehenden Termine</p>
           )}
         </div>
       </div>
