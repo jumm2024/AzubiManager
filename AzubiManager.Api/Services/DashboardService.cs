@@ -25,8 +25,7 @@ namespace AzubiManager.Api.Services
                 .Select(b => b.TeilnehmerId)
                 .ToListAsync();
 
-            var alleTeilnehmerIds = await _db.Teilnehmer.AsNoTracking().Select(t => t.Id).ToListAsync();
-            int teilnehmerGesamt = alleTeilnehmerIds.Count;
+            int teilnehmerGesamt = await _db.Teilnehmer.AsNoTracking().CountAsync();
 
             var statusCounts = await _db.TagesstatusListe
                 .AsNoTracking()
@@ -49,36 +48,36 @@ namespace AzubiManager.Api.Services
             int ungeklaert = statusMap.GetValueOrDefault("Ungeklärt");
 
             // Teilnehmer ohne Status heute
-            var idsMitStatus = await _db.TagesstatusListe
+            int idsMitStatusHeute = await _db.TagesstatusListe
                 .AsNoTracking()
                 .Where(s => s.Datum == heute && betreuteIds.Contains(s.AzubiId))
                 .Select(s => s.AzubiId)
                 .Distinct()
-                .ToListAsync();
-            int statusFehlt = betreuteIds.Count(id => !idsMitStatus.Contains(id));
+                .CountAsync();
+            int statusFehlt = betreuteIds.Count - idsMitStatusHeute;
 
-            // Alle offenen Aufgaben in einer Query laden + in-memory filtern
-            var alleAufgaben = await _db.Aufgaben.AsNoTracking()
-                .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId))
-                .OrderBy(a => a.Faelligkeitsdatum == heute ? 0 : 1)
-                .ThenBy(a => a.Prioritaet)
-                .Select(a => new
+            // Aufgaben-Counts als SQL-Aggregat (kein ToListAsync!)
+            var aufgabenQuery = _db.Aufgaben.AsNoTracking()
+                .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId));
+
+            var aufgabenCounts = await aufgabenQuery
+                .GroupBy(a => 1)
+                .Select(g => new
                 {
-                    a.Id,
-                    a.Titel,
-                    a.Prioritaet,
-                    a.Faelligkeitsdatum,
-                    a.Erledigt,
-                    AzubiName = a.Azubi != null ? a.Azubi.Vorname + " " + a.Azubi.Nachname : null
+                    Offene = g.Count(),
+                    Ueberfaellig = g.Count(a => a.Faelligkeitsdatum < heute),
+                    HohePrioritaet = g.Count(a => a.Prioritaet == "Hoch")
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            int offeneAufgaben = alleAufgaben.Count;
-            int ueberfaelligeAufgaben = alleAufgaben.Count(a => a.Faelligkeitsdatum < heute);
-            int hohePrioritaet = alleAufgaben.Count(a => a.Prioritaet == "Hoch");
+            int offeneAufgaben = aufgabenCounts?.Offene ?? 0;
+            int ueberfaelligeAufgaben = aufgabenCounts?.Ueberfaellig ?? 0;
+            int hohePrioritaet = aufgabenCounts?.HohePrioritaet ?? 0;
 
-            var aufgabenHeute = alleAufgaben
-                .Where(a => a.Faelligkeitsdatum == heute)
+            // Aufgaben heute (TOP 5) – SQL filter on date
+            var aufgabenHeute = await _db.Aufgaben.AsNoTracking()
+                .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId) && a.Faelligkeitsdatum == heute)
+                .OrderBy(a => a.Prioritaet)
                 .Take(5)
                 .Select(a => new AufgabeDto
                 {
@@ -87,8 +86,9 @@ namespace AzubiManager.Api.Services
                     Prioritaet = a.Prioritaet,
                     Faelligkeitsdatum = a.Faelligkeitsdatum,
                     Erledigt = a.Erledigt,
-                    AzubiName = a.AzubiName
-                }).ToList();
+                    AzubiName = a.Azubi != null ? a.Azubi.Vorname + " " + a.Azubi.Nachname : null
+                })
+                .ToListAsync();
 
             // Badges
             int krankLaenger = await _db.TagesstatusListe
@@ -130,7 +130,7 @@ namespace AzubiManager.Api.Services
                 OrangerBadge = orangerBadge,
                 PinkerBadge = pinkerBadge,
                 StatusFehlt = statusFehlt,
-                TeilnehmerGesamt = alleTeilnehmerIds.Count,
+                TeilnehmerGesamt = teilnehmerGesamt,
                 BetreuteTeilnehmer = betreuteIds.Count
             };
         }

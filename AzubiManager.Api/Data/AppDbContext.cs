@@ -118,6 +118,10 @@ namespace AzubiManager.Api.Data
                 .HasIndex(a => new { a.AusbilderId, a.Erledigt })
                 .HasDatabaseName("IX_Aufgaben_Ausbilder_Erledigt");
 
+            modelBuilder.Entity<Aufgabe>()
+                .HasIndex(a => a.Faelligkeitsdatum)
+                .HasDatabaseName("IX_Aufgaben_Faelligkeitsdatum");
+
             modelBuilder.Entity<Termin>()
                 .HasIndex(t => t.AusbilderId)
                 .HasDatabaseName("IX_Termine_AusbilderId");
