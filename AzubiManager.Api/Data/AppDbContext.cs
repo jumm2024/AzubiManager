@@ -63,7 +63,13 @@ namespace AzubiManager.Api.Data
                 .HasOne(a => a.Ausbilder)
                 .WithMany()
                 .HasForeignKey(a => a.AusbilderId)
-                .OnDelete(DeleteBehavior.Restrict); // Benutzer nicht löschbar, wenn noch Aufgaben
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Aufgabe>()
+                .HasOne(a => a.ErledigtVon)
+                .WithMany()
+                .HasForeignKey(a => a.ErledigtVonId)
+                .OnDelete(DeleteBehavior.SetNull); // Benutzer nicht löschbar, wenn noch Aufgaben
 
             modelBuilder.Entity<Termin>()
                 .HasOne(t => t.Ausbilder)

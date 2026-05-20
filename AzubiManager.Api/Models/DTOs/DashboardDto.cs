@@ -28,5 +28,6 @@
         // Sonstiges
         public int StatusFehlt { get; set; }
         public int TeilnehmerGesamt { get; set; }
+        public int BetreuteTeilnehmer { get; set; }
     }
 }

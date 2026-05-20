@@ -17,5 +17,6 @@ namespace AzubiManager.Api.Models.DTOs
         public bool Erledigt { get; set; }
 
         public int? AzubiId { get; set; }
+        public string? AzubiIds { get; set; }
     }
 }

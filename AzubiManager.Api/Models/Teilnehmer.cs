@@ -25,8 +25,8 @@ namespace AzubiManager.Api.Models
         [MaxLength(50)]
         public string Gruppe { get; set; } = "Ausbildung";
 
-        public DateOnly Ausbildungsstart { get; set; }
-        public DateOnly Ausbildungsende { get; set; }
+        public DateOnly? Ausbildungsstart { get; set; }
+        public DateOnly? Ausbildungsende { get; set; }
 
         // Besitzer (Ausbilder)
         public int? AusbilderId { get; set; }

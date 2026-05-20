@@ -11,8 +11,15 @@ namespace AzubiManager.Api.Validators
             RuleFor(x => x.Nachname).NotEmpty().MaximumLength(100);
             RuleFor(x => x.Gruppe).NotEmpty()
                 .Must(g => new[] { "Ausbildung", "BVB", "Erprober", "Praktikant" }.Contains(g));
-            RuleFor(x => x.Lehrjahr).InclusiveBetween(1, 4);
-            RuleFor(x => x.Ausbildungsende).GreaterThan(x => x.Ausbildungsstart);
+            RuleFor(x => x.Lehrjahr)
+                .InclusiveBetween(1, 4)
+                .When(x => x.Gruppe == "Ausbildung");
+            RuleFor(x => x.Lehrjahr)
+                .Equal(0)
+                .When(x => x.Gruppe != "Ausbildung");
+            RuleFor(x => x.Ausbildungsende)
+                .GreaterThan(x => x.Ausbildungsstart)
+                .When(x => x.Ausbildungsstart.HasValue && x.Ausbildungsende.HasValue);
         }
     }
 }

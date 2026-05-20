@@ -30,5 +30,9 @@ namespace AzubiManager.Api.Models
         // Besitzer (Ausbilder)
         public int AusbilderId { get; set; }
         public Benutzer? Ausbilder { get; set; }
+
+        // Wer hat als erledigt markiert
+        public int? ErledigtVonId { get; set; }
+        public Benutzer? ErledigtVon { get; set; }
     }
 }

@@ -122,15 +122,13 @@ namespace AzubiManager.Api.Services
             var ws = workbook.Worksheet(1);
 
             var ersteZeile = ws.Row(1);
-            Console.WriteLine($"=== Excel Import ===");
-            Console.WriteLine($"Erste Zelle A1: '{ersteZeile.Cell(1).GetString()}'");
 
             // Spalten-Header parsen: "Fr. 1", "Sa. 2", ... → Tag-Nummer extrahieren
             var tage = new List<(int Col, int Tag)>();
             for (int col = 1; col <= ersteZeile.LastCellUsed().Address.ColumnNumber; col++)
             {
                 var zellenwert = ersteZeile.Cell(col).GetString().Trim();
-                Console.WriteLine($"Spalte {col}: '{zellenwert}'");
+                // Debug: col header
                 // Extrahiere Zahl aus z.B. "Fr. 1", "Mo. 11", "1"
                 var match = System.Text.RegularExpressions.Regex.Match(zellenwert, @"\b(\d{1,2})\b");
                 if (match.Success)
@@ -143,8 +141,7 @@ namespace AzubiManager.Api.Services
 
             if (tage.Count == 0) return 0;
 
-            Console.WriteLine($"Gefundene Tage: {tage.Count} (Monat {month}/{year})");
-            Console.WriteLine($"Erste Tag-Spalte: {tage[0].Col}, Letzte: {tage[^1].Col}");
+
 
             var imported = 0;
 
@@ -249,14 +246,14 @@ namespace AzubiManager.Api.Services
                 var buchFormats = new[] { "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy", "dd.MM.yyyy", "dd.MM.yy", "yyyy-MM-dd", "d.M.yyyy", "d.M.yy" };
                 if (buchStart == default) DateOnly.TryParseExact(datStr3c, buchFormats, null, System.Globalization.DateTimeStyles.None, out buchStart);
                 if (buchEnde == default) DateOnly.TryParseExact(datStr4c, buchFormats, null, System.Globalization.DateTimeStyles.None, out buchEnde);
-                    Console.WriteLine($"Buchungsdaten Row{row}: raw={cell3.Value}/{cell4.Value} str='{datStr3}'/'{datStr4}' parsed={buchStart}/{buchEnde}");
+                    // Debug
 
                     // Gruppe abkürzen und Lehrjahr berechnen
                     var importGruppe = !string.IsNullOrEmpty(kursWert) && kursWert != "Kurs" ? kursWert : "Ausbildung";
                     if (importGruppe.StartsWith("Fachinformatiker", StringComparison.OrdinalIgnoreCase)) importGruppe = "Ausbildung";
                     else if (importGruppe.StartsWith("BvB", StringComparison.OrdinalIgnoreCase)) importGruppe = "BVB";
 
-                    Console.WriteLine($"Neu: BuBeginn={buchStart}, BuEnde={buchEnde}");
+                    
                     var importLehrjahr = 1;
                     if (buchStart != default && buchEnde != default && buchEnde > buchStart)
                     {
@@ -264,9 +261,9 @@ namespace AzubiManager.Api.Services
                     var vergangenTage = (DateTime.Now - buchStart.ToDateTime(TimeOnly.MinValue)).TotalDays;
                     var maxJahre = Math.Max(1, (int)Math.Round(gesamtTage / 365.0));
                     importLehrjahr = Math.Max(1, Math.Min(maxJahre, (int)(vergangenTage / gesamtTage * maxJahre) + 1));
-                        Console.WriteLine($"Gesamt={gesamtTage}, Vergangen={vergangenTage} -> Lehrjahr={importLehrjahr}");
+                        
                     }
-                    else Console.WriteLine($"Lehrjahr=1 (keine gueltigen Daten)");
+                    else { /* Lehrjahr=1 */ }
 
                     azubi = new Teilnehmer
                     {
@@ -281,7 +278,7 @@ namespace AzubiManager.Api.Services
                     };
                     _db.Teilnehmer.Add(azubi);
                     await _db.SaveChangesAsync();
-                    Console.WriteLine($"Neuer Teilnehmer angelegt: {nvorname} {nnachname} (Gruppe: {azubi.Gruppe})");
+                    
                     _db.AzubiBetreuer.Add(new AzubiBetreuer { TeilnehmerId = azubi.Id, BenutzerId = _currentUser.BenutzerId });
                     await _db.SaveChangesAsync();
                     betreuteIds.Add(azubi.Id);
@@ -289,7 +286,7 @@ namespace AzubiManager.Api.Services
 
                 if (!betreuteIds.Contains(azubi.Id))
                 {
-                    Console.WriteLine($"Überspringe {azubi.Vorname} {azubi.Nachname} – nicht betreut");
+                    
                     continue;
                 }
 
@@ -301,7 +298,7 @@ namespace AzubiManager.Api.Services
                 var cell4b = ws.Cell(row, 4);
                 var datStr3b = cell3b.GetString().Trim();
                 var datStr4b = cell4b.GetString().Trim();
-                Console.WriteLine($"Update: {nameZelle} - raw3='{cell3b.Value}' raw4='{cell4b.Value}' str3='{datStr3b}' str4='{datStr4b}'");
+                // Debug
 
                 var importGruppe2 = kursWert2;
                 if (importGruppe2.StartsWith("Fachinformatiker", StringComparison.OrdinalIgnoreCase)) importGruppe2 = "Ausbildung";
@@ -322,7 +319,7 @@ namespace AzubiManager.Api.Services
                     var vergangenTage2 = (DateTime.Now - buchStart2.ToDateTime(TimeOnly.MinValue)).TotalDays;
                     var maxJahre2 = Math.Max(1, (int)Math.Round(gesamtTage2 / 365.0));
                     importLehrjahr2 = Math.Max(1, Math.Min(maxJahre2, (int)(vergangenTage2 / gesamtTage2 * maxJahre2) + 1));
-                    Console.WriteLine($"  Gesamt={gesamtTage2}, Vergangen={vergangenTage2} -> Lehrjahr={importLehrjahr2}");
+                    
                 }
 
                 if (!string.IsNullOrEmpty(importGruppe2) && importGruppe2 != "Kurs" || buchStart2 != default || buchEnde2 != default)
@@ -338,7 +335,7 @@ namespace AzubiManager.Api.Services
                     }
                 }
 
-                Console.WriteLine($"Match: {azubi.Vorname} {azubi.Nachname} (Gruppe: {azubi.Gruppe})");
+                
                 foreach (var (col, tag) in tage)
                 {
                     var statusRaw = ws.Cell(row, col).GetString().Trim();
@@ -364,7 +361,7 @@ namespace AzubiManager.Api.Services
             }
 
             await _db.SaveChangesAsync();
-            Console.WriteLine($"Import fertig: {imported} Eintraege");
+
             return imported;
         }
 
@@ -554,8 +551,8 @@ namespace AzubiManager.Api.Services
                 ws.Cell(i + 2, 1).Value = $"{azubi.Nachname}, {azubi.Vorname}";
                 ws.Cell(i + 2, 2).Value = azubi.Gruppe ?? "";
                 ws.Cell(i + 2, 3).Value = azubi.Lehrjahr;
-                ws.Cell(i + 2, 4).Value = azubi.Ausbildungsstart != default ? azubi.Ausbildungsstart.ToString("dd.MM.yyyy") : "";
-                ws.Cell(i + 2, 5).Value = azubi.Ausbildungsende != default ? azubi.Ausbildungsende.ToString("dd.MM.yyyy") : "";
+                ws.Cell(i + 2, 4).Value = azubi.Ausbildungsstart?.ToString("dd.MM.yyyy") ?? "";
+                ws.Cell(i + 2, 5).Value = azubi.Ausbildungsende?.ToString("dd.MM.yyyy") ?? "";
                 var gesamt = 0;
 
                 for (int j = 0; j < statusNamen.Length; j++)

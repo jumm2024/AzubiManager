@@ -14,6 +14,7 @@ interface Termin {
   ort?: string;
   azubiId?: number;
   azubiName?: string;
+  ausbilderName?: string;
 }
 
 export default function TermineListe() {
@@ -49,8 +50,13 @@ export default function TermineListe() {
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
-    queryFn: () => teilnehmerApi.alle().then(res => res.data),
+    queryFn: () => teilnehmerApi.alle().then(res => {
+      const all = res.data as Teilnehmer[];
+      return all.filter(t => t.istBetreut);
+    }),
   });
+  const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
+  const myData = data?.filter(t => t.azubiId && betreuteIds.has(t.azubiId));
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string }) => termineApi.erstellen(d),
@@ -142,8 +148,8 @@ export default function TermineListe() {
     });
   };
 
-  const anstehend = data?.filter(t => new Date(t.datum) >= new Date()).length || 0;
-  const vergangen = data?.filter(t => new Date(t.datum) < new Date()).length || 0;
+  const anstehend = myData?.filter(t => new Date(t.datum) >= new Date()).length || 0;
+  const vergangen = myData?.filter(t => new Date(t.datum) < new Date()).length || 0;
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
@@ -162,7 +168,7 @@ export default function TermineListe() {
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             <div>
               <p className="text-sm text-gray-500">Gesamt</p>
-              <p className="text-2xl font-bold">{data?.length || 0}</p>
+              <p className="text-2xl font-bold">{myData?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -262,10 +268,10 @@ export default function TermineListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Termine</h3>
-            <span className="text-xs text-gray-400">{data?.length || 0} Einträge</span>
+            <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {data?.map((t: Termin) => (
+            {myData?.map((t: Termin) => (
               <div key={t.id} className="group flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all">
                 <div className="flex flex-col items-center gap-1 w-12 shrink-0">
                   <span className="text-xs font-bold text-gray-400 uppercase">
@@ -297,6 +303,9 @@ export default function TermineListe() {
                     )}
                     {t.azubiName && (
                       <span className="text-[11px] text-gray-500 bg-indigo-50 px-2 py-0.5 rounded">{t.azubiName}</span>
+                    )}
+                    {t.ausbilderName && (
+                      <span className="text-[10px] text-gray-400">von {t.ausbilderName}</span>
                     )}
                   </div>
                   {t.beschreibung && (

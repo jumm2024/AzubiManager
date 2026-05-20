@@ -20,7 +20,7 @@ namespace AzubiManager.Api.Services
             {
                 var claim = _httpContextAccessor.HttpContext?.User
                     ?.FindFirst(ClaimTypes.NameIdentifier);
-                return claim != null ? int.Parse(claim.Value) : throw new UnauthorizedAccessException("Nicht authentifiziert");
+                return claim != null && int.TryParse(claim.Value, out var id) ? id : throw new UnauthorizedAccessException("Nicht authentifiziert");
             }
         }
 

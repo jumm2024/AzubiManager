@@ -4,6 +4,7 @@ using AzubiManager.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AzubiManager.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260520121406_MakeAusbildungsdatenNullable")]
+    partial class MakeAusbildungsdatenNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,9 +48,6 @@ namespace AzubiManager.Api.Migrations
                     b.Property<bool>("Erledigt")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ErledigtVonId")
-                        .HasColumnType("int");
-
                     b.Property<DateOnly>("Faelligkeitsdatum")
                         .HasColumnType("date");
 
@@ -70,8 +70,6 @@ namespace AzubiManager.Api.Migrations
                         .HasDatabaseName("IX_Aufgaben_AusbilderId");
 
                     b.HasIndex("AzubiId");
-
-                    b.HasIndex("ErledigtVonId");
 
                     b.HasIndex("AusbilderId", "Erledigt")
                         .HasDatabaseName("IX_Aufgaben_Ausbilder_Erledigt");
@@ -339,16 +337,9 @@ namespace AzubiManager.Api.Migrations
                         .HasForeignKey("AzubiId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("AzubiManager.Api.Models.Benutzer", "ErledigtVon")
-                        .WithMany()
-                        .HasForeignKey("ErledigtVonId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Ausbilder");
 
                     b.Navigation("Azubi");
-
-                    b.Navigation("ErledigtVon");
                 });
 
             modelBuilder.Entity("AzubiManager.Api.Models.AzubiBetreuer", b =>

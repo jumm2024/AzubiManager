@@ -2,6 +2,7 @@ import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teilnehmerApi } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Teilnehmer {
   id: number;
@@ -32,6 +33,7 @@ const gruppeFarben: Record<string, string> = {
 };
 
 export default function TeilnehmerListe() {
+  const { user } = useAuth();
   const [gruppeFilter, setGruppeFilter] = useState('');
   const [nurMeine, setNurMeine] = useState(false);
   const [vorname, setVorname] = useState('');
@@ -44,6 +46,9 @@ export default function TeilnehmerListe() {
   const [ausbildungsende, setAusbildungsende] = useState('');
   const [fehler, setFehler] = useState('');
   const [erfolg, setErfolg] = useState('');
+  const [letzterErstellterId, setLetzterErstellterId] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingBody, setPendingBody] = useState<{ vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string } | null>(null);
   const [bearbeitenTeilnehmer, setBearbeitenTeilnehmer] = useState<Teilnehmer | null>(null);
   const [bearbeitenVorname, setBearbeitenVorname] = useState('');
   const [bearbeitenNachname, setBearbeitenNachname] = useState('');
@@ -64,9 +69,11 @@ export default function TeilnehmerListe() {
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string }) => teilnehmerApi.erstellen(d),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
       ladeBadges();
+      const created = (res as { data: { id: number } }).data;
+      setLetzterErstellterId(created.id);
       setVorname('');
       setNachname('');
       setGruppe('Ausbildung');
@@ -76,7 +83,7 @@ export default function TeilnehmerListe() {
       setAusbildungsende('');
       setFehler('');
       setErfolg('Teilnehmer erstellt');
-      setTimeout(() => setErfolg(''), 3000);
+      setTimeout(() => { setErfolg(''); setLetzterErstellterId(null); }, 8000);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const d = error.response?.data;
@@ -150,7 +157,7 @@ export default function TeilnehmerListe() {
       vorname: bearbeitenVorname.trim(),
       nachname: bearbeitenNachname.trim(),
       gruppe: bearbeitenGruppe,
-      lehrjahr: bearbeitenGruppe === 'Ausbildung' ? bearbeitenLehrjahr : 1,
+      lehrjahr: bearbeitenGruppe === 'Ausbildung' ? bearbeitenLehrjahr : 0,
       abteilung: bearbeitenAbteilung.trim() || undefined,
       ausbildungsstart: bearbeitenAusbildungsstart || undefined,
       ausbildungsende: bearbeitenAusbildungsende || undefined,
@@ -175,12 +182,23 @@ export default function TeilnehmerListe() {
       vorname: vorname.trim(),
       nachname: nachname.trim(),
       gruppe,
-      lehrjahr: hatLehrjahr ? lehrjahr : 1,
+      lehrjahr: hatLehrjahr ? lehrjahr : 0,
       abteilung: abteilung.trim() || undefined,
+      ausbildungsstart: ausbildungsstart || undefined,
+      ausbildungsende: ausbildungsende || undefined,
     };
-    if (ausbildungsstart) body.ausbildungsstart = ausbildungsstart;
-    if (ausbildungsende) body.ausbildungsende = ausbildungsende;
-    erstelleMutation.mutate(body);
+    setPendingBody(body);
+    setShowConfirm(true);
+  };
+
+  const handleConfirmJa = () => {
+    if (pendingBody) erstelleMutation.mutate(pendingBody);
+    setShowConfirm(false);
+    setPendingBody(null);
+  };
+  const handleConfirmNein = () => {
+    setShowConfirm(false);
+    setPendingBody(null);
   };
 
   const counts = gruppen.map(g => ({
@@ -223,7 +241,15 @@ export default function TeilnehmerListe() {
       </div>
 
       {erfolg && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">{erfolg}</div>
+        <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          <span>{erfolg}</span>
+          {letzterErstellterId && (
+            <button onClick={() => { loescheMutation.mutate(letzterErstellterId); setLetzterErstellterId(null); setErfolg(''); }}
+              className="text-xs font-medium text-red-600 hover:text-red-800 bg-white px-2 py-1 rounded border border-red-200 hover:border-red-400 transition-colors">
+              Rückgängig (löschen)
+            </button>
+          )}
+        </div>
       )}
 
       <div className="flex items-center gap-3 mb-6">
@@ -292,20 +318,16 @@ export default function TeilnehmerListe() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="z.B. IT" />
               </div>
-              {gruppe === 'Ausbildung' && (
-                <>
-                  <div>
-                    <label htmlFor="tn-start" className="block text-sm font-medium text-gray-700 mb-1">Start</label>
-                    <input id="tn-start" name="ausbildungsstart" type="date" value={ausbildungsstart} onChange={(e) => setAusbildungsstart(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div>
-                    <label htmlFor="tn-ende" className="block text-sm font-medium text-gray-700 mb-1">Ende</label>
-                    <input id="tn-ende" name="ausbildungsende" type="date" value={ausbildungsende} onChange={(e) => setAusbildungsende(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-                  </div>
-                </>
-              )}
+              <div>
+                <label htmlFor="tn-start" className="block text-sm font-medium text-gray-700 mb-1">Start {gruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
+                <input id="tn-start" name="ausbildungsstart" type="date" value={ausbildungsstart} onChange={(e) => setAusbildungsstart(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label htmlFor="tn-ende" className="block text-sm font-medium text-gray-700 mb-1">Ende {gruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
+                <input id="tn-ende" name="ausbildungsende" type="date" value={ausbildungsende} onChange={(e) => setAusbildungsende(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
             </div>
 
             {fehler && (
@@ -347,8 +369,10 @@ export default function TeilnehmerListe() {
                       )}
                       <button onClick={() => handleBearbeitenOeffnen(t)}
                         className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">Bearbeiten</button>
-                      <button onClick={() => { if (confirm('Teilnehmer loeschen?')) loescheMutation.mutate(t.id); }}
-                        className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
+                      {user?.rolle === 'Admin' && (
+                        <button onClick={() => { if (confirm('Teilnehmer löschen?')) loescheMutation.mutate(t.id); }}
+                          className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -358,7 +382,7 @@ export default function TeilnehmerListe() {
                     <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${gruppeFarben[t.gruppe] || 'bg-gray-100 text-gray-600'}`}>
                       {t.kurs || t.gruppe}
                     </span>
-                    <span className="text-[11px] text-gray-400">{t.lehrjahr}. Lehrjahr</span>
+                    {t.lehrjahr > 0 && <span className="text-[11px] text-gray-400">{t.lehrjahr}. Lehrjahr</span>}
                     {t.abteilung && (
                       <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{t.abteilung}</span>
                     )}
@@ -418,20 +442,16 @@ export default function TeilnehmerListe() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="z.B. IT" />
                 </div>
-                {bearbeitenGruppe === 'Ausbildung' && (
-                  <>
-                    <div>
-                      <label htmlFor="edit-tn-start" className="block text-sm font-medium text-gray-700 mb-1">Start</label>
-                      <input id="edit-tn-start" name="ausbildungsstart" type="date" value={bearbeitenAusbildungsstart} onChange={(e) => setBearbeitenAusbildungsstart(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                    <div>
-                      <label htmlFor="edit-tn-ende" className="block text-sm font-medium text-gray-700 mb-1">Ende</label>
-                      <input id="edit-tn-ende" name="ausbildungsende" type="date" value={bearbeitenAusbildungsende} onChange={(e) => setBearbeitenAusbildungsende(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                  </>
-                )}
+                <div>
+                  <label htmlFor="edit-tn-start" className="block text-sm font-medium text-gray-700 mb-1">Start {bearbeitenGruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
+                  <input id="edit-tn-start" name="ausbildungsstart" type="date" value={bearbeitenAusbildungsstart} onChange={(e) => setBearbeitenAusbildungsstart(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label htmlFor="edit-tn-ende" className="block text-sm font-medium text-gray-700 mb-1">Ende {bearbeitenGruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
+                  <input id="edit-tn-ende" name="ausbildungsende" type="date" value={bearbeitenAusbildungsende} onChange={(e) => setBearbeitenAusbildungsende(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
               </div>
 
               {fehler && (
@@ -449,6 +469,27 @@ export default function TeilnehmerListe() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Teilnehmer speichern?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              {pendingBody?.vorname} {pendingBody?.nachname} ({pendingBody?.gruppe}) wirklich anlegen?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={handleConfirmNein}
+                className="px-5 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm">
+                Nein
+              </button>
+              <button onClick={handleConfirmJa}
+                className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors text-sm">
+                Ja
+              </button>
+            </div>
           </div>
         </div>
       )}

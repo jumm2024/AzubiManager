@@ -11,6 +11,7 @@ interface Notiz {
   kategorie: string;
   azubiId?: number;
   azubiName?: string;
+  ausbilderName?: string;
   erstelltAm: string;
 }
 
@@ -54,8 +55,13 @@ export default function NotizenListe() {
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
-    queryFn: () => teilnehmerApi.alle().then(res => res.data),
+    queryFn: () => teilnehmerApi.alle().then(res => {
+      const all = res.data as Teilnehmer[];
+      return all.filter(t => t.istBetreut);
+    }),
   });
+  const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
+  const myData = data?.filter(n => n.azubiId && betreuteIds.has(n.azubiId));
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
@@ -143,8 +149,8 @@ export default function NotizenListe() {
     </div>
   );
 
-  const kategorieCounts = data
-    ? kategorien.map(k => ({ kategorie: k, count: data.filter(n => n.kategorie === k).length }))
+  const kategorieCounts = myData
+    ? kategorien.map(k => ({ kategorie: k, count: myData.filter(n => n.kategorie === k).length }))
     : [];
 
   return (
@@ -217,10 +223,10 @@ export default function NotizenListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Notizen</h3>
-            <span className="text-xs text-gray-400">{data?.length || 0} Einträge</span>
+            <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {data?.map((n: Notiz) => {
+            {myData?.map((n: Notiz) => {
               const katFarbe = kategorieFarben[n.kategorie] || 'bg-gray-100 text-gray-600';
               const accentColor = kategoriePunkte[n.kategorie] || 'bg-gray-400';
               return (
@@ -243,6 +249,9 @@ export default function NotizenListe() {
                       </span>
                       {n.azubiName && (
                         <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{n.azubiName}</span>
+                      )}
+                      {n.ausbilderName && (
+                        <span className="text-[10px] text-gray-400">von {n.ausbilderName}</span>
                       )}
                       <span className="text-[11px] text-gray-400 ml-auto">
                         {new Date(n.erstelltAm).toLocaleDateString('de-DE')}

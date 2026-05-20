@@ -23,6 +23,7 @@ interface DashboardStats {
   anwesend: number;
   gesamt: number;
   offen: number;
+  betreuteTeilnehmer: number;
 }
 
 export default function Sidebar({ badges }: SidebarProps) {
@@ -33,7 +34,7 @@ export default function Sidebar({ badges }: SidebarProps) {
   const [pwFehler, setPwFehler] = useState('');
   const [pwErfolg, setPwErfolg] = useState('');
   const [pwLade, setPwLade] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>({ anwesend: 0, gesamt: 0, offen: 0 });
+  const [stats, setStats] = useState<DashboardStats>({ anwesend: 0, gesamt: 0, offen: 0, betreuteTeilnehmer: 0 });
 
   useEffect(() => {
     const loadStats = async () => {
@@ -43,6 +44,7 @@ export default function Sidebar({ badges }: SidebarProps) {
           anwesend: res.data.anwesend ?? 0,
           gesamt: res.data.teilnehmerGesamt ?? 0,
           offen: res.data.offeneAufgaben ?? 0,
+          betreuteTeilnehmer: res.data.betreuteTeilnehmer ?? 0,
         });
       } catch {
         // ignorieren
@@ -122,16 +124,16 @@ export default function Sidebar({ badges }: SidebarProps) {
         <div className="bg-[#FFF9EE] rounded-2xl p-4 border border-[#F0E6D6] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Heute · {datumText}</span>
-            {stats.offen > 0 && (
+            {badges.aufgaben > 0 && (
               <span className="text-[11px] font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
-                {stats.offen} offen
+                {badges.aufgaben} offen
               </span>
             )}
           </div>
           <div className="flex items-baseline gap-1.5 mb-3">
-            <span className="text-3xl font-bold text-gray-800">{stats.anwesend}</span>
+            <span className="text-3xl font-bold text-gray-800">{stats.betreuteTeilnehmer}</span>
             <span className="text-lg font-semibold text-gray-400">/{stats.gesamt}</span>
-            <span className="text-sm font-medium text-gray-500 ml-1">Azubis da</span>
+            <span className="text-sm font-medium text-gray-500 ml-1">Teilnehmer betreust du</span>
           </div>
           <div className="flex gap-1">
             {attendanceSegments.map((filled, i) => (

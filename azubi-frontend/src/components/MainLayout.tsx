@@ -16,11 +16,17 @@ export default function MainLayout() {
         notizenApi.alle().catch(() => ({ data: [] })),
       ]);
 
+      const meineIds = new Set(
+        (teilnehmerRes.data as { id: number; istBetreut?: boolean }[])
+          .filter(t => t.istBetreut)
+          .map(t => t.id)
+      );
+
       setBadges({
-        aufgaben: aufgabenRes.data?.length ?? 0,
-        termine: termineRes.data?.length ?? 0,
-        notizen: notizenRes.data?.length ?? 0,
-        teilnehmer: teilnehmerRes.data?.length ?? 0,
+        aufgaben: (aufgabenRes.data as { azubiId?: number }[]).filter(a => a.azubiId && meineIds.has(a.azubiId)).length,
+        termine: (termineRes.data as { azubiId?: number }[]).filter(t => t.azubiId && meineIds.has(t.azubiId)).length,
+        notizen: (notizenRes.data as { azubiId?: number }[]).filter(n => n.azubiId && meineIds.has(n.azubiId)).length,
+        teilnehmer: meineIds.size,
       });
     } catch {
       // ignorieren

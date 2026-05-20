@@ -10,8 +10,8 @@
         public int Lehrjahr { get; set; }
         public string? Abteilung { get; set; }
         public string Gruppe { get; set; } = "Ausbildung";
-        public DateOnly Ausbildungsstart { get; set; }
-        public DateOnly Ausbildungsende { get; set; }
+        public DateOnly? Ausbildungsstart { get; set; }
+        public DateOnly? Ausbildungsende { get; set; }
         public int? AusbilderId { get; set; }
         public string? AusbilderName { get; set; }
         public bool IstBetreut { get; set; }

@@ -8,9 +8,12 @@
         public string Prioritaet { get; set; } = "Mittel";
         public DateOnly Faelligkeitsdatum { get; set; }
         public bool Erledigt { get; set; }
+        public int? AzubiId { get; set; }
         public bool IstGlobal { get; set; }
         public string? AzubiIds { get; set; }
         public string? AzubiName { get; set; }
         public int AusbilderId { get; set; }
+        public string? AusbilderName { get; set; }
+        public string? ErledigtVonName { get; set; }
     }
 }

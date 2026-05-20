@@ -21,11 +21,16 @@ namespace AzubiManager.Api.Validators
                 .WithMessage("Gruppe muss Ausbildung, BVB, Erprober oder Praktikant sein");
 
             RuleFor(x => x.Lehrjahr)
-                .InclusiveBetween(1, 4).WithMessage("Lehrjahr muss zwischen 1 und 4 liegen");
+                .InclusiveBetween(1, 4).WithMessage("Lehrjahr muss zwischen 1 und 4 liegen")
+                .When(x => x.Gruppe == "Ausbildung");
+
+            RuleFor(x => x.Lehrjahr)
+                .Equal(0).WithMessage("Lehrjahr muss 0 sein")
+                .When(x => x.Gruppe != "Ausbildung");
 
             RuleFor(x => x.Ausbildungsende)
                 .GreaterThan(x => x.Ausbildungsstart)
-                .When(x => x.Ausbildungsstart != default && x.Ausbildungsende != default)
+                .When(x => x.Ausbildungsstart.HasValue && x.Ausbildungsende.HasValue)
                 .WithMessage("Ausbildungsende muss nach dem Ausbildungsstart liegen");
         }
     }

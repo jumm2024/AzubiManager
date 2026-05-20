@@ -41,7 +41,10 @@ export interface Aufgabe {
   faelligkeitsdatum: string;
   prioritaet: string;
   erledigt: boolean;
+  azubiId?: number;
   azubiName?: string;
+  ausbilderName?: string;
+  erledigtVonName?: string;
 }
 
 export interface Notiz {
@@ -49,7 +52,9 @@ export interface Notiz {
   titel: string;
   inhalt?: string;
   erstelltAm: string;
+  azubiId?: number;
   azubiName?: string;
+  ausbilderName?: string;
 }
 
 export interface Termin {
@@ -62,6 +67,7 @@ export interface Termin {
   ort?: string;
   azubiId?: number;
   azubiName?: string;
+  ausbilderName?: string;
 }
 
 export interface Tagesstatus {

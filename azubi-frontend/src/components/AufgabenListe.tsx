@@ -14,6 +14,8 @@ interface Aufgabe {
   istGlobal?: boolean;
   azubiName?: string;
   azubiId?: number;
+  ausbilderName?: string;
+  erledigtVonName?: string;
 }
 
 export default function AufgabenListe() {
@@ -25,15 +27,14 @@ export default function AufgabenListe() {
   const [prioritaet, setPrioritaet] = useState('Mittel');
   const [faelligkeitsdatum, setFaelligkeitsdatum] = useState('');
   const [azubiIds, setAzubiIds] = useState<number[]>([]);
-  const [istGlobal, setIstGlobal] = useState(false);
   const [fehler, setFehler] = useState('');
+  const [optimisticDone, setOptimisticDone] = useState<Record<number, boolean>>({});
   const [detailAufgabe, setDetailAufgabe] = useState<Aufgabe | null>(null);
   const [bearbeitenAufgabe, setBearbeitenAufgabe] = useState<Aufgabe | null>(null);
   const [bearbeitenTitel, setBearbeitenTitel] = useState('');
   const [bearbeitenBeschreibung, setBearbeitenBeschreibung] = useState('');
   const [bearbeitenPrioritaet, setBearbeitenPrioritaet] = useState('Mittel');
   const [bearbeitenFaelligkeitsdatum, setBearbeitenFaelligkeitsdatum] = useState('');
-  const [bearbeitenIstGlobal, setBearbeitenIstGlobal] = useState(false);
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
@@ -54,8 +55,12 @@ export default function AufgabenListe() {
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
-    queryFn: () => teilnehmerApi.alle().then(res => res.data),
+    queryFn: () => teilnehmerApi.alle().then(res => {
+      const all = res.data as Teilnehmer[];
+      return all.filter(t => t.istBetreut);
+    }),
   });
+  const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
 
   const erstelleMutation = useMutation({
     mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
@@ -83,8 +88,11 @@ export default function AufgabenListe() {
 
   const toggleMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.toggleErledigt(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
+    onSuccess: (_data, id) => {
+      setDetailAufgabe(prev => prev?.id === id ? { ...prev, erledigt: !prev.erledigt } : prev);
+      queryClient.invalidateQueries({ queryKey: ['aufgaben'] }).then(() => {
+        setOptimisticDone({});
+      });
       try { ladeBadges(); } catch { /* ignore */ }
     },
   });
@@ -119,7 +127,6 @@ export default function AufgabenListe() {
     setBearbeitenBeschreibung(aufgabe.beschreibung || '');
     setBearbeitenPrioritaet(aufgabe.prioritaet);
     setBearbeitenFaelligkeitsdatum(aufgabe.faelligkeitsdatum.slice(0, 10));
-    setBearbeitenIstGlobal(aufgabe.istGlobal || false);
     setBearbeitenAzubiIds(aufgabe.azubiId ? [aufgabe.azubiId] : []);
     setFehler('');
   };
@@ -143,7 +150,7 @@ export default function AufgabenListe() {
         beschreibung: bearbeitenBeschreibung.trim() || undefined,
         prioritaet: bearbeitenPrioritaet,
         faelligkeitsdatum: bearbeitenFaelligkeitsdatum,
-        istGlobal: bearbeitenIstGlobal,
+        istGlobal: false,
         azubiIds: bearbeitenAzubiIds.length > 0 ? bearbeitenAzubiIds.join(',') : undefined,
       }
     });
@@ -165,18 +172,19 @@ export default function AufgabenListe() {
       beschreibung: beschreibung.trim() || undefined,
       prioritaet,
       faelligkeitsdatum,
-      istGlobal,
+      istGlobal: false,
       azubiIds: azubiIds.length > 0 ? azubiIds.join(',') : undefined,
     });
   };
 
-  const gesamt = data?.length || 0;
-  const offene = data ? data.filter(a => !a.erledigt).length : 0;
-  const erledigte = data ? data.filter(a => a.erledigt).length : 0;
-  const ueberfaellig = data ? data.filter(a => !a.erledigt && new Date(a.faelligkeitsdatum) < new Date()).length : 0;
+  const myData = data?.filter(a => a.azubiId && betreuteIds.has(a.azubiId));
+  const gesamt = myData?.length || 0;
+  const offene = myData ? myData.filter(a => !a.erledigt).length : 0;
+  const erledigte = myData ? myData.filter(a => a.erledigt).length : 0;
+  const ueberfaellig = myData ? myData.filter(a => !a.erledigt && new Date(a.faelligkeitsdatum) < new Date()).length : 0;
   const heuteHeute = new Date();
   const heute = heuteHeute.toISOString().slice(0, 10);
-  const heuteFaellig = data ? data.filter(a => !a.erledigt && a.faelligkeitsdatum === heute).length : 0;
+  const heuteFaellig = myData ? myData.filter(a => !a.erledigt && a.faelligkeitsdatum === heute).length : 0;
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
@@ -189,7 +197,7 @@ export default function AufgabenListe() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Aufgaben</h2>
-        <span className="text-sm text-gray-400">{data?.length || 0} Aufgaben</span>
+        <span className="text-sm text-gray-400">{myData?.length || 0} Aufgaben</span>
       </div>
 
       <div className="grid grid-cols-5 gap-4 mb-8">
@@ -284,11 +292,6 @@ export default function AufgabenListe() {
                   {(!teilnehmer || teilnehmer.length === 0) && <p className="text-xs text-gray-400 px-2">Keine Teilnehmer</p>}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="istGlobal" name="istGlobal" checked={istGlobal} onChange={(e) => setIstGlobal(e.target.checked)}
-                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
-                <label htmlFor="istGlobal" className="text-sm text-gray-600 cursor-pointer select-none">Für alle Ausbilder sichtbar</label>
-              </div>
             </div>
 
             {fehler && (
@@ -305,10 +308,10 @@ export default function AufgabenListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Aufgaben</h3>
-            <span className="text-xs text-gray-400">{data?.length || 0} Einträge</span>
+            <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {data?.map((aufgabe: Aufgabe) => (
+            {myData?.map((aufgabe: Aufgabe) => (
               <div key={aufgabe.id} onClick={() => setDetailAufgabe(aufgabe)}
                 className={`group flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                   aufgabe.erledigt
@@ -319,8 +322,8 @@ export default function AufgabenListe() {
                   aufgabe.prioritaet === 'Hoch' ? 'bg-red-400' :
                   aufgabe.prioritaet === 'Mittel' ? 'bg-amber-400' : 'bg-green-400'
                 }`} />
-                <input type="checkbox" id={`aufgabe-done-${aufgabe.id}`} name={`aufgabe-done-${aufgabe.id}`} checked={aufgabe.erledigt}
-                  onChange={() => toggleMutation.mutate(aufgabe.id)}
+                <input type="checkbox" id={`aufgabe-done-${aufgabe.id}`} name={`aufgabe-done-${aufgabe.id}`} checked={aufgabe.id in optimisticDone ? optimisticDone[aufgabe.id] : aufgabe.erledigt}
+                  onChange={() => { setOptimisticDone(prev => ({ ...prev, [aufgabe.id]: !(prev[aufgabe.id] ?? aufgabe.erledigt) })); toggleMutation.mutate(aufgabe.id); }}
                   className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
@@ -353,6 +356,12 @@ export default function AufgabenListe() {
                     </span>
                     {aufgabe.azubiName && (
                       <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{aufgabe.azubiName}</span>
+                    )}
+                    {aufgabe.ausbilderName && (
+                      <span className="text-[10px] text-gray-400">von {aufgabe.ausbilderName}</span>
+                    )}
+                    {aufgabe.erledigt && aufgabe.erledigtVonName && (
+                      <span className="text-[10px] text-green-500">erledigt von {aufgabe.erledigtVonName}</span>
                     )}
                   </div>
                 </div>
@@ -397,21 +406,32 @@ export default function AufgabenListe() {
                 <span className="text-gray-400">Zugewiesen an</span>
                 <p className="font-medium text-gray-700 mt-0.5">{detailAufgabe.azubiName || 'Niemand'}</p>
               </div>
-              <div>
-                <span className="text-gray-400">Sichtbar für</span>
-                <p className="font-medium text-gray-700 mt-0.5">{detailAufgabe.istGlobal ? 'Alle Ausbilder' : 'Nur mich'}</p>
-              </div>
+              {detailAufgabe.ausbilderName && (
+                <div className="col-span-2">
+                  <span className="text-gray-400">Erstellt von</span>
+                  <p className="font-medium text-gray-700 mt-0.5">{detailAufgabe.ausbilderName}</p>
+                </div>
+              )}
+              {detailAufgabe.erledigt && detailAufgabe.erledigtVonName && (
+                <div className="col-span-2">
+                  <span className="text-gray-400">Erledigt von</span>
+                  <p className="font-medium text-green-600 mt-0.5">{detailAufgabe.erledigtVonName}</p>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 mt-6 pt-4 border-t border-gray-100">
-              <input type="checkbox" id="detail-aufgabe-done" name="detail-aufgabe-done" checked={detailAufgabe.erledigt} onChange={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}
+              <input type="checkbox" id="detail-aufgabe-done" name="detail-aufgabe-done" checked={detailAufgabe.id in optimisticDone ? optimisticDone[detailAufgabe.id] : detailAufgabe.erledigt}
+                onChange={() => { setOptimisticDone(prev => ({ ...prev, [detailAufgabe.id]: !(prev[detailAufgabe.id] ?? detailAufgabe.erledigt) })); toggleMutation.mutate(detailAufgabe.id); }}
                 className="w-4 h-4 rounded accent-blue-600 cursor-pointer mt-0.5" />
-              <label htmlFor="detail-aufgabe-done" className="text-sm text-gray-600 cursor-pointer select-none" onClick={() => { toggleMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); }}>
-                {detailAufgabe.erledigt ? 'Als offen markieren' : 'Als erledigt markieren'}
+              <label htmlFor="detail-aufgabe-done" className="text-sm text-gray-600 cursor-pointer select-none" onClick={() => { setOptimisticDone(prev => ({ ...prev, [detailAufgabe.id]: !(prev[detailAufgabe.id] ?? detailAufgabe.erledigt) })); toggleMutation.mutate(detailAufgabe.id); }}>
+                {detailAufgabe.id in optimisticDone ? (optimisticDone[detailAufgabe.id] ? 'Als offen markieren' : 'Als erledigt markieren') : (detailAufgabe.erledigt ? 'Als offen markieren' : 'Als erledigt markieren')}
               </label>
               <button onClick={() => { handleBearbeitenOeffnen(detailAufgabe); setDetailAufgabe(null); }}
                 className="ml-2 text-sm text-blue-500 hover:text-blue-700 font-medium">Bearbeiten</button>
-              <button onClick={() => { if (confirm('Aufgabe löschen?')) { loescheMutation.mutate(detailAufgabe.id); setDetailAufgabe(null); } }}
-                className="ml-2 text-sm text-red-500 hover:text-red-700 font-medium">Löschen</button>
+              <button onClick={async () => { if (confirm('Aufgabe löschen?')) { await loescheMutation.mutateAsync(detailAufgabe.id); setDetailAufgabe(null); } }}
+                className="ml-auto text-sm text-red-500 hover:text-red-700 font-medium">Löschen</button>
+              <button onClick={() => setDetailAufgabe(null)}
+                className="text-sm text-gray-400 hover:text-gray-600 font-medium">Schließen</button>
             </div>
           </div>
         </div>
@@ -467,12 +487,6 @@ export default function AufgabenListe() {
                   {(!teilnehmer || teilnehmer.length === 0) && <p className="text-xs text-gray-400 px-2">Keine Teilnehmer</p>}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="bearbeitenIstGlobal" name="istGlobal" checked={bearbeitenIstGlobal} onChange={(e) => setBearbeitenIstGlobal(e.target.checked)}
-                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
-                <label htmlFor="bearbeitenIstGlobal" className="text-sm text-gray-600 cursor-pointer select-none">Für alle Ausbilder sichtbar</label>
-              </div>
-
               {fehler && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{fehler}</div>
               )}

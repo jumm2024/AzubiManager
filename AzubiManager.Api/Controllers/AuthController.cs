@@ -27,12 +27,11 @@ namespace AzubiManager.Api.Controllers
             {
                 var response = await _authService.AnmeldenAsync(dto);
 
-                // HttpOnly Cookie setzen (sicherer als localStorage)
                 Response.Cookies.Append("token", response.Token, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = false, // true in Produktion (HTTPS)
-                    SameSite = SameSiteMode.Lax,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
                     Expires = DateTime.UtcNow.AddMinutes(240)
                 });
 
@@ -82,7 +81,7 @@ namespace AzubiManager.Api.Controllers
         }
 
         [HttpPost("register")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto dto)
         {
             try

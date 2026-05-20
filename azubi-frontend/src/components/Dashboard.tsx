@@ -3,7 +3,7 @@ import { dashboardApi, termineApi, notizenApi } from '../api/client';
 import type { Termin, Notiz, Aufgabe } from '../api/client';
 
 export default function Dashboard() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardApi.get().then(res => res.data)
   });
@@ -12,7 +12,7 @@ export default function Dashboard() {
     queryKey: ['termine', 'anstehend'],
     queryFn: () => termineApi.alle().then(res =>
       res.data
-        .filter((t: Termin) => new Date(t.datum) >= new Date())
+        .filter((t: Termin) => new Date(t.datum) >= new Date(new Date().toDateString()))
         .sort((a: Termin, b: Termin) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
         .slice(0, 5)
     ),
@@ -47,6 +47,20 @@ export default function Dashboard() {
     </div>
   );
 
+  if (isError) return (
+    <div className="text-center py-20">
+      <p className="text-red-500 text-lg">Fehler beim Laden des Dashboards.</p>
+      <p className="text-gray-400 text-sm mt-2">Bitte die Seite neu laden oder später erneut versuchen.</p>
+    </div>
+  );
+
+  if (!data) return (
+    <div className="text-center py-20">
+      <p className="text-gray-400 text-lg">Dashboard-Daten konnten nicht geladen werden.</p>
+      <p className="text-gray-400 text-sm mt-2">Bitte die Seite neu laden oder später erneut versuchen.</p>
+    </div>
+  );
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -78,7 +92,7 @@ export default function Dashboard() {
               <div className="w-3 h-3 rounded-full bg-blue-500" />
               <p className="text-sm text-gray-600 font-semibold">Offene Aufgaben</p>
             </div>
-            <p className="text-2xl font-extrabold">{data.offeneAufgaben}</p>
+            <p className="text-2xl font-extrabold">{data?.offeneAufgaben ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
@@ -87,7 +101,7 @@ export default function Dashboard() {
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <p className="text-sm text-gray-600 font-semibold">Überfällig</p>
             </div>
-            <p className="text-2xl font-extrabold">{data.ueberfaelligeAufgaben}</p>
+            <p className="text-2xl font-extrabold">{data?.ueberfaelligeAufgaben ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
@@ -96,7 +110,7 @@ export default function Dashboard() {
               <div className="w-3 h-3 rounded-full bg-amber-500" />
               <p className="text-sm text-gray-600 font-semibold">Status fehlt</p>
             </div>
-            <p className="text-2xl font-extrabold">{data.statusFehlt}</p>
+            <p className="text-2xl font-extrabold">{data?.statusFehlt ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
@@ -105,7 +119,7 @@ export default function Dashboard() {
               <div className="w-3 h-3 rounded-full bg-blue-500" />
               <p className="text-sm text-gray-600 font-semibold">Teilnehmer</p>
             </div>
-            <p className="text-2xl font-extrabold">{data.teilnehmerGesamt}</p>
+            <p className="text-2xl font-extrabold">{data?.teilnehmerGesamt ?? 0}</p>
           </div>
         </div>
       </div>

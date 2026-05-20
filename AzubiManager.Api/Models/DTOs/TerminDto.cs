@@ -13,5 +13,6 @@
         public string? AzubiIds { get; set; }
         public string? AzubiName { get; set; }
         public int AusbilderId { get; set; }
+        public string? AusbilderName { get; set; }
     }
 }
