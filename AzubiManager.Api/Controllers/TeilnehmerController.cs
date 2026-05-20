@@ -87,5 +87,25 @@ namespace AzubiManager.Api.Controllers
                 return Forbid();
             }
         }
+
+        [HttpGet("meine")]
+        public async Task<ActionResult<List<int>>> MeineBetreute()
+        {
+            return Ok(await _service.MeineBetreuteIdsAsync());
+        }
+
+        [HttpPost("{id}/betreuen")]
+        public async Task<ActionResult> BetreuungHinzufuegen(int id)
+        {
+            await _service.AddBetreuungAsync(id);
+            return Ok();
+        }
+
+        [HttpDelete("{id}/betreuen")]
+        public async Task<ActionResult> BetreuungEntfernen(int id)
+        {
+            await _service.RemoveBetreuungAsync(id);
+            return Ok();
+        }
     }
 }

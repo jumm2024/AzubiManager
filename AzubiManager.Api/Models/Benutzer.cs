@@ -26,5 +26,6 @@ namespace AzubiManager.Api.Models
 
         // Navigation: Ein Ausbilder kann viele Teilnehmer haben
         public ICollection<Teilnehmer> Teilnehmer { get; set; } = new List<Teilnehmer>();
+        public ICollection<AzubiBetreuer> BetreuteAzubis { get; set; } = new List<AzubiBetreuer>();
     }
 }

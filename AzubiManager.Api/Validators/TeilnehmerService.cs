@@ -20,11 +20,10 @@ namespace AzubiManager.Api.Services
         {
             var query = _db.Teilnehmer.AsNoTracking();
 
-            if (!_currentUser.IstAdmin)
-                query = query.Where(t => t.AusbilderId == _currentUser.BenutzerId);
-
             if (!string.IsNullOrEmpty(gruppe))
                 query = query.Where(t => t.Gruppe == gruppe);
+
+            var betreuteIds = await MeineBetreuteIdsAsync();
 
             return await query
                 .OrderBy(t => t.Nachname).ThenBy(t => t.Vorname)
@@ -41,7 +40,8 @@ namespace AzubiManager.Api.Services
                     Ausbildungsstart = t.Ausbildungsstart,
                     Ausbildungsende = t.Ausbildungsende,
                     AusbilderId = t.AusbilderId,
-                    AusbilderName = t.Ausbilder != null ? t.Ausbilder.Vorname + " " + t.Ausbilder.Nachname : null
+                    AusbilderName = t.Ausbilder != null ? t.Ausbilder.Vorname + " " + t.Ausbilder.Nachname : null,
+                    IstBetreut = betreuteIds.Contains(t.Id)
                 }).ToListAsync();
         }
 
@@ -49,9 +49,6 @@ namespace AzubiManager.Api.Services
         {
             var t = await _db.Teilnehmer.AsNoTracking().Include(x => x.Ausbilder).FirstOrDefaultAsync(x => x.Id == id);
             if (t == null) return null;
-
-            if (!_currentUser.IstAdmin && t.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
 
             return new TeilnehmerDto
             {
@@ -110,9 +107,6 @@ namespace AzubiManager.Api.Services
             var teilnehmer = await _db.Teilnehmer.FindAsync(id);
             if (teilnehmer == null) return null;
 
-            if (!_currentUser.IstAdmin && teilnehmer.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
-
             teilnehmer.Vorname = dto.Vorname;
             teilnehmer.Nachname = dto.Nachname;
             teilnehmer.Geburtsdatum = dto.Geburtsdatum;
@@ -146,12 +140,44 @@ namespace AzubiManager.Api.Services
             var teilnehmer = await _db.Teilnehmer.FindAsync(id);
             if (teilnehmer == null) return false;
 
-            if (!_currentUser.IstAdmin && teilnehmer.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
-
             _db.Teilnehmer.Remove(teilnehmer);
             await _db.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<int>> MeineBetreuteIdsAsync()
+        {
+            return await _db.AzubiBetreuer
+                .AsNoTracking()
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
+        }
+
+        public async Task AddBetreuungAsync(int teilnehmerId)
+        {
+            var existiert = await _db.AzubiBetreuer
+                .AnyAsync(ab => ab.TeilnehmerId == teilnehmerId && ab.BenutzerId == _currentUser.BenutzerId);
+
+            if (existiert) return;
+
+            _db.AzubiBetreuer.Add(new AzubiBetreuer
+            {
+                TeilnehmerId = teilnehmerId,
+                BenutzerId = _currentUser.BenutzerId
+            });
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task RemoveBetreuungAsync(int teilnehmerId)
+        {
+            var eintrag = await _db.AzubiBetreuer
+                .FirstOrDefaultAsync(ab => ab.TeilnehmerId == teilnehmerId && ab.BenutzerId == _currentUser.BenutzerId);
+
+            if (eintrag == null) return;
+
+            _db.AzubiBetreuer.Remove(eintrag);
+            await _db.SaveChangesAsync();
         }
     }
 }

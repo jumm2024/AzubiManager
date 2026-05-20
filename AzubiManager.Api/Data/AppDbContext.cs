@@ -15,6 +15,7 @@ namespace AzubiManager.Api.Data
         public DbSet<Aufgabe> Aufgaben { get; set; } = null!;
         public DbSet<Termin> Termine { get; set; } = null!;
         public DbSet<Notiz> Notizen { get; set; } = null!;
+        public DbSet<AzubiBetreuer> AzubiBetreuer { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +76,24 @@ namespace AzubiManager.Api.Data
                 .WithMany()
                 .HasForeignKey(n => n.AusbilderId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // AzubiBetreuer (n:m zwischen Teilnehmer und Benutzer)
+            modelBuilder.Entity<AzubiBetreuer>()
+                .HasOne(ab => ab.Teilnehmer)
+                .WithMany(t => t.Betreuer)
+                .HasForeignKey(ab => ab.TeilnehmerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AzubiBetreuer>()
+                .HasOne(ab => ab.Benutzer)
+                .WithMany(b => b.BetreuteAzubis)
+                .HasForeignKey(ab => ab.BenutzerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AzubiBetreuer>()
+                .HasIndex(ab => new { ab.TeilnehmerId, ab.BenutzerId })
+                .IsUnique()
+                .HasDatabaseName("IX_AzubiBetreuer_Teilnehmer_Benutzer");
 
             // ========== Indizes für Performance ==========
             modelBuilder.Entity<Teilnehmer>()

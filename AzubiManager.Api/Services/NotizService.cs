@@ -18,11 +18,7 @@ namespace AzubiManager.Api.Services
 
         public async Task<List<NotizDto>> AlleAbrufenAsync()
         {
-            IQueryable<Notiz> query;
-            if (_currentUser.IstAdmin)
-                query = _db.Notizen.AsNoTracking();
-            else
-                query = _db.Notizen.AsNoTracking().Where(n => n.AusbilderId == _currentUser.BenutzerId);
+            IQueryable<Notiz> query = _db.Notizen.AsNoTracking();
 
             var result = await query.OrderByDescending(n => n.ErstelltAm).Select(n => new NotizDto
             {
@@ -70,8 +66,6 @@ namespace AzubiManager.Api.Services
         {
             var notiz = await _db.Notizen.FindAsync(id);
             if (notiz == null) return null;
-            if (!_currentUser.IstAdmin && notiz.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
 
             notiz.Titel = dto.Titel;
             notiz.Inhalt = dto.Inhalt;
@@ -96,8 +90,6 @@ namespace AzubiManager.Api.Services
         {
             var notiz = await _db.Notizen.FindAsync(id);
             if (notiz == null) return false;
-            if (!_currentUser.IstAdmin && notiz.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
             _db.Notizen.Remove(notiz);
             await _db.SaveChangesAsync();
             return true;

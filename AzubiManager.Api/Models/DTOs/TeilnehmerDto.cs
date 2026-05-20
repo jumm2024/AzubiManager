@@ -14,5 +14,6 @@
         public DateOnly Ausbildungsende { get; set; }
         public int? AusbilderId { get; set; }
         public string? AusbilderName { get; set; }
+        public bool IstBetreut { get; set; }
     }
 }

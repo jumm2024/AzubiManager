@@ -18,11 +18,7 @@ namespace AzubiManager.Api.Services
 
         public async Task<List<TerminDto>> AlleAbrufenAsync()
         {
-            IQueryable<Termin> query;
-            if (_currentUser.IstAdmin)
-                query = _db.Termine.AsNoTracking();
-            else
-                query = _db.Termine.AsNoTracking().Where(t => t.AusbilderId == _currentUser.BenutzerId);
+            IQueryable<Termin> query = _db.Termine.AsNoTracking();
 
             var result = await query.OrderBy(t => t.Datum).Select(t => new TerminDto
             {
@@ -73,8 +69,6 @@ namespace AzubiManager.Api.Services
         {
             var termin = await _db.Termine.FindAsync(id);
             if (termin == null) return null;
-            if (!_currentUser.IstAdmin && termin.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
 
             termin.Titel = dto.Titel;
             termin.Beschreibung = dto.Beschreibung;
@@ -103,8 +97,6 @@ namespace AzubiManager.Api.Services
         {
             var termin = await _db.Termine.FindAsync(id);
             if (termin == null) return false;
-            if (!_currentUser.IstAdmin && termin.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
             _db.Termine.Remove(termin);
             await _db.SaveChangesAsync();
             return true;

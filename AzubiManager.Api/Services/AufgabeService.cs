@@ -18,18 +18,7 @@ namespace AzubiManager.Api.Services
 
         public async Task<List<AufgabeDto>> AlleAbrufenAsync(bool? erledigt = null)
         {
-            IQueryable<Aufgabe> query;
-
-            if (_currentUser.IstAdmin)
-            {
-                query = _db.Aufgaben.AsNoTracking();
-            }
-            else
-            {
-                // Eigene Aufgaben + global sichtbare Aufgaben
-                query = _db.Aufgaben.AsNoTracking()
-                    .Where(a => a.AusbilderId == _currentUser.BenutzerId || a.IstGlobal);
-            }
+            IQueryable<Aufgabe> query = _db.Aufgaben.AsNoTracking();
 
             if (erledigt.HasValue)
                 query = query.Where(a => a.Erledigt == erledigt.Value);
@@ -92,9 +81,6 @@ namespace AzubiManager.Api.Services
             var aufgabe = await _db.Aufgaben.FindAsync(id);
             if (aufgabe == null) return null;
 
-            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
-
             aufgabe.Titel = dto.Titel;
             aufgabe.Beschreibung = dto.Beschreibung;
             aufgabe.Prioritaet = dto.Prioritaet;
@@ -111,9 +97,6 @@ namespace AzubiManager.Api.Services
             var aufgabe = await _db.Aufgaben.FindAsync(id);
             if (aufgabe == null) return false;
 
-            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId && !aufgabe.IstGlobal)
-                throw new UnauthorizedAccessException();
-
             _db.Aufgaben.Remove(aufgabe);
             await _db.SaveChangesAsync();
             return true;
@@ -123,9 +106,6 @@ namespace AzubiManager.Api.Services
         {
             var aufgabe = await _db.Aufgaben.FindAsync(id);
             if (aufgabe == null) return false;
-
-            if (!_currentUser.IstAdmin && aufgabe.AusbilderId != _currentUser.BenutzerId && !aufgabe.IstGlobal)
-                throw new UnauthorizedAccessException();
 
             aufgabe.Erledigt = !aufgabe.Erledigt;
             await _db.SaveChangesAsync();

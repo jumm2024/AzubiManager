@@ -37,5 +37,6 @@ namespace AzubiManager.Api.Models
         public ICollection<Aufgabe> Aufgaben { get; set; } = new List<Aufgabe>();
         public ICollection<Termin> Termine { get; set; } = new List<Termin>();
         public ICollection<Notiz> Notizen { get; set; } = new List<Notiz>();
+        public ICollection<AzubiBetreuer> Betreuer { get; set; } = new List<AzubiBetreuer>();
     }
 }

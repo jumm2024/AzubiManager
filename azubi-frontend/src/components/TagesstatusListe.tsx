@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagesstatusApi, teilnehmerApi } from '../api/client';
 import { Upload, Download, FileText, CalendarDays } from 'lucide-react';
 
-const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklärt'];
+const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklärt', 'Feiertag', 'Wochenende'];
 
 const statusFarben: Record<string, string> = {
   Anwesend: 'bg-green-500',
@@ -17,6 +17,8 @@ const statusFarben: Record<string, string> = {
   Entschuldigt: 'bg-emerald-500',
   Unentschuldigt: 'bg-orange-500',
   'Ungeklärt': 'bg-gray-400',
+  Feiertag: 'bg-red-600',
+  Wochenende: 'bg-blue-300',
 };
 
 const statusBgFarben: Record<string, string> = {
@@ -31,6 +33,8 @@ const statusBgFarben: Record<string, string> = {
   Entschuldigt: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   Unentschuldigt: 'bg-orange-50 border-orange-200 text-orange-700',
   'Ungeklärt': 'bg-gray-50 border-gray-200 text-gray-700',
+  'Feiertag': 'bg-red-50 border-red-600 text-red-700',
+  'Wochenende': 'bg-blue-50 border-blue-300 text-blue-700',
 };
 
 export default function TagesstatusListe() {
@@ -55,6 +59,7 @@ export default function TagesstatusListe() {
   const { data: alleTeilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
     queryFn: () => teilnehmerApi.alle().then(res => res.data),
+    select: (alle) => (alle as unknown as { istBetreut?: boolean }[]).filter(t => t.istBetreut)
   });
 
   const setzenMutation = useMutation({
@@ -62,7 +67,7 @@ export default function TagesstatusListe() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] }),
   });
 
-  const mergeData = (alleTeilnehmer as unknown as { id: number; vorname: string; nachname: string; gruppe: string; lehrjahr: number }[])?.map((t) => {
+  const mergeData = (alleTeilnehmer as unknown as { id: number; vorname: string; nachname: string; gruppe: string; lehrjahr: number; kurs?: string }[])?.map((t) => {
     const existing = statusData?.find((s) => (s as { azubiId?: number }).azubiId === t.id);
     return { ...t, statusId: existing?.id, status: (existing as { status?: string })?.status || '', bemerkung: (existing as { bemerkung?: string })?.bemerkung || '' };
   }) || [];
@@ -94,7 +99,9 @@ export default function TagesstatusListe() {
       fd.append('file', importFile);
       const res = await tagesstatusApi.import(importFile, importYear, importMonth);
       setImportMsg(`${res.data.imported} Einträge importiert`);
-      queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] });
+      const neuesDatum = `${importYear}-${String(importMonth).padStart(2, '0')}-01`;
+      setDatum(neuesDatum);
+      queryClient.invalidateQueries({ queryKey: ['tagesstatus', neuesDatum] });
       setImportModal(false);
     } catch {
       setImportMsg('Import fehlgeschlagen');
@@ -199,7 +206,7 @@ export default function TagesstatusListe() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-800 text-sm">{t.vorname} {t.nachname}</p>
-                <p className="text-xs text-gray-400">{t.gruppe}{t.gruppe === 'Ausbildung' ? ` - Lehrjahr ${t.lehrjahr}` : ''}</p>
+                <p className="text-xs text-gray-400">{(t as unknown as { kurs?: string }).kurs || t.gruppe} - Lehrjahr {t.lehrjahr}</p>
               </div>
               <select id={`status-${t.id}`} name={`status-${t.id}`} value={lokaleStatus[t.id] ?? t.status} onChange={(e) => handleStatusChange(t.id, e.target.value)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border outline-none ${
@@ -287,7 +294,7 @@ export default function TagesstatusListe() {
                   <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">B</span> Kurs</div>
                   <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">C</span> Buchungsbeginn</div>
                   <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">D</span> Buchungsende</div>
-                  <div className="flex items-center gap-1.5 col-span-2"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">E+</span> Tages-Status (A, S, P, T, U, K, KK, FD, FE, FU, Ung)</div>
+                  <div className="flex items-center gap-1.5 col-span-2"><span className="w-5 h-5 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold">E+</span> Tages-Status (A, S, P, T, U, K, KK, FD, FE, FU, Ung, FT, WE)</div>
                 </div>
               </div>
             </div>

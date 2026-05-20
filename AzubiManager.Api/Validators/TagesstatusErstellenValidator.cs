@@ -9,7 +9,7 @@ namespace AzubiManager.Api.Validators
         {
             "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub",
             "Krank", "Kind krank", "Freigestellt", "Entschuldigt",
-            "Unentschuldigt", "Ungeklärt"
+            "Unentschuldigt", "Ungeklärt", "Feiertag", "Wochenende"
         };
 
         public TagesstatusErstellenValidator()

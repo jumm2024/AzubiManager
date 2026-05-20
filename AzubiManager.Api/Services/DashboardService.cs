@@ -18,50 +18,61 @@ namespace AzubiManager.Api.Services
         public async Task<DashboardDto> ErstellenAsync()
         {
             var heute = DateOnly.FromDateTime(DateTime.Today);
-            var benutzerId = _currentUser.BenutzerId;
-            var istAdmin = _currentUser.IstAdmin;
 
-            // Teilnehmer-Query
-            var teilnehmerQuery = _db.Teilnehmer.AsNoTracking();
-            if (!istAdmin)
-                teilnehmerQuery = teilnehmerQuery.Where(t => t.AusbilderId == benutzerId);
-            int teilnehmerGesamt = await teilnehmerQuery.CountAsync();
+            var alleTeilnehmerIds = await _db.Teilnehmer.AsNoTracking().Select(t => t.Id).ToListAsync();
+            int teilnehmerGesamt = alleTeilnehmerIds.Count;
 
-            // Status-Statistik für heute
-            var statusHeute = await _db.TagesstatusListe
+            var statusCounts = await _db.TagesstatusListe
                 .AsNoTracking()
-                .Where(s => s.Datum == heute && (istAdmin || s.Azubi.AusbilderId == benutzerId))
+                .Where(s => s.Datum == heute)
+                .GroupBy(s => s.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToListAsync();
 
-            // Jeden Status einzeln zählen
-            int anwesend = statusHeute.Count(s => s.Status == "Anwesend");
-            int schule = statusHeute.Count(s => s.Status == "Schule");
-            int praktikum = statusHeute.Count(s => s.Status == "Praktikum");
-            int termin = statusHeute.Count(s => s.Status == "Termin");
-            int urlaub = statusHeute.Count(s => s.Status == "Urlaub");
-            int krank = statusHeute.Count(s => s.Status == "Krank");
-            int kindKrank = statusHeute.Count(s => s.Status == "Kind krank");
-            int freigestellt = statusHeute.Count(s => s.Status == "Freigestellt");
-            int entschuldigt = statusHeute.Count(s => s.Status == "Entschuldigt");
-            int unentschuldigt = statusHeute.Count(s => s.Status == "Unentschuldigt");
-            int ungeklaert = statusHeute.Count(s => s.Status == "Ungeklärt");
+            var statusMap = statusCounts.ToDictionary(s => s.Status, s => s.Count);
+            int anwesend = statusMap.GetValueOrDefault("Anwesend");
+            int schule = statusMap.GetValueOrDefault("Schule");
+            int praktikum = statusMap.GetValueOrDefault("Praktikum");
+            int termin = statusMap.GetValueOrDefault("Termin");
+            int urlaub = statusMap.GetValueOrDefault("Urlaub");
+            int krank = statusMap.GetValueOrDefault("Krank");
+            int kindKrank = statusMap.GetValueOrDefault("Kind krank");
+            int freigestellt = statusMap.GetValueOrDefault("Freigestellt");
+            int entschuldigt = statusMap.GetValueOrDefault("Entschuldigt");
+            int unentschuldigt = statusMap.GetValueOrDefault("Unentschuldigt");
+            int ungeklaert = statusMap.GetValueOrDefault("Ungeklärt");
 
             // Teilnehmer ohne Status heute
-            var alleTeilnehmerIds = await teilnehmerQuery.Select(t => t.Id).ToListAsync();
-            var idsMitStatus = statusHeute.Select(s => s.AzubiId).Distinct().ToList();
+            var idsMitStatus = await _db.TagesstatusListe
+                .AsNoTracking()
+                .Where(s => s.Datum == heute)
+                .Select(s => s.AzubiId)
+                .Distinct()
+                .ToListAsync();
             int statusFehlt = alleTeilnehmerIds.Count(id => !idsMitStatus.Contains(id));
 
-            // Aufgaben
-            var aufgabenQuery = _db.Aufgaben.AsNoTracking()
-                .Where(a => a.AusbilderId == benutzerId || istAdmin);
+            // Alle offenen Aufgaben in einer Query laden + in-memory filtern
+            var alleAufgaben = await _db.Aufgaben.AsNoTracking()
+                .Where(a => !a.Erledigt)
+                .OrderBy(a => a.Faelligkeitsdatum == heute ? 0 : 1)
+                .ThenBy(a => a.Prioritaet)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Titel,
+                    a.Prioritaet,
+                    a.Faelligkeitsdatum,
+                    a.Erledigt,
+                    AzubiName = a.Azubi != null ? a.Azubi.Vorname + " " + a.Azubi.Nachname : null
+                })
+                .ToListAsync();
 
-            int offeneAufgaben = await aufgabenQuery.CountAsync(a => !a.Erledigt);
-            int ueberfaelligeAufgaben = await aufgabenQuery
-                .CountAsync(a => !a.Erledigt && a.Faelligkeitsdatum < heute);
+            int offeneAufgaben = alleAufgaben.Count;
+            int ueberfaelligeAufgaben = alleAufgaben.Count(a => a.Faelligkeitsdatum < heute);
+            int hohePrioritaet = alleAufgaben.Count(a => a.Prioritaet == "Hoch");
 
-            var aufgabenHeute = await aufgabenQuery
-                .Where(a => !a.Erledigt && a.Faelligkeitsdatum == heute)
-                .OrderBy(a => a.Prioritaet)
+            var aufgabenHeute = alleAufgaben
+                .Where(a => a.Faelligkeitsdatum == heute)
                 .Take(5)
                 .Select(a => new AufgabeDto
                 {
@@ -70,8 +81,8 @@ namespace AzubiManager.Api.Services
                     Prioritaet = a.Prioritaet,
                     Faelligkeitsdatum = a.Faelligkeitsdatum,
                     Erledigt = a.Erledigt,
-                    AzubiName = a.Azubi != null ? a.Azubi.Vorname + " " + a.Azubi.Nachname : null
-                }).ToListAsync();
+                    AzubiName = a.AzubiName
+                }).ToList();
 
             // Badges
             int krankLaenger = await _db.TagesstatusListe
@@ -81,19 +92,15 @@ namespace AzubiManager.Api.Services
                 .Where(g => g.Count() >= 3)
                 .CountAsync();
 
-            int hohePrioritaet = await aufgabenQuery
-                .CountAsync(a => !a.Erledigt && a.Prioritaet == "Hoch");
-
             int roterBadge = ueberfaelligeAufgaben + statusFehlt + hohePrioritaet + krankLaenger;
 
             int orangerBadge = await _db.Termine
                 .AsNoTracking()
-                .CountAsync(t => (istAdmin || t.AusbilderId == benutzerId) &&
-                    t.Datum >= DateTime.Today && t.Datum <= DateTime.Today.AddDays(7));
+                .CountAsync(t => t.Datum >= DateTime.Today && t.Datum <= DateTime.Today.AddDays(7));
 
             int pinkerBadge = await _db.Notizen
                 .AsNoTracking()
-                .CountAsync(n => istAdmin || n.AusbilderId == benutzerId);
+                .CountAsync();
 
             return new DashboardDto
             {

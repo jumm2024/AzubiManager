@@ -26,10 +26,6 @@ namespace AzubiManager.Api.Services
                 .AsNoTracking()
                 .Where(s => s.Datum == datum);
 
-            // Datenisolation
-            if (!_currentUser.IstAdmin)
-                query = query.Where(s => s.Azubi.AusbilderId == _currentUser.BenutzerId);
-
             return await query
                 .OrderBy(s => s.Azubi.Nachname).ThenBy(s => s.Azubi.Vorname)
                 .Select(s => new TagesstatusDto
@@ -55,9 +51,6 @@ namespace AzubiManager.Api.Services
 
             if (azubi == null)
                 throw new KeyNotFoundException("Teilnehmer nicht gefunden");
-
-            if (!_currentUser.IstAdmin && azubi.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException("Keine Berechtigung");
 
             // Existierenden Eintrag für Azubi + Datum suchen
             var status = await _db.TagesstatusListe
@@ -109,6 +102,8 @@ namespace AzubiManager.Api.Services
             ["FU"] = "Unentschuldigt",
             ["Ung"] = "Ungeklärt",
             ["UN"] = "Ungeklärt",
+            ["FT"] = "Feiertag",
+            ["WE"] = "Wochenende",
         };
 
         private static string MapStatus(string? raw)
@@ -155,6 +150,55 @@ namespace AzubiManager.Api.Services
 
             var alleAzubis = await _db.Teilnehmer.AsNoTracking().ToListAsync();
 
+            var betreuteIds = await _db.AzubiBetreuer
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
+
+            // Pre-load existing status records für diesen Monat – vermeidet N+1
+            var monatsStart = new DateOnly(year, month, 1);
+            var monatsEnde = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
+            var bestehendeStatus = await _db.TagesstatusListe
+                .AsNoTracking()
+                .Where(s => s.Datum >= monatsStart && s.Datum <= monatsEnde)
+                .ToListAsync();
+            var statusLookup = bestehendeStatus.ToDictionary(s => (s.AzubiId, s.Datum), s => s);
+
+            static Teilnehmer? SucheAzubi(string nameZelle, List<Teilnehmer> azubis, Func<Teilnehmer, bool> extraPredicate)
+            {
+                // Format 1: "Nachname, Vorname"
+                if (nameZelle.Contains(','))
+                {
+                    var teile = nameZelle.Split(',');
+                    var nachname = teile[0].Trim();
+                    var vorname = teile.Length > 1 ? teile[1].Trim() : "";
+                    var match = azubis.FirstOrDefault(a =>
+                        a.Nachname.Equals(nachname, StringComparison.OrdinalIgnoreCase) &&
+                        a.Vorname.Equals(vorname, StringComparison.OrdinalIgnoreCase) &&
+                        extraPredicate(a));
+                    if (match != null) return match;
+                }
+
+                // Format 2: "Vorname Nachname"
+                var raumTeile = nameZelle.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (raumTeile.Length >= 2)
+                {
+                    var vorname = raumTeile[0];
+                    var nachname = string.Join(" ", raumTeile.Skip(1));
+                    var match = azubis.FirstOrDefault(a =>
+                        a.Vorname.Equals(vorname, StringComparison.OrdinalIgnoreCase) &&
+                        a.Nachname.Equals(nachname, StringComparison.OrdinalIgnoreCase) &&
+                        extraPredicate(a));
+                    if (match != null) return match;
+                }
+
+                // Format 3: Vollständiger Match
+                return azubis.FirstOrDefault(a =>
+                    ((a.Vorname + " " + a.Nachname).Equals(nameZelle, StringComparison.OrdinalIgnoreCase) ||
+                     (a.Nachname + " " + a.Vorname).Equals(nameZelle, StringComparison.OrdinalIgnoreCase)) &&
+                    extraPredicate(a));
+            }
+
             var lastRow = ws.LastRowUsed();
             for (int row = 2; lastRow != null && row <= lastRow.RowNumber(); row++)
             {
@@ -165,40 +209,20 @@ namespace AzubiManager.Api.Services
                 var sternIdx = nameZelle.IndexOf(" *");
                 if (sternIdx > 0) nameZelle = nameZelle[..sternIdx].Trim();
 
+                var kursZelle = ws.Cell(row, 2).GetString().Trim();
+                var excelGruppe = (!string.IsNullOrEmpty(kursZelle) && kursZelle != "Kurs")
+                    ? (kursZelle.StartsWith("Fachinformatiker", StringComparison.OrdinalIgnoreCase) ? "Ausbildung" : kursZelle)
+                    : null;
+
                 Teilnehmer? azubi = null;
 
-                // Format 1: "Nachname, Vorname"
-                if (nameZelle.Contains(','))
-                {
-                    var teile = nameZelle.Split(',');
-                    var nachname = teile[0].Trim();
-                    var vorname = teile.Length > 1 ? teile[1].Trim() : "";
-                    azubi = alleAzubis.FirstOrDefault(a =>
-                        a.Nachname.Equals(nachname, StringComparison.OrdinalIgnoreCase) &&
-                        a.Vorname.Equals(vorname, StringComparison.OrdinalIgnoreCase));
-                }
+                // Erstversuch: Name + Gruppe – gleicher Name in anderer Gruppe = andere Person
+                if (excelGruppe != null)
+                    azubi = SucheAzubi(nameZelle, alleAzubis, a => a.Gruppe != null && a.Gruppe.Equals(excelGruppe, StringComparison.OrdinalIgnoreCase));
 
-                // Format 2: "Vorname Nachname"
+                // Zweitversuch: Name ohne Gruppe
                 if (azubi == null)
-                {
-                    var teile = nameZelle.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    if (teile.Length >= 2)
-                    {
-                        var vorname = teile[0];
-                        var nachname = string.Join(" ", teile.Skip(1));
-                        azubi = alleAzubis.FirstOrDefault(a =>
-                            a.Vorname.Equals(vorname, StringComparison.OrdinalIgnoreCase) &&
-                            a.Nachname.Equals(nachname, StringComparison.OrdinalIgnoreCase));
-                    }
-                }
-
-                // Format 3: genauer String-Match "Vorname Nachname"
-                if (azubi == null)
-                {
-                    azubi = alleAzubis.FirstOrDefault(a =>
-                        (a.Vorname + " " + a.Nachname).Equals(nameZelle, StringComparison.OrdinalIgnoreCase) ||
-                        (a.Nachname + " " + a.Vorname).Equals(nameZelle, StringComparison.OrdinalIgnoreCase));
-                }
+                    azubi = SucheAzubi(nameZelle, alleAzubis, _ => true);
 
                 if (azubi == null)
                 {
@@ -249,6 +273,7 @@ namespace AzubiManager.Api.Services
                         Vorname = nvorname,
                         Nachname = nnachname,
                         Gruppe = importGruppe,
+                        Kurs = kursWert,
                         Lehrjahr = importLehrjahr,
                         Ausbildungsstart = buchStart,
                         Ausbildungsende = buchEnde,
@@ -257,6 +282,15 @@ namespace AzubiManager.Api.Services
                     _db.Teilnehmer.Add(azubi);
                     await _db.SaveChangesAsync();
                     Console.WriteLine($"Neuer Teilnehmer angelegt: {nvorname} {nnachname} (Gruppe: {azubi.Gruppe})");
+                    _db.AzubiBetreuer.Add(new AzubiBetreuer { TeilnehmerId = azubi.Id, BenutzerId = _currentUser.BenutzerId });
+                    await _db.SaveChangesAsync();
+                    betreuteIds.Add(azubi.Id);
+                }
+
+                if (!betreuteIds.Contains(azubi.Id))
+                {
+                    Console.WriteLine($"Überspringe {azubi.Vorname} {azubi.Nachname} – nicht betreut");
+                    continue;
                 }
 
                 // Gruppe und Daten aus Excel aktualisieren
@@ -297,6 +331,7 @@ namespace AzubiManager.Api.Services
                     if (dbAzubi != null)
                     {
                         if (!string.IsNullOrEmpty(importGruppe2) && importGruppe2 != "Kurs") dbAzubi.Gruppe = importGruppe2;
+                        if (!string.IsNullOrEmpty(kursWert2) && kursWert2 != "Kurs") dbAzubi.Kurs = kursWert2;
                         dbAzubi.Lehrjahr = importLehrjahr2;
                         if (buchStart2 != default) dbAzubi.Ausbildungsstart = buchStart2;
                         if (buchEnde2 != default) dbAzubi.Ausbildungsende = buchEnde2;
@@ -311,11 +346,11 @@ namespace AzubiManager.Api.Services
                     if (string.IsNullOrEmpty(statusWert)) continue;
 
                     var datum = new DateOnly(year, month, tag);
-                    var existing = await _db.TagesstatusListe
-                        .FirstOrDefaultAsync(s => s.AzubiId == azubi.Id && s.Datum == datum);
-
-                    if (existing != null)
+                    if (statusLookup.TryGetValue((azubi.Id, datum), out var existing))
+                    {
+                        _db.TagesstatusListe.Attach(existing);
                         existing.Status = statusWert;
+                    }
                     else
                         _db.TagesstatusListe.Add(new Tagesstatus
                         {
@@ -342,18 +377,19 @@ namespace AzubiManager.Api.Services
             var start = new DateOnly(year, month, 1);
             var ende = new DateOnly(year, month, tage);
 
-            IQueryable<Teilnehmer> azubiQuery = _db.Teilnehmer.AsNoTracking();
-
-            if (!_currentUser.IstAdmin)
-                azubiQuery = azubiQuery.Where(a => a.AusbilderId == _currentUser.BenutzerId);
-
-            var azubis = await azubiQuery
-                .OrderBy(a => a.Nachname).ThenBy(a => a.Vorname)
-                .ToListAsync();
-
             var statusListe = await _db.TagesstatusListe
                 .AsNoTracking()
                 .Where(s => s.Datum >= start && s.Datum <= ende)
+                .ToListAsync();
+
+            var betreuteIds = await _db.AzubiBetreuer
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
+
+            var azubis = await _db.Teilnehmer.AsNoTracking()
+                .Where(a => betreuteIds.Contains(a.Id))
+                .OrderBy(a => a.Nachname).ThenBy(a => a.Vorname)
                 .ToListAsync();
 
             using var workbook = new XLWorkbook();
@@ -407,18 +443,19 @@ namespace AzubiManager.Api.Services
             var start = new DateOnly(year, month, 1);
             var ende = new DateOnly(year, month, tage);
 
-            IQueryable<Teilnehmer> azubiQuery = _db.Teilnehmer.AsNoTracking();
-
-            if (!_currentUser.IstAdmin)
-                azubiQuery = azubiQuery.Where(a => a.AusbilderId == _currentUser.BenutzerId);
-
-            var azubis = await azubiQuery
-                .OrderBy(a => a.Nachname).ThenBy(a => a.Vorname)
-                .ToListAsync();
-
             var statusListe = await _db.TagesstatusListe
                 .AsNoTracking()
                 .Where(s => s.Datum >= start && s.Datum <= ende)
+                .ToListAsync();
+
+            var betreuteIds = await _db.AzubiBetreuer
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
+
+            var azubis = await _db.Teilnehmer.AsNoTracking()
+                .Where(a => betreuteIds.Contains(a.Id))
+                .OrderBy(a => a.Nachname).ThenBy(a => a.Vorname)
                 .ToListAsync();
 
             using var workbook = new XLWorkbook();
@@ -469,24 +506,37 @@ namespace AzubiManager.Api.Services
         /// </summary>
         public async Task<byte[]> AzubiBerichtGesamtExportAsync()
         {
-            IQueryable<Teilnehmer> azubiQuery = _db.Teilnehmer.AsNoTracking();
+            var betreuteIds = await _db.AzubiBetreuer
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
 
-            if (!_currentUser.IstAdmin)
-                azubiQuery = azubiQuery.Where(a => a.AusbilderId == _currentUser.BenutzerId);
-
-            var azubis = await azubiQuery
+            var azubis = await _db.Teilnehmer.AsNoTracking()
+                .Where(a => betreuteIds.Contains(a.Id))
                 .OrderBy(a => a.Nachname).ThenBy(a => a.Vorname)
                 .ToListAsync();
 
-            var statusListe = await _db.TagesstatusListe
+            var azubiIds = azubis.Select(a => a.Id).ToList();
+
+            // Nur Status der gefilterten Azubis laden, gruppiert nach AzubiId + Status
+            var statusCounts = await _db.TagesstatusListe
                 .AsNoTracking()
+                .Where(s => azubiIds.Contains(s.AzubiId))
+                .GroupBy(s => new { s.AzubiId, s.Status })
+                .Select(g => new { g.Key.AzubiId, g.Key.Status, Count = g.Count() })
                 .ToListAsync();
+
+            var statusLookup = statusCounts
+                .GroupBy(x => x.AzubiId)
+                .ToDictionary(g => g.Key, g => g.ToLookup(x => x.Status, x => x.Count));
+
+            var statusNamen = new[] { "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt" };
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Azubi-Bericht Gesamt");
 
             // Header
-            var header = new[] { "Name", "Gruppe", "LJ", "Von", "Bis", "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt", "Gesamt" };
+            var header = new[] { "Name", "Gruppe", "LJ", "Von", "Bis" }.Concat(statusNamen).Concat(new[] { "Gesamt" }).ToArray();
             for (int i = 0; i < header.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = header[i];
@@ -499,25 +549,23 @@ namespace AzubiManager.Api.Services
             for (int i = 0; i < azubis.Count; i++)
             {
                 var azubi = azubis[i];
-                var azubiStatus = statusListe.Where(s => s.AzubiId == azubi.Id).ToList();
+                var rowStatus = statusLookup.GetValueOrDefault(azubi.Id);
 
                 ws.Cell(i + 2, 1).Value = $"{azubi.Nachname}, {azubi.Vorname}";
                 ws.Cell(i + 2, 2).Value = azubi.Gruppe ?? "";
                 ws.Cell(i + 2, 3).Value = azubi.Lehrjahr;
                 ws.Cell(i + 2, 4).Value = azubi.Ausbildungsstart != default ? azubi.Ausbildungsstart.ToString("dd.MM.yyyy") : "";
                 ws.Cell(i + 2, 5).Value = azubi.Ausbildungsende != default ? azubi.Ausbildungsende.ToString("dd.MM.yyyy") : "";
-                ws.Cell(i + 2, 6).Value = azubiStatus.Count(s => s.Status == "Anwesend");
-                ws.Cell(i + 2, 7).Value = azubiStatus.Count(s => s.Status == "Schule");
-                ws.Cell(i + 2, 8).Value = azubiStatus.Count(s => s.Status == "Praktikum");
-                ws.Cell(i + 2, 9).Value = azubiStatus.Count(s => s.Status == "Termin");
-                ws.Cell(i + 2, 10).Value = azubiStatus.Count(s => s.Status == "Urlaub");
-                ws.Cell(i + 2, 11).Value = azubiStatus.Count(s => s.Status == "Krank");
-                ws.Cell(i + 2, 12).Value = azubiStatus.Count(s => s.Status == "Kind krank");
-                ws.Cell(i + 2, 13).Value = azubiStatus.Count(s => s.Status == "Freigestellt");
-                ws.Cell(i + 2, 14).Value = azubiStatus.Count(s => s.Status == "Entschuldigt");
-                ws.Cell(i + 2, 15).Value = azubiStatus.Count(s => s.Status == "Unentschuldigt");
-                ws.Cell(i + 2, 16).Value = azubiStatus.Count(s => s.Status == "Ungeklärt");
-                ws.Cell(i + 2, 17).Value = azubiStatus.Count;
+                var gesamt = 0;
+
+                for (int j = 0; j < statusNamen.Length; j++)
+                {
+                    var count = rowStatus?[statusNamen[j]].FirstOrDefault() ?? 0;
+                    ws.Cell(i + 2, 6 + j).Value = count;
+                    gesamt += count;
+                }
+
+                ws.Cell(i + 2, 6 + statusNamen.Length).Value = gesamt;
             }
 
             ws.Columns().AdjustToContents();
@@ -537,9 +585,6 @@ namespace AzubiManager.Api.Services
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (status == null) return false;
-
-            if (!_currentUser.IstAdmin && status.Azubi.AusbilderId != _currentUser.BenutzerId)
-                throw new UnauthorizedAccessException();
 
             _db.TagesstatusListe.Remove(status);
             await _db.SaveChangesAsync();

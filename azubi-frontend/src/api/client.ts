@@ -23,6 +23,7 @@ export interface Teilnehmer {
   nachname: string;
   gruppe?: string;
   status?: string;
+  istBetreut?: boolean;
 }
 
 export interface Benutzer {
@@ -88,6 +89,9 @@ export const teilnehmerApi = {
   erstellen: (data: Partial<Teilnehmer>) => api.post<Teilnehmer>('/teilnehmer', data),
   aktualisieren: (id: number, data: Partial<Teilnehmer>) => api.put<Teilnehmer>(`/teilnehmer/${id}`, data),
   loeschen: (id: number) => api.delete(`/teilnehmer/${id}`),
+  meine: () => api.get<number[]>('/teilnehmer/meine'),
+  betreuen: (id: number) => api.post(`/teilnehmer/${id}/betreuen`),
+  nichtBetreuen: (id: number) => api.delete(`/teilnehmer/${id}/betreuen`),
 };
 
 export const benutzerApi = {
