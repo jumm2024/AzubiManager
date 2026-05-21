@@ -1,0 +1,61 @@
+============================================
+  AZUBI MANAGER – CHAT-ZUSAMMENFASSUNG
+  Erstellt: 21.05.2026
+============================================
+
+--------------------
+ 1. GEFIXTE PROBLEME
+--------------------
+
+1a. start.ps1
+  - Docker-API-Container wird automatisch gestoppt (kein Port-Konflikt mehr)
+  - dotnet run statt dotnet watch run (keine Neustarts mehr)
+
+1b. Persönliche Einträge (ohne Teilnehmer)
+  - Termine, Aufgaben, Notizen ohne Teilnehmer werden jetzt angezeigt
+  - Backend: TerminService, AufgabeService, NotizService angepasst
+  - Frontend: Filter in TermineListe, AufgabenListe, NotizenListe gefixt
+  - Badge-Zählung in Sidebar zählt persönliche Einträge jetzt mit
+
+1c. Bearbeiten-Modal schließt bei Textmarkierung
+  - Alle Modals (Termine, Aufgaben, Notizen, Teilnehmer, Sidebar)
+  - Overlay-Klick-zum-Schließen entfernt (nur noch über X/Abbrechen)
+
+1d. Mehrere Teilnehmer beim Bearbeiten
+  - Wurden vorher nur einer geladen (azubiId)
+  - Jetzt werden alle aus azubiIds (kommasepariert) geladen
+
+1e. cookies.txt + stats.html gelöscht
+  - Zu .gitignore hinzugefügt
+
+--------------------
+ 2. PRODUKTION (SERVER)
+--------------------
+
+Dateien:
+  - docker-compose.prod.yml  -> DB + API + Frontend in einem
+  - azubi-frontend/Dockerfile -> Frontend-Build mit nginx
+  - azubi-frontend/nginx.conf -> API-Proxy
+  - SERVER_SETUP.txt          -> Anleitung für Admin
+
+Server-Befehl:
+  docker compose -f docker-compose.prod.yml up -d
+
+--------------------
+ 3. LOKAL STARTEN
+--------------------
+
+  1. Docker Desktop starten
+  2. start.bat doppelklicken
+  3. Browser: http://localhost:5173
+
+  Login: admin / admin123 (danach Passwort ändern)
+
+--------------------
+ 4. NOCH OFFEN / AUSBLICK
+--------------------
+
+  - Azubi-Rolle für später angedacht (eigener Zugang für Azubis)
+  - Aktuell nur Admin + Ausbilder-Rollen
+
+============================================
