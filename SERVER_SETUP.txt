@@ -1,0 +1,70 @@
+============================================
+  AZUBI MANAGER – SERVER-SETUP ANLEITUNG
+============================================
+
+Voraussetzungen:
+- Docker & Docker Compose installiert
+- Port 80 (oder eigener Port) frei
+- Internet für Docker-Images
+
+---------------------------
+ 1. AUF SERVER ÜBERTRAGEN
+---------------------------
+Kompletten Projektordner auf den Server kopieren,
+z.B. per SCP, Git Clone oder USB.
+
+---------------------------
+ 2. STARTEN (PRODUKTION)
+---------------------------
+Im Hauptverzeichnis (AzubiManager2) ausführen:
+
+  docker compose -f docker-compose.prod.yml up -d
+
+Danach läuft:
+  - Datenbank (SQL Server) im Container
+  - Backend (API) unter Port 8080 (intern)
+  - Frontend unter Port 80 (http://DEINE-SERVER-IP)
+
+---------------------------
+ 3. STATUS PRÜFEN
+---------------------------
+  docker compose -f docker-compose.prod.yml ps
+
+Alle 3 Container sollten "Up" (grün) anzeigen.
+
+---------------------------
+ 4. BEI PROBLEMEN
+---------------------------
+Logs ansehen:
+  docker compose -f docker-compose.prod.yml logs api
+  docker compose -f docker-compose.prod.yml logs frontend
+
+Neustart:
+  docker compose -f docker-compose.prod.yml restart
+
+Komplett neu aufbauen:
+  docker compose -f docker-compose.prod.yml down
+  docker compose -f docker-compose.prod.yml up -d
+
+---------------------------
+ 5. ADMIN-ZUGANG
+---------------------------
+Benutzername: admin
+Passwort:     admin123
+
+Nach dem ersten Login bitte Passwort ändern.
+
+---------------------------
+ 6. DATEN SICHERN
+---------------------------
+Datenbank-Volume sichern:
+  docker run --rm -v sqldata:/data -v C:\backup:/backup alpine
+  tar czf /backup/azubimanager-db-$(date +%Y%m%d).tar.gz -C /data .
+
+---------------------------
+ 7. ENTWICKLUNG (LOKAL)
+---------------------------
+Zum lokalen Testen einfach start.bat doppelklicken.
+(Startet DB, Backend und Frontend automatisch.)
+
+============================================
