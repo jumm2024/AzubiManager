@@ -6,6 +6,8 @@ dist/
 # .NET
 AzubiManager.Api/bin/
 AzubiManager.Api/obj/
+AzubiManager.Tests/bin/
+AzubiManager.Tests/obj/
 *.user
 *.suo
 

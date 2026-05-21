@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: azubimanager-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=AzubiManager2024!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    restart: unless-stopped
+
+  api:
+    build: ./AzubiManager.Api
+    container_name: azubimanager-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=AzubiManagerDb;User Id=sa;Password=AzubiManager2024!;TrustServerCertificate=True;
+      - Jwt__Key=AzubiManagerSuperGeheimerSchluesselMindestens32ZeichenLangFuerJwtHmacSha256
+      - Jwt__Issuer=AzubiManager
+      - Jwt__Audience=AzubiManagerUsers
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build: ./azubi-frontend
+    container_name: azubimanager-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  sqldata:
