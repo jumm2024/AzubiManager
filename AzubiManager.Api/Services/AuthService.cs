@@ -31,10 +31,10 @@ namespace AzubiManager.Api.Services
             var benutzer = new Benutzer
             {
                 Benutzername = dto.Benutzername,
-                PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.Passwort, 12), // Cost Factor 12 = hohe Sicherheit
+                PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.Passwort, 10),
                 Vorname = dto.Vorname,
                 Nachname = dto.Nachname,
-                Rolle = "Ausbilder", // Standard-Rolle
+                Rolle = "Ausbilder",
                 ErstelltAm = DateTime.UtcNow,
                 PasswortGeandert = false
             };
@@ -50,7 +50,6 @@ namespace AzubiManager.Api.Services
         /// </summary>
         public async Task<AuthResponseDto> AnmeldenAsync(LoginDto dto)
         {
-            // AsNoTracking für Performance – wir ändern nichts, lesen nur
             var benutzer = await _db.Benutzer
                 .AsNoTracking()
                 .FirstOrDefaultAsync(b => b.Benutzername == dto.Benutzername);
@@ -77,13 +76,13 @@ namespace AzubiManager.Api.Services
             if (!BCrypt.Net.BCrypt.Verify(dto.AltesPasswort, benutzer.PasswortHash))
                 throw new UnauthorizedAccessException("Altes Passwort ist falsch");
 
-            benutzer.PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.NeuesPasswort, 12);
+            benutzer.PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.NeuesPasswort, 10);
             benutzer.PasswortGeandert = true;
             await _db.SaveChangesAsync();
         }
 
         /// <summary>
-        /// Erstellt das JWT-Token (kurzlebig: 15 Minuten).
+        /// Erstellt das JWT-Token (30 Minuten für Sicherheit).
         /// </summary>
         private AuthResponseDto ErstelleToken(Benutzer benutzer)
         {
@@ -105,7 +104,7 @@ namespace AzubiManager.Api.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(240),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: credentials
             );
 

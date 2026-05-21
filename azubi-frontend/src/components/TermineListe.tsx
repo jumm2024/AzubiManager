@@ -56,7 +56,7 @@ export default function TermineListe() {
     }),
   });
   const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
-  const myData = data?.filter(t => t.azubiId && betreuteIds.has(t.azubiId));
+  const myData = data?.filter(t => !t.azubiId || betreuteIds.has(t.azubiId));
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string }) => termineApi.erstellen(d),
@@ -107,7 +107,7 @@ export default function TermineListe() {
     setBearbeitenEndzeit(t.endzeit ? t.endzeit.slice(0, 16) : '');
     setBearbeitenKategorie(t.kategorie);
     setBearbeitenOrt(t.ort || '');
-    setBearbeitenAzubiIds(t.azubiId ? [t.azubiId] : []);
+    setBearbeitenAzubiIds(t.azubiIds ? t.azubiIds.split(',').map(Number).filter(n => !isNaN(n)) : (t.azubiId ? [t.azubiId] : []));
     setFehler('');
   };
 
@@ -321,8 +321,8 @@ export default function TermineListe() {
         </div>
       </div>
       {bearbeitenTermin && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setBearbeitenTermin(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Termin bearbeiten</h3>
               <button onClick={() => setBearbeitenTermin(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>

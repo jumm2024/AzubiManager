@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
@@ -10,6 +11,7 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("fixed")]
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _db;
@@ -42,7 +44,7 @@ namespace AzubiManager.Api.Controllers
             var user = new Benutzer
             {
                 Benutzername = dto.Benutzername,
-                PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.Passwort, 12),
+                PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.Passwort, 10),
                 Vorname = dto.Vorname,
                 Nachname = dto.Nachname,
                 Rolle = dto.Rolle,
@@ -77,7 +79,7 @@ namespace AzubiManager.Api.Controllers
             var user = await _db.Benutzer.FindAsync(id);
             if (user == null) return NotFound();
 
-            user.PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.Passwort, 12);
+            user.PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.Passwort, 10);
             await _db.SaveChangesAsync();
 
             return Ok();

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using AzubiManager.Api.Models.DTOs;
 using AzubiManager.Api.Services;
 using AzubiManager.Api.Validators;
@@ -9,6 +10,7 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [EnableRateLimiting("fixed")]
     public class AufgabenController : ControllerBase
     {
         private readonly AufgabeService _service;
@@ -21,9 +23,12 @@ namespace AzubiManager.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AufgabeDto>>> Alle([FromQuery] bool? erledigt = null)
+        public async Task<ActionResult<List<AufgabeDto>>> Alle(
+            [FromQuery] bool? erledigt = null,
+            [FromQuery] int? skip = null,
+            [FromQuery] int? take = null)
         {
-            return Ok(await _service.AlleAbrufenAsync(erledigt));
+            return Ok(await _service.AlleAbrufenAsync(erledigt, skip, take));
         }
 
         [HttpPost]

@@ -61,7 +61,7 @@ export default function NotizenListe() {
     }),
   });
   const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
-  const myData = data?.filter(n => n.azubiId && betreuteIds.has(n.azubiId));
+  const myData = data?.filter(n => !n.azubiId || betreuteIds.has(n.azubiId));
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
@@ -106,7 +106,7 @@ export default function NotizenListe() {
     setBearbeitenTitel(n.titel);
     setBearbeitenInhalt(n.inhalt);
     setBearbeitenKategorie(n.kategorie);
-    setBearbeitenAzubiIds(n.azubiId ? [n.azubiId] : []);
+    setBearbeitenAzubiIds(n.azubiIds ? n.azubiIds.split(',').map(Number).filter(n => !isNaN(n)) : (n.azubiId ? [n.azubiId] : []));
     setFehler('');
   };
 
@@ -268,8 +268,8 @@ export default function NotizenListe() {
         </div>
       </div>
       {bearbeitenNotiz && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setBearbeitenNotiz(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Notiz bearbeiten</h3>
               <button onClick={() => setBearbeitenNotiz(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>

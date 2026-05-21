@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using AzubiManager.Api.Models.DTOs;
 using AzubiManager.Api.Services;
 
@@ -21,6 +22,7 @@ namespace AzubiManager.Api.Controllers
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
         {
             try
@@ -32,7 +34,7 @@ namespace AzubiManager.Api.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddMinutes(240)
+                    Expires = DateTime.UtcNow.AddMinutes(30)
                 });
 
                 return Ok(new { response.BenutzerId, response.Benutzername, response.Rolle, response.Vorname, response.PasswortGeandert });

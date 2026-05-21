@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { authApi, dashboardApi } from '../api/client';
 import {
   LayoutDashboard,
@@ -34,28 +35,25 @@ export default function Sidebar({ badges }: SidebarProps) {
   const [pwFehler, setPwFehler] = useState('');
   const [pwErfolg, setPwErfolg] = useState('');
   const [pwLade, setPwLade] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>({ anwesend: 0, gesamt: 0, offen: 0, betreuteTeilnehmer: 0 });
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const res = await dashboardApi.get();
-        setStats({
-          anwesend: res.data.anwesend ?? 0,
-          gesamt: res.data.teilnehmerGesamt ?? 0,
-          offen: res.data.offeneAufgaben ?? 0,
-          betreuteTeilnehmer: res.data.betreuteTeilnehmer ?? 0,
-        });
-      } catch {
-        // ignorieren
-      }
-    };
-    void loadStats();
-  }, []);
+  const { data: statsData } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: () => dashboardApi.get().then(res => res.data),
+    staleTime: 30_000,
+  });
+
+  const stats: DashboardStats = {
+    anwesend: statsData?.anwesend ?? 0,
+    gesamt: statsData?.teilnehmerGesamt ?? 0,
+    offen: statsData?.offeneAufgaben ?? 0,
+    betreuteTeilnehmer: statsData?.betreuteTeilnehmer ?? 0,
+  };
 
   if (user && user.passwortGeandert === false && !pwModal) {
     setPwModal(true);
   }
+
+  const pwTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handlePwAendern = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +68,7 @@ export default function Sidebar({ badges }: SidebarProps) {
       setPwErfolg('Passwort geändert');
       setPwAlt('');
       setPwNeu('');
-      setTimeout(() => setPwModal(false), 1500);
+      pwTimerRef.current = setTimeout(() => setPwModal(false), 1500);
     } catch (err: unknown) {
       const error = err as { response?: { data?: string | { fehler?: string } } };
       const d = error.response?.data;
@@ -81,6 +79,12 @@ export default function Sidebar({ badges }: SidebarProps) {
       setPwLade(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (pwTimerRef.current) clearTimeout(pwTimerRef.current);
+    };
+  }, []);
 
   const heute = new Date();
   const datumText = heute.toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }).toUpperCase();
@@ -241,7 +245,7 @@ export default function Sidebar({ badges }: SidebarProps) {
       {/* Password Modal */}
       {pwModal && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[60]" onClick={() => setPwModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 text-gray-800 border border-gray-100" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 text-gray-800 border border-gray-100" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 mb-5">
               <h3 className="text-lg font-semibold text-gray-800">Passwort ändern</h3>
               <button onClick={() => setPwModal(false)} className="text-gray-400 hover:text-gray-600 text-lg transition-colors">✕</button>

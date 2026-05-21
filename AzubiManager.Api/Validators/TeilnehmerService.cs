@@ -2,6 +2,7 @@
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
 using AzubiManager.Api.Models.DTOs;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AzubiManager.Api.Services
 {
@@ -9,23 +10,30 @@ namespace AzubiManager.Api.Services
     {
         private readonly AppDbContext _db;
         private readonly CurrentUserService _currentUser;
+        private readonly IMemoryCache _cache;
 
-        public TeilnehmerService(AppDbContext db, CurrentUserService currentUser)
+        public TeilnehmerService(AppDbContext db, CurrentUserService currentUser, IMemoryCache cache)
         {
             _db = db;
             _currentUser = currentUser;
+            _cache = cache;
         }
 
-        public async Task<List<TeilnehmerDto>> AlleAbrufenAsync(string? gruppe = null)
+        public async Task<List<TeilnehmerDto>> AlleAbrufenAsync(string? gruppe = null, int? skip = null, int? take = null)
         {
             var query = _db.Teilnehmer.AsNoTracking();
 
             if (!string.IsNullOrEmpty(gruppe))
-                query = query.Where(t => t.Gruppe == gruppe);
+            {
+                if (gruppe == "Ausbildung")
+                    query = query.Where(t => t.Gruppe == null || (t.Gruppe != "BVB" && t.Gruppe != "Erprober" && t.Gruppe != "Praktikant"));
+                else
+                    query = query.Where(t => t.Gruppe == gruppe);
+            }
 
-            var betreuteIds = await MeineBetreuteIdsAsync();
+            var betreuteIds = await GetBetreuteIdsAsync();
 
-            return await query
+            var resultQuery = query
                 .OrderBy(t => t.Nachname).ThenBy(t => t.Vorname)
                 .Select(t => new TeilnehmerDto
                 {
@@ -42,7 +50,12 @@ namespace AzubiManager.Api.Services
                     AusbilderId = t.AusbilderId,
                     AusbilderName = t.Ausbilder != null ? t.Ausbilder.Vorname + " " + t.Ausbilder.Nachname : null,
                     IstBetreut = betreuteIds.Contains(t.Id)
-                }).ToListAsync();
+                });
+
+            if (skip.HasValue) resultQuery = resultQuery.Skip(skip.Value);
+            if (take.HasValue) resultQuery = resultQuery.Take(take.Value);
+
+            return await resultQuery.ToListAsync();
         }
 
         public async Task<TeilnehmerDto?> EinzelnenAbrufenAsync(int id)
@@ -85,6 +98,8 @@ namespace AzubiManager.Api.Services
 
             _db.Teilnehmer.Add(teilnehmer);
             await _db.SaveChangesAsync();
+
+            _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
 
             return new TeilnehmerDto
             {
@@ -142,16 +157,15 @@ namespace AzubiManager.Api.Services
 
             _db.Teilnehmer.Remove(teilnehmer);
             await _db.SaveChangesAsync();
+
+            _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
+
             return true;
         }
 
         public async Task<List<int>> MeineBetreuteIdsAsync()
         {
-            return await _db.AzubiBetreuer
-                .AsNoTracking()
-                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
-                .Select(ab => ab.TeilnehmerId)
-                .ToListAsync();
+            return await GetBetreuteIdsAsync();
         }
 
         public async Task AddBetreuungAsync(int teilnehmerId)
@@ -167,6 +181,8 @@ namespace AzubiManager.Api.Services
                 BenutzerId = _currentUser.BenutzerId
             });
             await _db.SaveChangesAsync();
+
+            _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
         }
 
         public async Task RemoveBetreuungAsync(int teilnehmerId)
@@ -178,6 +194,28 @@ namespace AzubiManager.Api.Services
 
             _db.AzubiBetreuer.Remove(eintrag);
             await _db.SaveChangesAsync();
+
+            _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
+        }
+
+        private async Task<List<int>> GetBetreuteIdsAsync()
+        {
+            var cacheKey = $"betreuteIds_{_currentUser.BenutzerId}";
+
+            if (_cache.TryGetValue(cacheKey, out List<int>? cached))
+            {
+                return cached!;
+            }
+
+            var ids = await _db.AzubiBetreuer
+                .AsNoTracking()
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
+
+            _cache.Set(cacheKey, ids, TimeSpan.FromMinutes(5));
+
+            return ids;
         }
     }
 }

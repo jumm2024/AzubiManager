@@ -2,6 +2,7 @@
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
 using AzubiManager.Api.Models.DTOs;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AzubiManager.Api.Services
 {
@@ -9,28 +10,27 @@ namespace AzubiManager.Api.Services
     {
         private readonly AppDbContext _db;
         private readonly CurrentUserService _currentUser;
+        private readonly IMemoryCache _cache;
 
-        public AufgabeService(AppDbContext db, CurrentUserService currentUser)
+        public AufgabeService(AppDbContext db, CurrentUserService currentUser, IMemoryCache cache)
         {
             _db = db;
             _currentUser = currentUser;
+            _cache = cache;
         }
 
-        public async Task<List<AufgabeDto>> AlleAbrufenAsync(bool? erledigt = null)
+        public async Task<List<AufgabeDto>> AlleAbrufenAsync(bool? erledigt = null, int? skip = null, int? take = null)
         {
-            var betreuteIds = await _db.AzubiBetreuer
-                .AsNoTracking()
-                .Where(b => b.BenutzerId == _currentUser.BenutzerId)
-                .Select(b => b.TeilnehmerId)
-                .ToListAsync();
+            var betreuteIds = await GetBetreuteIdsAsync();
 
             IQueryable<Aufgabe> query = _db.Aufgaben.AsNoTracking()
-                .Where(a => a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId));
+                .Where(a => (a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId))
+                         || (a.AzubiId == null && a.AusbilderId == _currentUser.BenutzerId));
 
             if (erledigt.HasValue)
                 query = query.Where(a => a.Erledigt == erledigt.Value);
 
-            var result = await query
+            var resultQuery = query
                 .OrderBy(a => a.Faelligkeitsdatum)
                 .Select(a => new AufgabeDto
                 {
@@ -46,25 +46,33 @@ namespace AzubiManager.Api.Services
                     AusbilderId = a.AusbilderId,
                     AusbilderName = a.Ausbilder != null ? a.Ausbilder.Vorname + " " + a.Ausbilder.Nachname : null,
                     ErledigtVonName = a.ErledigtVon != null ? a.ErledigtVon.Vorname + " " + a.ErledigtVon.Nachname : null
-                }).ToListAsync();
+                });
 
-            // Azubi-Namen für IDs auflösen
+            if (skip.HasValue) resultQuery = resultQuery.Skip(skip.Value);
+            if (take.HasValue) resultQuery = resultQuery.Take(take.Value);
+
+            var result = await resultQuery.ToListAsync();
+
             var alleIds = result.Where(r => !string.IsNullOrEmpty(r.AzubiIds))
                 .SelectMany(r => r.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries))
                 .Select(ParseId)
                 .Where(id => id.HasValue)
                 .Select(id => id!.Value).Distinct().ToList();
-            var namenMap = await _db.Teilnehmer.AsNoTracking()
-                .Where(t => alleIds.Contains(t.Id))
-                .ToDictionaryAsync(t => t.Id, t => t.Vorname + " " + t.Nachname);
 
-            foreach (var aufgabe in result.Where(r => r.AzubiIds != null))
+            if (alleIds.Count > 0)
             {
-                var ids = aufgabe.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(ParseId)
-                    .Where(id => id.HasValue)
-                    .Select(id => id!.Value).ToList();
-                aufgabe.AzubiName = string.Join(", ", ids.Where(id => namenMap.ContainsKey(id)).Select(id => namenMap[id]));
+                var namenMap = await _db.Teilnehmer.AsNoTracking()
+                    .Where(t => alleIds.Contains(t.Id))
+                    .ToDictionaryAsync(t => t.Id, t => t.Vorname + " " + t.Nachname);
+
+                foreach (var aufgabe in result.Where(r => r.AzubiIds != null))
+                {
+                    var ids = aufgabe.AzubiIds!.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(ParseId)
+                        .Where(id => id.HasValue)
+                        .Select(id => id!.Value).ToList();
+                    aufgabe.AzubiName = string.Join(", ", ids.Where(id => namenMap.ContainsKey(id)).Select(id => namenMap[id]));
+                }
             }
 
             return result;
@@ -181,6 +189,26 @@ namespace AzubiManager.Api.Services
                 AusbilderName = a.Ausbilder != null ? a.Ausbilder.Vorname + " " + a.Ausbilder.Nachname : null,
                 ErledigtVonName = a.ErledigtVon != null ? a.ErledigtVon.Vorname + " " + a.ErledigtVon.Nachname : null
             };
+        }
+
+        private async Task<List<int>> GetBetreuteIdsAsync()
+        {
+            var cacheKey = $"betreuteIds_{_currentUser.BenutzerId}";
+
+            if (_cache.TryGetValue(cacheKey, out List<int>? cached))
+            {
+                return cached!;
+            }
+
+            var ids = await _db.AzubiBetreuer
+                .AsNoTracking()
+                .Where(ab => ab.BenutzerId == _currentUser.BenutzerId)
+                .Select(ab => ab.TeilnehmerId)
+                .ToListAsync();
+
+            _cache.Set(cacheKey, ids, TimeSpan.FromMinutes(5));
+
+            return ids;
         }
     }
 }

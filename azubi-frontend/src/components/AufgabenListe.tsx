@@ -127,7 +127,7 @@ export default function AufgabenListe() {
     setBearbeitenBeschreibung(aufgabe.beschreibung || '');
     setBearbeitenPrioritaet(aufgabe.prioritaet);
     setBearbeitenFaelligkeitsdatum(aufgabe.faelligkeitsdatum.slice(0, 10));
-    setBearbeitenAzubiIds(aufgabe.azubiId ? [aufgabe.azubiId] : []);
+    setBearbeitenAzubiIds(aufgabe.azubiIds ? aufgabe.azubiIds.split(',').map(Number).filter(n => !isNaN(n)) : (aufgabe.azubiId ? [aufgabe.azubiId] : []));
     setFehler('');
   };
 
@@ -177,7 +177,7 @@ export default function AufgabenListe() {
     });
   };
 
-  const myData = data?.filter(a => a.azubiId && betreuteIds.has(a.azubiId));
+  const myData = data?.filter(a => !a.azubiId || betreuteIds.has(a.azubiId));
   const gesamt = myData?.length || 0;
   const offene = myData ? myData.filter(a => !a.erledigt).length : 0;
   const erledigte = myData ? myData.filter(a => a.erledigt).length : 0;
@@ -375,8 +375,8 @@ export default function AufgabenListe() {
       </div>
 
       {detailAufgabe && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setDetailAufgabe(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-800">{detailAufgabe.titel}</h3>
               <button onClick={() => setDetailAufgabe(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
@@ -438,8 +438,8 @@ export default function AufgabenListe() {
       )}
 
       {bearbeitenAufgabe && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setBearbeitenAufgabe(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Aufgabe bearbeiten</h3>
               <button onClick={() => setBearbeitenAufgabe(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>

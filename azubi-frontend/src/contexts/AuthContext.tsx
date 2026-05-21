@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../api/client';
 
 interface User {
@@ -20,6 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>(null!);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
@@ -42,12 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData: User = response.data;
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    queryClient.clear();
   };
 
   const logout = async () => {
     try { await authApi.logout(); } catch { /* ignorieren */ }
     setUser(null);
     localStorage.removeItem('user');
+    queryClient.clear();
   };
 
   const updateUser = (data: Partial<User>) => {

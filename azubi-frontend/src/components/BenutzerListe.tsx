@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { benutzerApi } from '../api/client';
 import type { Benutzer } from '../api/client';
@@ -19,6 +19,13 @@ export default function BenutzerListe() {
   const [pwMsg, setPwMsg] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
   const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const { data: benutzer, isLoading } = useQuery({
     queryKey: ['benutzer'],
@@ -35,7 +42,7 @@ export default function BenutzerListe() {
       setNachname('');
       setFehler('');
       setErfolg('Benutzer erfolgreich erstellt');
-      setTimeout(() => setErfolg(''), 3000);
+      timerRef.current = setTimeout(() => setErfolg(''), 3000);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const data = error.response?.data;
@@ -61,7 +68,7 @@ export default function BenutzerListe() {
       setPwModal(null);
       setPwValue('');
       setErfolg('Passwort erfolgreich zurueckgesetzt');
-      setTimeout(() => setErfolg(''), 3000);
+      timerRef.current = setTimeout(() => setErfolg(''), 3000);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const data = error.response?.data;

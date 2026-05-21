@@ -2,43 +2,14 @@ using AzubiManager.Api.Data;
 using AzubiManager.Api.Services;
 using AzubiManager.Api.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-// ==========================================
-// 3. EIGENE SERVICES REGISTRIEREN
-// ==========================================
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<CurrentUserService>();
 
-// Teilnehmer
-builder.Services.AddScoped<TeilnehmerService>();
-builder.Services.AddScoped<TeilnehmerErstellenValidator>();
-builder.Services.AddScoped<TeilnehmerAktualisierenValidator>();
-
-// Tagesstatus
-builder.Services.AddScoped<TagesstatusService>();
-builder.Services.AddScoped<TagesstatusErstellenValidator>();
-
-// Aufgaben
-builder.Services.AddScoped<AufgabeService>();
-builder.Services.AddScoped<AufgabeErstellenValidator>();
-
-// Termine
-builder.Services.AddScoped<TerminService>();
-
-// Notizen
-builder.Services.AddScoped<NotizService>();
-
-// Dashboard
-builder.Services.AddScoped<DashboardService>();
-
-// Hintergrund-Job für tägliches Tagesstatus-Update
-builder.Services.AddHostedService<TagesstatusJob>();
 // ==========================================
 // 0. KONFIGURATION AUS UMGEBUNGSVARIABLEN LADEN (für Docker)
 // ==========================================
@@ -73,13 +44,17 @@ if (string.IsNullOrEmpty(jwtKey))
 }
 
 // ==========================================
-// 1. DATENBANK
+// 1. DATENBANK (Connection Pooling für 1000 User)
 // ==========================================
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null)));
 
 // ==========================================
-// 2. JWT-AUTHENTIFIZIERUNG
+// 2. JWT-AUTHENTIFIZIERUNG (30 Min Lifetime für Sicherheit)
 // ==========================================
 var finalJwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT-Key fehlt");
@@ -98,7 +73,6 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            // Token aus Cookie lesen (fallback zum Authorization-Header)
             if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.ContainsKey("token"))
             {
                 context.Token = context.Request.Cookies["token"];
@@ -126,8 +100,60 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUserService>();
 
+// Teilnehmer
+builder.Services.AddScoped<TeilnehmerService>();
+builder.Services.AddScoped<TeilnehmerErstellenValidator>();
+builder.Services.AddScoped<TeilnehmerAktualisierenValidator>();
+
+// Tagesstatus
+builder.Services.AddScoped<TagesstatusService>();
+builder.Services.AddScoped<TagesstatusErstellenValidator>();
+
+// Aufgaben
+builder.Services.AddScoped<AufgabeService>();
+builder.Services.AddScoped<AufgabeErstellenValidator>();
+
+// Termine
+builder.Services.AddScoped<TerminService>();
+
+// Notizen
+builder.Services.AddScoped<NotizService>();
+
+// Dashboard
+builder.Services.AddScoped<DashboardService>();
+
+// Hintergrund-Job für tägliches Tagesstatus-Update
+builder.Services.AddHostedService<TagesstatusJob>();
+
 // ==========================================
-// 4. PERFORMANCE: RESPONSE COMPRESSION
+// 4. IMemoryCache für Performance (1000 User)
+// ==========================================
+builder.Services.AddMemoryCache();
+
+// ==========================================
+// 5. RATE LIMITING (Schutz vor Überlastung)
+// ==========================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 10;
+    });
+    options.AddFixedWindowLimiter("login", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 2;
+    });
+});
+
+// ==========================================
+// 6. RESPONSE COMPRESSION
 // ==========================================
 builder.Services.AddResponseCompression(options =>
 {
@@ -135,7 +161,12 @@ builder.Services.AddResponseCompression(options =>
 });
 
 // ==========================================
-// 5. CONTROLLER & JSON-KONFIGURATION
+// 7. HEALTH CHECKS
+// ==========================================
+builder.Services.AddHealthChecks();
+
+// ==========================================
+// 8. CONTROLLER & JSON-KONFIGURATION
 // ==========================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -145,7 +176,7 @@ builder.Services.AddControllers()
     });
 
 // ==========================================
-// 6. SWAGGER MIT JWT-UNTERSTÜTZUNG
+// 9. SWAGGER MIT JWT-UNTERSTÜTZUNG
 // ==========================================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -184,7 +215,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ==========================================
-// 7. CORS
+// 10. CORS
 // ==========================================
 builder.Services.AddCors(options =>
 {
@@ -202,12 +233,12 @@ builder.Services.AddCors(options =>
 });
 
 // ==========================================
-// 8. APPLICATION BUILD
+// 11. APPLICATION BUILD
 // ==========================================
 var app = builder.Build();
 
 // ==========================================
-// 9. MIDDLEWARE-PIPELINE
+// 12. MIDDLEWARE-PIPELINE
 // ==========================================
 app.UseResponseCompression();
 
@@ -223,18 +254,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 // ==========================================
-// 10. DATENBANK-MIGRATION & SEED-DATEN
+// 13. DATENBANK-MIGRATION & SEED-DATEN
 // ==========================================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
-    // Add missing columns for existing DBs
     await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Aufgaben') AND name = 'IstGlobal') ALTER TABLE Aufgaben ADD IstGlobal bit NOT NULL DEFAULT 0");
     await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Aufgaben') AND name = 'AzubiIds') ALTER TABLE Aufgaben ADD AzubiIds nvarchar(max) NULL");
     await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Termine') AND name = 'AzubiIds') ALTER TABLE Termine ADD AzubiIds nvarchar(max) NULL");
@@ -243,6 +275,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ==========================================
-// 11. ANWENDUNG STARTEN
+// 14. ANWENDUNG STARTEN
 // ==========================================
 app.Run();

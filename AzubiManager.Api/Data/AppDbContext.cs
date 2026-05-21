@@ -133,6 +133,22 @@ namespace AzubiManager.Api.Data
             modelBuilder.Entity<Notiz>()
                 .HasIndex(n => n.AusbilderId)
                 .HasDatabaseName("IX_Notizen_AusbilderId");
+
+            // Index für schnellen Login (Benutzername-Lookup)
+            modelBuilder.Entity<Benutzer>()
+                .HasIndex(b => b.Benutzername)
+                .IsUnique()
+                .HasDatabaseName("IX_Benutzer_Benutzername");
+
+            // Index für Notizen-Sortierung nach ErstelltAm
+            modelBuilder.Entity<Notiz>()
+                .HasIndex(n => n.ErstelltAm)
+                .HasDatabaseName("IX_Notizen_ErstelltAm");
+
+            // Index für Termin-Datum-Filter
+            modelBuilder.Entity<Termin>()
+                .HasIndex(t => t.Datum)
+                .HasDatabaseName("IX_Termine_Datum");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using AzubiManager.Api.Models.DTOs;
 using AzubiManager.Api.Services;
 
@@ -8,13 +9,16 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [EnableRateLimiting("fixed")]
     public class TermineController : ControllerBase
     {
         private readonly TerminService _service;
         public TermineController(TerminService service) => _service = service;
 
         [HttpGet]
-        public async Task<ActionResult<List<TerminDto>>> Alle() => Ok(await _service.AlleAbrufenAsync());
+        public async Task<ActionResult<List<TerminDto>>> Alle(
+            [FromQuery] int? skip = null,
+            [FromQuery] int? take = null) => Ok(await _service.AlleAbrufenAsync(skip, take));
 
         [HttpPost]
         public async Task<ActionResult<TerminDto>> Erstellen([FromBody] TerminErstellenDto dto)

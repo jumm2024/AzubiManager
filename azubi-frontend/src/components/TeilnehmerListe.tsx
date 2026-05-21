@@ -1,5 +1,5 @@
 import { useOutletContext } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teilnehmerApi } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
@@ -58,7 +58,14 @@ export default function TeilnehmerListe() {
   const [bearbeitenAusbildungsstart, setBearbeitenAusbildungsstart] = useState('');
   const [bearbeitenAusbildungsende, setBearbeitenAusbildungsende] = useState('');
   const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['teilnehmer', gruppeFilter],
@@ -83,7 +90,7 @@ export default function TeilnehmerListe() {
       setAusbildungsende('');
       setFehler('');
       setErfolg('Teilnehmer erstellt');
-      setTimeout(() => { setErfolg(''); setLetzterErstellterId(null); }, 8000);
+      timerRef.current = setTimeout(() => { setErfolg(''); setLetzterErstellterId(null); }, 8000);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const d = error.response?.data;
@@ -105,7 +112,7 @@ export default function TeilnehmerListe() {
       ladeBadges();
       setBearbeitenTeilnehmer(null);
       setErfolg('Teilnehmer aktualisiert');
-      setTimeout(() => setErfolg(''), 3000);
+      timerRef.current = setTimeout(() => setErfolg(''), 3000);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
       const d = error.response?.data;
@@ -119,6 +126,10 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.betreuen(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
+      queryClient.refetchQueries({ queryKey: ['teilnehmer'] });
+    },
+    onError: (err: unknown) => {
+      setFehler('Fehler beim Betreuen: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));
     }
   });
 
@@ -126,6 +137,10 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.nichtBetreuen(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
+      queryClient.refetchQueries({ queryKey: ['teilnehmer'] });
+    },
+    onError: (err: unknown) => {
+      setFehler('Fehler beim Entfernen der Betreuung: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));
     }
   });
 
@@ -402,8 +417,8 @@ export default function TeilnehmerListe() {
         </div>
       </div>
       {bearbeitenTeilnehmer && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setBearbeitenTeilnehmer(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Teilnehmer bearbeiten</h3>
               <button onClick={() => setBearbeitenTeilnehmer(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models.DTOs;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AzubiManager.Api.Services
 {
@@ -8,15 +9,24 @@ namespace AzubiManager.Api.Services
     {
         private readonly AppDbContext _db;
         private readonly CurrentUserService _currentUser;
+        private readonly IMemoryCache _cache;
 
-        public DashboardService(AppDbContext db, CurrentUserService currentUser)
+        public DashboardService(AppDbContext db, CurrentUserService currentUser, IMemoryCache cache)
         {
             _db = db;
             _currentUser = currentUser;
+            _cache = cache;
         }
 
         public async Task<DashboardDto> ErstellenAsync()
         {
+            var cacheKey = $"dashboard_{_currentUser.BenutzerId}";
+
+            if (_cache.TryGetValue(cacheKey, out DashboardDto? cached))
+            {
+                return cached!;
+            }
+
             var heute = DateOnly.FromDateTime(DateTime.Today);
 
             var betreuteIds = await _db.AzubiBetreuer
@@ -47,7 +57,6 @@ namespace AzubiManager.Api.Services
             int unentschuldigt = statusMap.GetValueOrDefault("Unentschuldigt");
             int ungeklaert = statusMap.GetValueOrDefault("Ungeklärt");
 
-            // Teilnehmer ohne Status heute
             int idsMitStatusHeute = await _db.TagesstatusListe
                 .AsNoTracking()
                 .Where(s => s.Datum == heute && betreuteIds.Contains(s.AzubiId))
@@ -56,7 +65,6 @@ namespace AzubiManager.Api.Services
                 .CountAsync();
             int statusFehlt = betreuteIds.Count - idsMitStatusHeute;
 
-            // Aufgaben-Counts als SQL-Aggregat (kein ToListAsync!)
             var aufgabenQuery = _db.Aufgaben.AsNoTracking()
                 .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId));
 
@@ -74,7 +82,6 @@ namespace AzubiManager.Api.Services
             int ueberfaelligeAufgaben = aufgabenCounts?.Ueberfaellig ?? 0;
             int hohePrioritaet = aufgabenCounts?.HohePrioritaet ?? 0;
 
-            // Aufgaben heute (TOP 5) – SQL filter on date
             var aufgabenHeute = await _db.Aufgaben.AsNoTracking()
                 .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId) && a.Faelligkeitsdatum == heute)
                 .OrderBy(a => a.Prioritaet)
@@ -90,7 +97,6 @@ namespace AzubiManager.Api.Services
                 })
                 .ToListAsync();
 
-            // Badges
             int krankLaenger = await _db.TagesstatusListe
                 .AsNoTracking()
                 .Where(s => s.Datum >= heute.AddDays(-7) && s.Datum <= heute && s.Status == "Krank" && betreuteIds.Contains(s.AzubiId))
@@ -110,7 +116,7 @@ namespace AzubiManager.Api.Services
                 .Where(n => n.AzubiId != null && betreuteIds.Contains((int)n.AzubiId))
                 .CountAsync();
 
-            return new DashboardDto
+            var result = new DashboardDto
             {
                 Anwesend = anwesend,
                 Schule = schule,
@@ -133,6 +139,19 @@ namespace AzubiManager.Api.Services
                 TeilnehmerGesamt = teilnehmerGesamt,
                 BetreuteTeilnehmer = betreuteIds.Count
             };
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromSeconds(30))
+                .SetSlidingExpiration(TimeSpan.FromSeconds(10));
+
+            _cache.Set(cacheKey, result, cacheEntryOptions);
+
+            return result;
+        }
+
+        public void InvalidateCache(int benutzerId)
+        {
+            _cache.Remove($"dashboard_{benutzerId}");
         }
     }
 }

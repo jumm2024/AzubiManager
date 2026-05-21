@@ -23,9 +23,9 @@ export default function MainLayout() {
       );
 
       setBadges({
-        aufgaben: (aufgabenRes.data as { azubiId?: number }[]).filter(a => a.azubiId && meineIds.has(a.azubiId)).length,
-        termine: (termineRes.data as { azubiId?: number }[]).filter(t => t.azubiId && meineIds.has(t.azubiId)).length,
-        notizen: (notizenRes.data as { azubiId?: number }[]).filter(n => n.azubiId && meineIds.has(n.azubiId)).length,
+        aufgaben: (aufgabenRes.data as { azubiId?: number }[]).filter(a => !a.azubiId || meineIds.has(a.azubiId)).length,
+        termine: (termineRes.data as { azubiId?: number }[]).filter(t => !t.azubiId || meineIds.has(t.azubiId)).length,
+        notizen: (notizenRes.data as { azubiId?: number }[]).filter(n => !n.azubiId || meineIds.has(n.azubiId)).length,
         teilnehmer: meineIds.size,
       });
     } catch {

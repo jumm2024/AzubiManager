@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using AzubiManager.Api.Models.DTOs;
 using AzubiManager.Api.Services;
 
@@ -8,6 +9,7 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [EnableRateLimiting("fixed")]
     public class DashboardController : ControllerBase
     {
         private readonly DashboardService _service;
