@@ -21,3 +21,7 @@ Thumbs.db
 
 # Docker
 uploads/
+
+# Generierte lokale Dateien
+cookies.txt
+stats.html
