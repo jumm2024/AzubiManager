@@ -243,7 +243,7 @@ namespace AzubiManager.Api.Services
                 // Remove trailing time if present: "09/02/2025 00:00:00" -> "09/02/2025"
                 var datStr3c = datStr3.Contains(' ') ? datStr3[..datStr3.IndexOf(' ')] : datStr3;
                 var datStr4c = datStr4.Contains(' ') ? datStr4[..datStr4.IndexOf(' ')] : datStr4;
-                var buchFormats = new[] { "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy", "dd.MM.yyyy", "dd.MM.yy", "yyyy-MM-dd", "d.M.yyyy", "d.M.yy" };
+                var buchFormats = new[] { "dd.MM.yyyy", "dd.MM.yy", "d.M.yyyy", "d.M.yy", "yyyy-MM-dd", "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy" };
                 if (buchStart == default) DateOnly.TryParseExact(datStr3c, buchFormats, null, System.Globalization.DateTimeStyles.None, out buchStart);
                 if (buchEnde == default) DateOnly.TryParseExact(datStr4c, buchFormats, null, System.Globalization.DateTimeStyles.None, out buchEnde);
                     // Debug
@@ -299,7 +299,7 @@ namespace AzubiManager.Api.Services
 
                 var datStr3d = datStr3b.Contains(' ') ? datStr3b[..datStr3b.IndexOf(' ')] : datStr3b;
                 var datStr4d = datStr4b.Contains(' ') ? datStr4b[..datStr4b.IndexOf(' ')] : datStr4b;
-                var buchFormats2 = new[] { "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy", "dd.MM.yyyy", "dd.MM.yy", "yyyy-MM-dd", "d.M.yyyy", "d.M.yy" };
+                var buchFormats2 = new[] { "dd.MM.yyyy", "dd.MM.yy", "d.M.yyyy", "d.M.yy", "yyyy-MM-dd", "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy" };
                 if (buchStart2 == default) DateOnly.TryParseExact(datStr3d, buchFormats2, null, System.Globalization.DateTimeStyles.None, out buchStart2);
                 if (buchEnde2 == default) DateOnly.TryParseExact(datStr4d, buchFormats2, null, System.Globalization.DateTimeStyles.None, out buchEnde2);
                 
