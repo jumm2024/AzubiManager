@@ -254,15 +254,14 @@ namespace AzubiManager.Api.Services
                     else if (importGruppe.StartsWith("BvB", StringComparison.OrdinalIgnoreCase)) importGruppe = "BVB";
 
                     
-                    var importLehrjahr = LehrjahrBerechner.Berechne(buchStart, buchEnde);
 
+                    
                     azubi = new Teilnehmer
                     {
                         Vorname = nvorname,
                         Nachname = nnachname,
                         Gruppe = importGruppe,
                         Kurs = kursWert,
-                        Lehrjahr = importLehrjahr,
                         Ausbildungsstart = buchStart,
                         Ausbildungsende = buchEnde,
                         AusbilderId = _currentUser.BenutzerId
@@ -303,8 +302,7 @@ namespace AzubiManager.Api.Services
                 var buchFormats2 = new[] { "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy", "dd.MM.yyyy", "dd.MM.yy", "yyyy-MM-dd", "d.M.yyyy", "d.M.yy" };
                 if (buchStart2 == default) DateOnly.TryParseExact(datStr3d, buchFormats2, null, System.Globalization.DateTimeStyles.None, out buchStart2);
                 if (buchEnde2 == default) DateOnly.TryParseExact(datStr4d, buchFormats2, null, System.Globalization.DateTimeStyles.None, out buchEnde2);
-                var importLehrjahr2 = LehrjahrBerechner.Berechne(buchStart2, buchEnde2);
-
+                
                 if (!string.IsNullOrEmpty(importGruppe2) && importGruppe2 != "Kurs" || buchStart2 != default || buchEnde2 != default)
                 {
                     var dbAzubi = await _db.Teilnehmer.FindAsync(azubi.Id);
@@ -312,8 +310,7 @@ namespace AzubiManager.Api.Services
                     {
                         if (!string.IsNullOrEmpty(importGruppe2) && importGruppe2 != "Kurs") dbAzubi.Gruppe = importGruppe2;
                         if (!string.IsNullOrEmpty(kursWert2) && kursWert2 != "Kurs") dbAzubi.Kurs = kursWert2;
-                        dbAzubi.Lehrjahr = importLehrjahr2;
-                        if (buchStart2 != default) dbAzubi.Ausbildungsstart = buchStart2;
+                            if (buchStart2 != default) dbAzubi.Ausbildungsstart = buchStart2;
                         if (buchEnde2 != default) dbAzubi.Ausbildungsende = buchEnde2;
                     }
                 }
