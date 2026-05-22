@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
 using AzubiManager.Api.Models.DTOs;
@@ -32,12 +33,15 @@ namespace AzubiManager.Tests.Services
             return new CurrentUserService(accessor);
         }
 
+        private static IMemoryCache CreateCache() => new MemoryCache(new MemoryCacheOptions());
+
         [Fact]
         public async Task MeineBetreuteIds_Leer_BeiNeuemBenutzer()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             var ids = await service.MeineBetreuteIdsAsync();
 
@@ -48,8 +52,9 @@ namespace AzubiManager.Tests.Services
         public async Task AddBetreuung_FuegtEintragHinzu()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -73,8 +78,9 @@ namespace AzubiManager.Tests.Services
         public async Task AddBetreuung_KeineDoppeltenEintraege()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -101,8 +107,9 @@ namespace AzubiManager.Tests.Services
         public async Task RemoveBetreuung_EntferntEintrag()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -128,8 +135,9 @@ namespace AzubiManager.Tests.Services
         public async Task AlleAbrufenAsync_EnthaeltIstBetreutFlag()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -155,8 +163,9 @@ namespace AzubiManager.Tests.Services
         public async Task AlleAbrufenAsync_IstBetreutFlag_NullWennNichtBetreut()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -181,8 +190,9 @@ namespace AzubiManager.Tests.Services
         public async Task AlleAbrufenAsync_FiltertNachGruppe()
         {
             using var db = CreateDb();
+            using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user);
+            var service = new TeilnehmerService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer { Id = 1, Vorname = "A", Nachname = "B", Gruppe = "Ausbildung", Lehrjahr = 1, Ausbildungsstart = default, Ausbildungsende = default, AusbilderId = 1 });
             db.Teilnehmer.Add(new Teilnehmer { Id = 2, Vorname = "C", Nachname = "D", Gruppe = "BVB", Lehrjahr = 1, Ausbildungsstart = default, Ausbildungsende = default, AusbilderId = 1 });

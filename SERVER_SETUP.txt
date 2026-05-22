@@ -68,3 +68,4 @@ Zum lokalen Testen einfach start.bat doppelklicken.
 (Startet DB, Backend und Frontend automatisch.)
 
 ============================================
+ Der Admin muss auf dem Server nur noch docker compose -f docker-compose.prod.yml up -d ausführen – alles Weitere steht in der Anleitung.
