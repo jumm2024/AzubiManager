@@ -254,16 +254,7 @@ namespace AzubiManager.Api.Services
                     else if (importGruppe.StartsWith("BvB", StringComparison.OrdinalIgnoreCase)) importGruppe = "BVB";
 
                     
-                    var importLehrjahr = 1;
-                    if (buchStart != default && buchEnde != default && buchEnde > buchStart)
-                    {
-                    var gesamtTage = (buchEnde.ToDateTime(TimeOnly.MinValue) - buchStart.ToDateTime(TimeOnly.MinValue)).TotalDays;
-                    var vergangenTage = (DateTime.Now - buchStart.ToDateTime(TimeOnly.MinValue)).TotalDays;
-                    var maxJahre = Math.Max(1, (int)Math.Round(gesamtTage / 365.0));
-                    importLehrjahr = Math.Max(1, Math.Min(maxJahre, (int)(vergangenTage / gesamtTage * maxJahre) + 1));
-                        
-                    }
-                    else { /* Lehrjahr=1 */ }
+                    var importLehrjahr = LehrjahrBerechner.Berechne(buchStart, buchEnde);
 
                     azubi = new Teilnehmer
                     {
@@ -312,15 +303,7 @@ namespace AzubiManager.Api.Services
                 var buchFormats2 = new[] { "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy", "M/d/yyyy", "dd.MM.yyyy", "dd.MM.yy", "yyyy-MM-dd", "d.M.yyyy", "d.M.yy" };
                 if (buchStart2 == default) DateOnly.TryParseExact(datStr3d, buchFormats2, null, System.Globalization.DateTimeStyles.None, out buchStart2);
                 if (buchEnde2 == default) DateOnly.TryParseExact(datStr4d, buchFormats2, null, System.Globalization.DateTimeStyles.None, out buchEnde2);
-                var importLehrjahr2 = 1;
-                if (buchStart2 != default && buchEnde2 != default && buchEnde2 > buchStart2)
-                {
-                    var gesamtTage2 = (buchEnde2.ToDateTime(TimeOnly.MinValue) - buchStart2.ToDateTime(TimeOnly.MinValue)).TotalDays;
-                    var vergangenTage2 = (DateTime.Now - buchStart2.ToDateTime(TimeOnly.MinValue)).TotalDays;
-                    var maxJahre2 = Math.Max(1, (int)Math.Round(gesamtTage2 / 365.0));
-                    importLehrjahr2 = Math.Max(1, Math.Min(maxJahre2, (int)(vergangenTage2 / gesamtTage2 * maxJahre2) + 1));
-                    
-                }
+                var importLehrjahr2 = LehrjahrBerechner.Berechne(buchStart2, buchEnde2);
 
                 if (!string.IsNullOrEmpty(importGruppe2) && importGruppe2 != "Kurs" || buchStart2 != default || buchEnde2 != default)
                 {
@@ -476,7 +459,7 @@ namespace AzubiManager.Api.Services
 
                 ws.Cell(i + 2, 1).Value = $"{azubi.Nachname}, {azubi.Vorname}";
                 ws.Cell(i + 2, 2).Value = azubi.Gruppe ?? "";
-                ws.Cell(i + 2, 3).Value = azubi.Lehrjahr;
+                ws.Cell(i + 2, 3).Value = LehrjahrBerechner.Berechne(azubi.Ausbildungsstart, azubi.Ausbildungsende);
                 ws.Cell(i + 2, 4).Value = azubiStatus.Count(s => s.Status == "Anwesend");
                 ws.Cell(i + 2, 5).Value = azubiStatus.Count(s => s.Status == "Schule");
                 ws.Cell(i + 2, 6).Value = azubiStatus.Count(s => s.Status == "Praktikum");
@@ -550,7 +533,7 @@ namespace AzubiManager.Api.Services
 
                 ws.Cell(i + 2, 1).Value = $"{azubi.Nachname}, {azubi.Vorname}";
                 ws.Cell(i + 2, 2).Value = azubi.Gruppe ?? "";
-                ws.Cell(i + 2, 3).Value = azubi.Lehrjahr;
+                ws.Cell(i + 2, 3).Value = LehrjahrBerechner.Berechne(azubi.Ausbildungsstart, azubi.Ausbildungsende);
                 ws.Cell(i + 2, 4).Value = azubi.Ausbildungsstart?.ToString("dd.MM.yyyy") ?? "";
                 ws.Cell(i + 2, 5).Value = azubi.Ausbildungsende?.ToString("dd.MM.yyyy") ?? "";
                 var gesamt = 0;

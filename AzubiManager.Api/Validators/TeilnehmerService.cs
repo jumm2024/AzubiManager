@@ -42,7 +42,6 @@ namespace AzubiManager.Api.Services
                     Nachname = t.Nachname,
                     Geburtsdatum = t.Geburtsdatum,
                     Kurs = t.Kurs,
-                    Lehrjahr = t.Lehrjahr,
                     Abteilung = t.Abteilung,
                     Gruppe = t.Gruppe,
                     Ausbildungsstart = t.Ausbildungsstart,
@@ -55,7 +54,10 @@ namespace AzubiManager.Api.Services
             if (skip.HasValue) resultQuery = resultQuery.Skip(skip.Value);
             if (take.HasValue) resultQuery = resultQuery.Take(take.Value);
 
-            return await resultQuery.ToListAsync();
+            var result = await resultQuery.ToListAsync();
+            foreach (var r in result)
+                r.Lehrjahr = LehrjahrBerechner.Berechne(r.Ausbildungsstart, r.Ausbildungsende);
+            return result;
         }
 
         public async Task<TeilnehmerDto?> EinzelnenAbrufenAsync(int id)
@@ -63,14 +65,13 @@ namespace AzubiManager.Api.Services
             var t = await _db.Teilnehmer.AsNoTracking().Include(x => x.Ausbilder).FirstOrDefaultAsync(x => x.Id == id);
             if (t == null) return null;
 
-            return new TeilnehmerDto
+            var dto = new TeilnehmerDto
             {
                 Id = t.Id,
                 Vorname = t.Vorname,
                 Nachname = t.Nachname,
                 Geburtsdatum = t.Geburtsdatum,
                 Kurs = t.Kurs,
-                Lehrjahr = t.Lehrjahr,
                 Abteilung = t.Abteilung,
                 Gruppe = t.Gruppe,
                 Ausbildungsstart = t.Ausbildungsstart,
@@ -78,6 +79,8 @@ namespace AzubiManager.Api.Services
                 AusbilderId = t.AusbilderId,
                 AusbilderName = t.Ausbilder?.Vorname + " " + t.Ausbilder?.Nachname
             };
+            dto.Lehrjahr = LehrjahrBerechner.Berechne(dto.Ausbildungsstart, dto.Ausbildungsende);
+            return dto;
         }
 
         public async Task<TeilnehmerDto> ErstellenAsync(TeilnehmerErstellenDto dto)
@@ -101,20 +104,21 @@ namespace AzubiManager.Api.Services
 
             _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
 
-            return new TeilnehmerDto
+            var resultDto = new TeilnehmerDto
             {
                 Id = teilnehmer.Id,
                 Vorname = teilnehmer.Vorname,
                 Nachname = teilnehmer.Nachname,
                 Geburtsdatum = teilnehmer.Geburtsdatum,
                 Kurs = teilnehmer.Kurs,
-                Lehrjahr = teilnehmer.Lehrjahr,
                 Abteilung = teilnehmer.Abteilung,
                 Gruppe = teilnehmer.Gruppe,
                 Ausbildungsstart = teilnehmer.Ausbildungsstart,
                 Ausbildungsende = teilnehmer.Ausbildungsende,
                 AusbilderId = teilnehmer.AusbilderId
             };
+            resultDto.Lehrjahr = LehrjahrBerechner.Berechne(resultDto.Ausbildungsstart, resultDto.Ausbildungsende);
+            return resultDto;
         }
 
         public async Task<TeilnehmerDto?> AktualisierenAsync(int id, TeilnehmerAktualisierenDto dto)
@@ -134,20 +138,21 @@ namespace AzubiManager.Api.Services
 
             await _db.SaveChangesAsync();
 
-            return new TeilnehmerDto
+            var resultDto = new TeilnehmerDto
             {
                 Id = teilnehmer.Id,
                 Vorname = teilnehmer.Vorname,
                 Nachname = teilnehmer.Nachname,
                 Geburtsdatum = teilnehmer.Geburtsdatum,
                 Kurs = teilnehmer.Kurs,
-                Lehrjahr = teilnehmer.Lehrjahr,
                 Abteilung = teilnehmer.Abteilung,
                 Gruppe = teilnehmer.Gruppe,
                 Ausbildungsstart = teilnehmer.Ausbildungsstart,
                 Ausbildungsende = teilnehmer.Ausbildungsende,
                 AusbilderId = teilnehmer.AusbilderId
             };
+            resultDto.Lehrjahr = LehrjahrBerechner.Berechne(resultDto.Ausbildungsstart, resultDto.Ausbildungsende);
+            return resultDto;
         }
 
         public async Task<bool> LoeschenAsync(int id)
