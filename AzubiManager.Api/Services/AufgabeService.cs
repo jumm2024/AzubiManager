@@ -206,7 +206,7 @@ namespace AzubiManager.Api.Services
                 .Select(ab => ab.TeilnehmerId)
                 .ToListAsync();
 
-            _cache.Set(cacheKey, ids, TimeSpan.FromMinutes(5));
+            _cache.Set(cacheKey, ids, new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) });
 
             return ids;
         }
