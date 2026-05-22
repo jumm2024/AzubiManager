@@ -32,9 +32,8 @@ namespace AzubiManager.Api.Controllers
                 Response.Cookies.Append("token", response.Token, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
                     SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddMinutes(30)
+                    Expires = DateTime.UtcNow.AddMinutes(60)
                 });
 
                 return Ok(new { response.BenutzerId, response.Benutzername, response.Rolle, response.Vorname, response.PasswortGeandert });
