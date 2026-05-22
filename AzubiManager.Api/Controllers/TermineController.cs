@@ -9,7 +9,7 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [EnableRateLimiting("fixed")]
+    [EnableRateLimiting("perUser")]
     public class TermineController : ControllerBase
     {
         private readonly TerminService _service;

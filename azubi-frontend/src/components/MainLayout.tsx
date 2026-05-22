@@ -1,40 +1,37 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useState, useEffect } from 'react';
-import { dashboardApi, teilnehmerApi, aufgabenApi, termineApi, notizenApi } from '../api/client';
+import { useState, useEffect, useRef } from 'react';
+import { dashboardApi } from '../api/client';
 
 export default function MainLayout() {
   const [badges, setBadges] = useState<Record<string, number>>({});
+  const pendingRef = useRef(false);
 
   const ladeBadges = async () => {
+    if (pendingRef.current) return;
+    pendingRef.current = true;
     try {
-      const [, teilnehmerRes, aufgabenRes, termineRes, notizenRes] = await Promise.all([
-        dashboardApi.get(),
-        teilnehmerApi.alle().catch(() => ({ data: [] })),
-        aufgabenApi.alle(false).catch(() => ({ data: [] })),
-        termineApi.alle().catch(() => ({ data: [] })),
-        notizenApi.alle().catch(() => ({ data: [] })),
-      ]);
-
-      const meineIds = new Set(
-        (teilnehmerRes.data as { id: number; istBetreut?: boolean }[])
-          .filter(t => t.istBetreut)
-          .map(t => t.id)
-      );
-
+      const res = await dashboardApi.get();
+      const d = res.data as {
+        betreuteTeilnehmer?: number;
+        aufgabenGesamt?: number;
+        termineGesamt?: number;
+        notizenGesamt?: number;
+      };
       setBadges({
-        aufgaben: (aufgabenRes.data as { azubiId?: number }[]).filter(a => !a.azubiId || meineIds.has(a.azubiId)).length,
-        termine: (termineRes.data as { azubiId?: number }[]).filter(t => !t.azubiId || meineIds.has(t.azubiId)).length,
-        notizen: (notizenRes.data as { azubiId?: number }[]).filter(n => !n.azubiId || meineIds.has(n.azubiId)).length,
-        teilnehmer: meineIds.size,
+        aufgaben: d.aufgabenGesamt ?? 0,
+        termine: d.termineGesamt ?? 0,
+        notizen: d.notizenGesamt ?? 0,
+        teilnehmer: d.betreuteTeilnehmer ?? 0,
       });
     } catch {
       // ignorieren
+    } finally {
+      pendingRef.current = false;
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void ladeBadges();
   }, []);
 

@@ -9,7 +9,7 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [EnableRateLimiting("fixed")]
+    [EnableRateLimiting("perUser")]
     public class NotizenController : ControllerBase
     {
         private readonly NotizService _service;

@@ -44,8 +44,14 @@ if (string.IsNullOrEmpty(jwtKey))
 }
 
 // ==========================================
-// 1. DATENBANK (Connection Pooling für 1000 User)
+// 1. DATENBANK (Connection Pooling für 500 User)
 // ==========================================
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(dbConnectionString) && !dbConnectionString.Contains("Max Pool Size", StringComparison.OrdinalIgnoreCase))
+{
+    dbConnectionString += ";Max Pool Size=500;Connection Timeout=30";
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = dbConnectionString;
+}
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         sql => sql.EnableRetryOnFailure(
@@ -126,12 +132,16 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddHostedService<TagesstatusJob>();
 
 // ==========================================
-// 4. IMemoryCache für Performance (1000 User)
+// 4. IMemoryCache für Performance (1000 User, 50 MB Limit)
 // ==========================================
-builder.Services.AddMemoryCache();
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 50 * 1024 * 1024; // 50 MB
+    options.CompactionPercentage = 0.25;
+});
 
 // ==========================================
-// 5. RATE LIMITING (Schutz vor Überlastung)
+// 5. RATE LIMITING (pro Benutzer/IP, Schutz vor Überlastung)
 // ==========================================
 builder.Services.AddRateLimiter(options =>
 {
@@ -142,6 +152,7 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 10;
+        opt.AutoReplenishment = true;
     });
     options.AddFixedWindowLimiter("login", opt =>
     {
@@ -149,6 +160,20 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 2;
+    });
+    options.AddPolicy("perUser", context =>
+    {
+        var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                     ?? context.Connection.RemoteIpAddress?.ToString()
+                     ?? "anonymous";
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: userId,
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 200,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 5
+            });
     });
 });
 
@@ -171,8 +196,8 @@ builder.Services.AddHealthChecks();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler =
-            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition =
+            System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
 // ==========================================

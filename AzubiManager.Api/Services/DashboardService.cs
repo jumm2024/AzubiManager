@@ -116,6 +116,18 @@ namespace AzubiManager.Api.Services
                 .Where(n => n.AzubiId != null && betreuteIds.Contains((int)n.AzubiId))
                 .CountAsync();
 
+            int aufgabenGesamt = await _db.Aufgaben.AsNoTracking()
+                .Where(a => a.AzubiId == null || betreuteIds.Contains((int)a.AzubiId))
+                .CountAsync();
+
+            int termineGesamt = await _db.Termine.AsNoTracking()
+                .Where(t => t.AzubiId == null || betreuteIds.Contains((int)t.AzubiId))
+                .CountAsync();
+
+            int notizenGesamt = await _db.Notizen.AsNoTracking()
+                .Where(n => n.AzubiId == null || betreuteIds.Contains((int)n.AzubiId))
+                .CountAsync();
+
             var result = new DashboardDto
             {
                 Anwesend = anwesend,
@@ -137,12 +149,16 @@ namespace AzubiManager.Api.Services
                 PinkerBadge = pinkerBadge,
                 StatusFehlt = statusFehlt,
                 TeilnehmerGesamt = teilnehmerGesamt,
-                BetreuteTeilnehmer = betreuteIds.Count
+                BetreuteTeilnehmer = betreuteIds.Count,
+                AufgabenGesamt = aufgabenGesamt,
+                TermineGesamt = termineGesamt,
+                NotizenGesamt = notizenGesamt
             };
 
             var cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetAbsoluteExpiration(TimeSpan.FromSeconds(30))
-                .SetSlidingExpiration(TimeSpan.FromSeconds(10));
+                .SetSlidingExpiration(TimeSpan.FromSeconds(10))
+                .SetSize(1);
 
             _cache.Set(cacheKey, result, cacheEntryOptions);
 

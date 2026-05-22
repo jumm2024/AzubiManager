@@ -10,16 +10,18 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [EnableRateLimiting("fixed")]
+    [EnableRateLimiting("perUser")]
     public class TagesstatusController : ControllerBase
     {
         private readonly TagesstatusService _service;
         private readonly TagesstatusErstellenValidator _validator;
+        private readonly ILogger<TagesstatusController> _logger;
 
-        public TagesstatusController(TagesstatusService service, TagesstatusErstellenValidator validator)
+        public TagesstatusController(TagesstatusService service, TagesstatusErstellenValidator validator, ILogger<TagesstatusController> logger)
         {
             _service = service;
             _validator = validator;
+            _logger = logger;
         }
 
         /// <summary>
@@ -115,7 +117,7 @@ namespace AzubiManager.Api.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Speichern: {ex.Message}");
+                _logger.LogWarning(ex, "Fehler beim Speichern der Import-Datei");
             }
 
             return Ok(new { imported = count });

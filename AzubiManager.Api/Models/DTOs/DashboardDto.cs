@@ -25,6 +25,11 @@
         public int OrangerBadge { get; set; }
         public int PinkerBadge { get; set; }
 
+        // Gesamtanzahlen für Sidebar-Badges
+        public int AufgabenGesamt { get; set; }
+        public int TermineGesamt { get; set; }
+        public int NotizenGesamt { get; set; }
+
         // Sonstiges
         public int StatusFehlt { get; set; }
         public int TeilnehmerGesamt { get; set; }
