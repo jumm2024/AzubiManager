@@ -10,7 +10,6 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [EnableRateLimiting("perUser")]
     public class TeilnehmerController : ControllerBase
     {
         private readonly TeilnehmerService _service;

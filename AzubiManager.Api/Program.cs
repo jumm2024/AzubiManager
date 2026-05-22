@@ -145,36 +145,13 @@ builder.Services.AddMemoryCache(options =>
 // ==========================================
 builder.Services.AddRateLimiter(options =>
 {
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("fixed", opt =>
-    {
-        opt.PermitLimit = 100;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 10;
-        opt.AutoReplenishment = true;
-    });
-    options.AddFixedWindowLimiter("login", opt =>
-    {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 2;
-    });
-    options.AddPolicy("perUser", context =>
-    {
-        var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                     ?? context.Connection.RemoteIpAddress?.ToString()
-                     ?? "anonymous";
-        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: userId,
-            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            options.AddFixedWindowLimiter("login", opt =>
             {
-                PermitLimit = 200,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 5
+                opt.PermitLimit = 5;
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 2;
             });
-    });
 });
 
 // ==========================================
@@ -279,7 +256,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
-app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

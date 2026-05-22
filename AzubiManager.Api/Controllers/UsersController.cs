@@ -11,7 +11,6 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Admin")]
-    [EnableRateLimiting("perUser")]
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _db;

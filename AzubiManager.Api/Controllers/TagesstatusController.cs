@@ -10,7 +10,6 @@ namespace AzubiManager.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [EnableRateLimiting("perUser")]
     public class TagesstatusController : ControllerBase
     {
         private readonly TagesstatusService _service;
