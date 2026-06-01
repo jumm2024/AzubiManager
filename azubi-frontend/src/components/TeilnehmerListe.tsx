@@ -126,7 +126,7 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.betreuen(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      queryClient.refetchQueries({ queryKey: ['teilnehmer'] });
+      ladeBadges();
     },
     onError: (err: unknown) => {
       setFehler('Fehler beim Betreuen: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));
@@ -137,7 +137,7 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.nichtBetreuen(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      queryClient.refetchQueries({ queryKey: ['teilnehmer'] });
+      ladeBadges();
     },
     onError: (err: unknown) => {
       setFehler('Fehler beim Entfernen der Betreuung: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));
