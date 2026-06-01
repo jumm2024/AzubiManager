@@ -183,7 +183,7 @@ export default function TagesstatusListe() {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 mb-8">
         {statusCounts.map(({ status: s, count }) => (
           <div key={s} className="bg-white rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">

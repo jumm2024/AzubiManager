@@ -157,7 +157,7 @@ export default function NotizenListe() {
     <div className="max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Information</h2>
 
-      <div className="grid grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
         {kategorieCounts.map(({ kategorie: k, count }) => (
           <div key={k} className="bg-white rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">

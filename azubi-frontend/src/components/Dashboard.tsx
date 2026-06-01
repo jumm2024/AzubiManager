@@ -75,7 +75,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
         {statKacheln.map((kachel) => (
           <div key={kachel.label}
             className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-default">
@@ -90,7 +90,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Aufgaben heute</h3>

@@ -14,10 +14,13 @@ import {
   Zap,
   LogOut,
   KeyRound,
+  X,
 } from 'lucide-react';
 
 interface SidebarProps {
   badges: Record<string, number>;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface DashboardStats {
@@ -27,7 +30,7 @@ interface DashboardStats {
   betreuteTeilnehmer: number;
 }
 
-export default function Sidebar({ badges }: SidebarProps) {
+export default function Sidebar({ badges, isOpen, onClose }: SidebarProps) {
   const { user, logout, updateUser } = useAuth();
   const [pwModal, setPwModal] = useState(false);
   const [pwAlt, setPwAlt] = useState('');
@@ -109,9 +112,11 @@ export default function Sidebar({ badges }: SidebarProps) {
   });
 
   return (
-    <aside className="w-[280px] bg-[#FDF8F0] h-screen flex flex-col fixed left-0 top-0 z-50 shadow-lg border-r border-[#F0E6D6]">
+    <aside className={`w-[280px] bg-[#FDF8F0] h-screen flex flex-col fixed left-0 top-0 z-50 shadow-lg border-r border-[#F0E6D6] transition-transform duration-300 ease-in-out ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    } lg:translate-x-0`}>
       {/* Header */}
-      <div className="px-5 py-5">
+      <div className="px-5 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
             <Zap className="w-5 h-5 text-white" />
@@ -121,6 +126,9 @@ export default function Sidebar({ badges }: SidebarProps) {
             <p className="text-[11px] text-gray-500 font-medium">{user?.rolle === 'Admin' ? 'System Admin' : user?.rolle}</p>
           </div>
         </div>
+        <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Menü schließen">
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Stats Card */}
@@ -164,6 +172,7 @@ export default function Sidebar({ badges }: SidebarProps) {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={({ isActive: active }) =>
                 `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 ${
                   active || isNotizen
@@ -199,6 +208,7 @@ export default function Sidebar({ badges }: SidebarProps) {
         {user?.rolle === 'Admin' && (
           <NavLink
             to="/benutzer"
+            onClick={onClose}
             className={({ isActive }) =>
               `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 mt-2 pt-4 border-t border-[#F0E6D6] ${
                 isActive

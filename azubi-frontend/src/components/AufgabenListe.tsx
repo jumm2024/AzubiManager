@@ -200,7 +200,7 @@ export default function AufgabenListe() {
         <span className="text-sm text-gray-400">{myData?.length || 0} Aufgaben</span>
       </div>
 
-      <div className="grid grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
         {[
           { label: 'Gesamt', wert: gesamt, color: 'bg-gray-400' },
           { label: 'Offen', wert: offene, color: 'bg-amber-400' },
