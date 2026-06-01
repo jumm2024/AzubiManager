@@ -64,7 +64,7 @@ export default function Dashboard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Dashboard</h2>
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
           <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -82,8 +82,8 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <div className={`${kachel.color} w-3 h-3 rounded-full`} />
               <div>
-                <p className="text-sm text-gray-600 font-semibold">{kachel.label}</p>
-                <p className="text-2xl font-bold">{kachel.wert ?? 0}</p>
+                <p className="text-xs md:text-sm text-gray-600 font-semibold">{kachel.label}</p>
+                <p className="text-lg md:text-2xl font-bold">{kachel.wert ?? 0}</p>
               </div>
             </div>
           </div>
@@ -95,36 +95,36 @@ export default function Dashboard() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <p className="text-sm text-gray-600 font-semibold">Offene Aufgaben</p>
+              <p className="text-xs md:text-sm text-gray-600 font-semibold">Offene Aufgaben</p>
             </div>
-            <p className="text-2xl font-extrabold">{data?.offeneAufgaben ?? 0}</p>
+            <p className="text-lg md:text-2xl font-extrabold">{data?.offeneAufgaben ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-red-500" />
-              <p className="text-sm text-gray-600 font-semibold">Überfällig</p>
+              <p className="text-xs md:text-sm text-gray-600 font-semibold">Überfällig</p>
             </div>
-            <p className="text-2xl font-extrabold">{data?.ueberfaelligeAufgaben ?? 0}</p>
+            <p className="text-lg md:text-2xl font-extrabold">{data?.ueberfaelligeAufgaben ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <p className="text-sm text-gray-600 font-semibold">Status fehlt</p>
+              <p className="text-xs md:text-sm text-gray-600 font-semibold">Status fehlt</p>
             </div>
-            <p className="text-2xl font-extrabold">{data?.statusFehlt ?? 0}</p>
+            <p className="text-lg md:text-2xl font-extrabold">{data?.statusFehlt ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <p className="text-sm text-gray-600 font-semibold">Teilnehmer</p>
+              <p className="text-xs md:text-sm text-gray-600 font-semibold">Teilnehmer</p>
             </div>
-            <p className="text-2xl font-extrabold">{data?.teilnehmerGesamt ?? 0}</p>
+            <p className="text-lg md:text-2xl font-extrabold">{data?.teilnehmerGesamt ?? 0}</p>
           </div>
         </div>
       </div>

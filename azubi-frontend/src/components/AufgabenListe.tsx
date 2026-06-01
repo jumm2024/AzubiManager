@@ -196,7 +196,7 @@ export default function AufgabenListe() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Aufgaben</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Aufgaben</h2>
         <span className="text-sm text-gray-400">{myData?.length || 0} Aufgaben</span>
       </div>
 
@@ -213,7 +213,7 @@ export default function AufgabenListe() {
               <div className={`${k.color} w-3 h-3 rounded-full`} />
               <div>
                 <p className="text-sm text-gray-500">{k.label}</p>
-                <p className="text-2xl font-bold">{k.wert}</p>
+                  <p className="text-lg md:text-2xl font-bold">{k.wert}</p>
               </div>
             </div>
           </div>

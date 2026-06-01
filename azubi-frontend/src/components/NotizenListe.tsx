@@ -155,7 +155,7 @@ export default function NotizenListe() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Information</h2>
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">Information</h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
         {kategorieCounts.map(({ kategorie: k, count }) => (
@@ -164,7 +164,7 @@ export default function NotizenListe() {
               <div className={`w-3 h-3 rounded-full ${kategoriePunkte[k] || 'bg-gray-400'}`} />
               <div>
                 <p className="text-sm text-gray-500">{k}</p>
-                <p className="text-2xl font-bold">{count}</p>
+                  <p className="text-lg md:text-2xl font-bold">{count}</p>
               </div>
             </div>
           </div>

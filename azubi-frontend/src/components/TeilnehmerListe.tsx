@@ -230,7 +230,7 @@ export default function TeilnehmerListe() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Teilnehmer</h2>
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">Teilnehmer</h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
         <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -238,7 +238,7 @@ export default function TeilnehmerListe() {
             <div className="w-3 h-3 rounded-full bg-gray-400" />
             <div>
               <p className="text-sm text-gray-500">Gesamt</p>
-              <p className="text-2xl font-bold">{data?.length || 0}</p>
+              <p className="text-lg md:text-2xl font-bold">{data?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function TeilnehmerListe() {
               <div className={`w-3 h-3 rounded-full ${gruppePunkte[g] || 'bg-gray-400'}`} />
               <div>
                 <p className="text-sm text-gray-500">{g}</p>
-                <p className="text-2xl font-bold">{count}</p>
+                <p className="text-lg md:text-2xl font-bold">{count}</p>
               </div>
             </div>
           </div>

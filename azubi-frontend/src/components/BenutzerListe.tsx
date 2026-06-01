@@ -137,7 +137,7 @@ export default function BenutzerListe() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Benutzer-Verwaltung</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Benutzer-Verwaltung</h2>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
@@ -146,7 +146,7 @@ export default function BenutzerListe() {
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             <div>
               <p className="text-sm text-gray-500">Gesamt</p>
-              <p className="text-2xl font-bold">{benutzer?.length || 0}</p>
+              <p className="text-lg md:text-2xl font-bold">{benutzer?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function BenutzerListe() {
             <div className="w-3 h-3 rounded-full bg-purple-500" />
             <div>
               <p className="text-sm text-gray-500">Admin</p>
-              <p className="text-2xl font-bold">{adminCount}</p>
+              <p className="text-lg md:text-2xl font-bold">{adminCount}</p>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function BenutzerListe() {
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             <div>
               <p className="text-sm text-gray-500">Ausbilder</p>
-              <p className="text-2xl font-bold">{ausbilderCount}</p>
+              <p className="text-lg md:text-2xl font-bold">{ausbilderCount}</p>
             </div>
           </div>
         </div>

@@ -120,7 +120,7 @@ export default function TagesstatusListe() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Tagesstatus</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tagesstatus</h2>
         {importMsg && <span className="text-sm text-green-600">{importMsg}</span>}
         <div className="flex items-center gap-3">
           <div className="relative group">
@@ -190,7 +190,7 @@ export default function TagesstatusListe() {
               <div className={`w-3 h-3 rounded-full ${statusFarben[s] || 'bg-gray-400'}`} />
               <div>
                 <p className="text-sm text-gray-500">{s}</p>
-                <p className="text-2xl font-bold">{count}</p>
+                <p className="text-lg md:text-2xl font-bold">{count}</p>
               </div>
             </div>
           </div>
