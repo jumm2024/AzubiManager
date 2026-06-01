@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useState, useEffect, useRef } from 'react';
 import { dashboardApi } from '../api/client';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function MainLayout() {
   const [badges, setBadges] = useState<Record<string, number>>({});
@@ -46,11 +46,11 @@ export default function MainLayout() {
       )}
 
       <button
-        onClick={() => setSidebarOpen(true)}
+        onClick={() => setSidebarOpen(prev => !prev)}
         className="fixed top-4 left-4 z-50 lg:hidden bg-white rounded-xl p-2.5 shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
-        aria-label="Menü öffnen"
+        aria-label={sidebarOpen ? 'Menü schließen' : 'Menü öffnen'}
       >
-        <Menu className="w-5 h-5 text-gray-700" />
+        {sidebarOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
       </button>
 
       <main className="flex-1 p-4 md:p-6 lg:p-8 bg-[#F9F5F0] lg:ml-[280px] pt-16 lg:pt-8">
