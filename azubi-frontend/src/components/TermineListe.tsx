@@ -74,7 +74,6 @@ export default function TermineListe() {
     onMutate: () => { updateBadges(prev => ({ ...prev, termine: prev.termine + 1 })); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['termine'] });
-      refetchBadges();
       setTitel('');
       setBeschreibung('');
       setDatum('');
@@ -94,14 +93,13 @@ export default function TermineListe() {
   const loescheMutation = useMutation({
     mutationFn: (id: number) => termineApi.loeschen(id),
     onMutate: () => { updateBadges(prev => ({ ...prev, termine: Math.max(0, prev.termine - 1) })); },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['termine'] }); refetchBadges(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['termine'] }); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string } }) => termineApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['termine'] });
-      refetchBadges();
       setBearbeitenTermin(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {

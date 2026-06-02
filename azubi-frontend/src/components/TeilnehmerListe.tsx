@@ -92,9 +92,8 @@ export default function TeilnehmerListe() {
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string }) => teilnehmerApi.erstellen(d),
-    onSuccess: (res) => {
+      onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      refetchBadges();
       const created = res.data;
       setLetzterErstellterId(created.id);
       setVorname('');
@@ -119,14 +118,13 @@ export default function TeilnehmerListe() {
   const loescheMutation = useMutation({
     mutationFn: (id: number) => teilnehmerApi.loeschen(id),
     onMutate: () => { updateBadges(prev => ({ ...prev, teilnehmer: Math.max(0, prev.teilnehmer - 1) })); },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teilnehmer'] }); refetchBadges(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teilnehmer'] }); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string } }) => teilnehmerApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      refetchBadges();
       setBearbeitenTeilnehmer(null);
       setErfolg('Teilnehmer aktualisiert');
       timerRef.current = setTimeout(() => setErfolg(''), 3000);
@@ -144,7 +142,6 @@ export default function TeilnehmerListe() {
     onMutate: () => { updateBadges(prev => ({ ...prev, teilnehmer: prev.teilnehmer + 1 })); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      refetchBadges();
     },
     onError: (err: unknown) => {
       setFehler('Fehler beim Betreuen: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));
@@ -156,7 +153,6 @@ export default function TeilnehmerListe() {
     onMutate: () => { updateBadges(prev => ({ ...prev, teilnehmer: Math.max(0, prev.teilnehmer - 1) })); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      refetchBadges();
     },
     onError: (err: unknown) => {
       setFehler('Fehler beim Entfernen der Betreuung: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));

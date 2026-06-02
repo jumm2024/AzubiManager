@@ -1,21 +1,21 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import { Menu, X } from 'lucide-react';
 import { getBadges, subscribe, refetchBadges } from '../stores/badgesStore';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [badges, setBadges] = useState<Record<string, number>>(() => getBadges());
+  const [, forceRender] = useReducer(x => x + 1, 0);
 
   useEffect(() => {
-    const unsub = subscribe(() => {
-      console.log('MainLayout subscriber fired, badges:', JSON.stringify(getBadges()));
-      setBadges({ ...getBadges() });
-    });
+    const unsub = subscribe(() => forceRender());
     refetchBadges();
-    return unsub;
+    const interval = setInterval(refetchBadges, 30_000);
+    return () => { unsub(); clearInterval(interval); };
   }, []);
+
+  const badges = getBadges();
 
   return (
     <div className="flex min-h-screen">
