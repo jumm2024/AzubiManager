@@ -1,8 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import ErrorNotification from './components/ErrorNotification';
+import { initGlobalCapture } from './utils/logger';
 import Login from './components/Login';
 import MainLayout from './components/MainLayout';
 
@@ -61,11 +63,16 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => {
+    initGlobalCapture();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
+          <ErrorNotification />
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
