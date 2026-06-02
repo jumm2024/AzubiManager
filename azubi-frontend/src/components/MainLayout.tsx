@@ -23,11 +23,11 @@ export default function MainLayout() {
       notizen: res.data.notizenGesamt,
       teilnehmer: res.data.betreuteTeilnehmer,
     })),
+    staleTime: 30_000,
   });
 
   const refetchBadges = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['badges'] });
-    queryClient.refetchQueries({ queryKey: ['badges'] });
   }, [queryClient]);
 
   return (
