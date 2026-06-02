@@ -117,15 +117,18 @@ namespace AzubiManager.Api.Services
                 .CountAsync();
 
             int aufgabenGesamt = await _db.Aufgaben.AsNoTracking()
-                .Where(a => a.AzubiId == null || betreuteIds.Contains((int)a.AzubiId))
+                .Where(a => (a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId))
+                         || (a.AzubiId == null && a.AusbilderId == _currentUser.BenutzerId))
                 .CountAsync();
 
             int termineGesamt = await _db.Termine.AsNoTracking()
-                .Where(t => t.AzubiId == null || betreuteIds.Contains((int)t.AzubiId))
+                .Where(t => (t.AzubiId != null && betreuteIds.Contains((int)t.AzubiId))
+                         || (t.AzubiId == null && t.AusbilderId == _currentUser.BenutzerId))
                 .CountAsync();
 
             int notizenGesamt = await _db.Notizen.AsNoTracking()
-                .Where(n => n.AzubiId == null || betreuteIds.Contains((int)n.AzubiId))
+                .Where(n => (n.AzubiId != null && betreuteIds.Contains((int)n.AzubiId))
+                         || (n.AzubiId == null && n.AusbilderId == _currentUser.BenutzerId))
                 .CountAsync();
 
             var result = new DashboardDto
