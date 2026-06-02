@@ -111,7 +111,7 @@ describe('Sidebar', () => {
   });
 
   it('ruft passwortAendern bei gültigen Daten auf', async () => {
-    mockPasswortAendern.mockResolvedValue({} as never);
+    mockPasswortAendern.mockResolvedValue({} as any);
 
     renderSidebar();
     await userEvent.click(screen.getByText('Passwort ändern'));
@@ -142,7 +142,7 @@ describe('Sidebar', () => {
   });
 
   it('ruft passwortAendern bei gültigen Daten auf', async () => {
-    mockPasswortAendern.mockResolvedValue({} as never);
+    mockPasswortAendern.mockResolvedValue({} as any);
 
     renderSidebar();
     await userEvent.click(screen.getByText('Passwort ändern'));

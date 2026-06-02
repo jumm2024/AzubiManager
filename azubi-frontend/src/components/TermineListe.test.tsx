@@ -45,8 +45,8 @@ describe('TermineListe', () => {
   });
 
   it('zeigt leere Liste', async () => {
-    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
 
     renderTermineListe();
 
@@ -68,8 +68,8 @@ describe('TermineListe', () => {
         ],
         totalCount: 2
       }
-    } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    } as any);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
 
     renderTermineListe();
 
@@ -81,8 +81,8 @@ describe('TermineListe', () => {
   });
 
   it('zeigt Statistik-Kacheln', async () => {
-    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
 
     renderTermineListe();
 
@@ -94,8 +94,8 @@ describe('TermineListe', () => {
   });
 
   it('enthält Formular zum Erstellen', async () => {
-    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as any);
 
     renderTermineListe();
 

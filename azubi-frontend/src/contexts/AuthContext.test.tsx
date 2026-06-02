@@ -42,7 +42,7 @@ describe('AuthContext', () => {
 
   it('login setzt Benutzer und speichert in localStorage', async () => {
     const mockUser = { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder', vorname: 'Max' };
-    mockLogin.mockResolvedValue({ data: mockUser } as never);
+    mockLogin.mockResolvedValue({ data: mockUser } as any);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -67,7 +67,7 @@ describe('AuthContext', () => {
   });
 
   it('logout entfernt Benutzer und räumt localStorage', async () => {
-    mockLogin.mockResolvedValue({ data: { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder' } } as never);
+    mockLogin.mockResolvedValue({ data: { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder' } } as any);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -86,7 +86,7 @@ describe('AuthContext', () => {
   });
 
   it('updateUser aktualisiert teilweise', async () => {
-    mockLogin.mockResolvedValue({ data: { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder', passwortGeandert: false } } as never);
+    mockLogin.mockResolvedValue({ data: { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder', passwortGeandert: false } } as any);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 

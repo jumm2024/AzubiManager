@@ -45,7 +45,7 @@ describe('Login', () => {
 
   it('ruft login bei Submit auf', async () => {
     const { authApi } = await import('../api/client');
-    vi.mocked(authApi.login).mockResolvedValue({ data: { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder' } } as never);
+    vi.mocked(authApi.login).mockResolvedValue({ data: { benutzerId: 1, benutzername: 'max', rolle: 'Ausbilder' } } as any);
 
     renderLogin();
 
