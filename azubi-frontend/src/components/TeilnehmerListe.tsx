@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teilnehmerApi } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
+import Pagination from './Pagination';
 
 interface Teilnehmer {
   id: number;
@@ -61,6 +62,9 @@ export default function TeilnehmerListe() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -73,6 +77,9 @@ export default function TeilnehmerListe() {
   });
 
   const angezeigte = nurMeine ? (data?.filter(t => t.istBetreut) ?? []) : (data ?? []);
+  const totalPages = Math.ceil(angezeigte.length / PAGE_SIZE);
+  const paginatedData = angezeigte.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string }) => teilnehmerApi.erstellen(d),
@@ -362,7 +369,7 @@ export default function TeilnehmerListe() {
             <span className="text-xs text-gray-400">{angezeigte.length} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {angezeigte.map((t: Teilnehmer) => (
+            {paginatedData.map((t: Teilnehmer) => (
               <div key={t.id} className="group flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 ${
                   t.gruppe === 'Ausbildung' ? 'bg-blue-500' :
@@ -413,6 +420,7 @@ export default function TeilnehmerListe() {
             {angezeigte.length === 0 && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Teilnehmer vorhanden</p>
             )}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </div>
         </div>
       </div>
