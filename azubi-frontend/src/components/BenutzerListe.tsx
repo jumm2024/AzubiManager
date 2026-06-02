@@ -27,7 +27,7 @@ export default function BenutzerListe() {
     };
   }, []);
 
-  const { data: benutzer, isLoading } = useQuery({
+  const { data: benutzer, isLoading, error } = useQuery({
     queryKey: ['benutzer'],
     queryFn: () => benutzerApi.alle().then(res => res.data)
   });
@@ -126,6 +126,18 @@ export default function BenutzerListe() {
 
   const adminCount = benutzer?.filter((u: Benutzer) => u.rolle === 'Admin').length || 0;
   const ausbilderCount = benutzer?.filter((u: Benutzer) => u.rolle === 'Ausbilder').length || 0;
+
+  if (error) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center max-w-md">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-red-600 text-xl font-bold">!</span>
+        </div>
+        <p className="text-red-700 font-semibold mb-1">Fehler beim Laden</p>
+        <p className="text-sm text-red-500">{(error as Error)?.message || 'Bitte Seite neu laden oder später erneut versuchen.'}</p>
+      </div>
+    </div>
+  );
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">

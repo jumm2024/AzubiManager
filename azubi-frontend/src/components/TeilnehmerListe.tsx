@@ -71,7 +71,7 @@ export default function TeilnehmerListe() {
     };
   }, []);
 
-  const { data: pageData, isLoading } = useQuery({
+  const { data: pageData, isLoading, error } = useQuery({
     queryKey: ['teilnehmer', gruppeFilter, currentPage, pageSize, nurMeine],
     queryFn: () => teilnehmerApi.alle(gruppeFilter || undefined, (currentPage - 1) * pageSize, pageSize, nurMeine || undefined).then(res => res.data)
   });
@@ -86,12 +86,17 @@ export default function TeilnehmerListe() {
   const totalPages = Math.ceil(totalCount / pageSize);
   useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
+  const counts = gruppen.map(g => ({
+    gruppe: g,
+    count: allData ? allData.filter(t => t.gruppe === g).length : 0,
+  }));
+
   const erstelleMutation = useMutation({
     mutationFn: (d: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string }) => teilnehmerApi.erstellen(d),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
       ladeBadges();
-      const created = (res as { data: { id: number } }).data;
+      const created = res.data;
       setLetzterErstellterId(created.id);
       setVorname('');
       setNachname('');
@@ -228,10 +233,17 @@ export default function TeilnehmerListe() {
     setPendingBody(null);
   };
 
-  const counts = gruppen.map(g => ({
-    gruppe: g,
-    count: allData ? allData.filter(t => t.gruppe === g).length : 0,
-  }));
+  if (error) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center max-w-md">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-red-600 text-xl font-bold">!</span>
+        </div>
+        <p className="text-red-700 font-semibold mb-1">Fehler beim Laden</p>
+        <p className="text-sm text-red-500">{(error as Error)?.message || 'Bitte Seite neu laden oder später erneut versuchen.'}</p>
+      </div>
+    </div>
+  );
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">

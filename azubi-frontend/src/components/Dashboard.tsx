@@ -8,7 +8,7 @@ export default function Dashboard() {
     queryFn: () => dashboardApi.get().then(res => res.data)
   });
 
-  const { data: termine } = useQuery({
+  const { data: termine, error: termineError } = useQuery({
     queryKey: ['termine', 'anstehend'],
     queryFn: () => termineApi.alle().then(res =>
       res.data.items
@@ -18,7 +18,7 @@ export default function Dashboard() {
     ),
   });
 
-  const { data: notizen } = useQuery({
+  const { data: notizen, error: notizenError } = useQuery({
     queryKey: ['notizen', 'dashboard'],
     queryFn: () => notizenApi.alle().then(res =>
       res.data.items
@@ -137,7 +137,9 @@ export default function Dashboard() {
             <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">{termine?.length || 0} Eintraege</span>
           </div>
         </div>
-        {termine && termine.length > 0 ? (
+        {termineError ? (
+          <p className="text-red-400 text-center py-8 text-sm">Fehler beim Laden der Termine</p>
+        ) : termine && termine.length > 0 ? (
           <div className="space-y-2">
             {termine.map((t: Termin) => {
               const start = new Date(t.datum);
@@ -223,7 +225,9 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold text-gray-800">Notizen</h3>
             <span className="ml-auto text-xs text-gray-400">{notizen?.length || 0} Eintraege</span>
           </div>
-          {notizen && notizen.length > 0 ? (
+          {notizenError ? (
+            <p className="text-red-400 text-center py-8 text-sm">Fehler beim Laden der Notizen</p>
+          ) : notizen && notizen.length > 0 ? (
             <div className="space-y-2">
               {notizen.map((n: Notiz) => (
                 <div key={n.id} className="p-3 rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all bg-white">
