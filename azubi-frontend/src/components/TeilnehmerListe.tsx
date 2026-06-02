@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teilnehmerApi } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import Pagination from './Pagination';
-import { useBadgesContext } from './MainLayout';
+import { updateBadges, refetchBadges } from '../stores/badgesStore';
 
 interface Teilnehmer {
   id: number;
@@ -59,7 +59,6 @@ export default function TeilnehmerListe() {
   const [bearbeitenAusbildungsstart, setBearbeitenAusbildungsstart] = useState('');
   const [bearbeitenAusbildungsende, setBearbeitenAusbildungsende] = useState('');
   const queryClient = useQueryClient();
-  const { refetchBadges, updateBadges } = useBadgesContext();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const [pageSize, setPageSize] = useState(10);

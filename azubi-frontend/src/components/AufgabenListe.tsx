@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aufgabenApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
 import Pagination from './Pagination';
-import { useBadgesContext } from './MainLayout';
+import { updateBadges, refetchBadges } from '../stores/badgesStore';
 
 interface Aufgabe {
   id: number;
@@ -38,7 +38,6 @@ export default function AufgabenListe() {
   const [bearbeitenFaelligkeitsdatum, setBearbeitenFaelligkeitsdatum] = useState('');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
-  const { updateBadges, refetchBadges } = useBadgesContext();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

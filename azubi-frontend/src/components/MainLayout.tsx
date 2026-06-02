@@ -1,40 +1,14 @@
-import { Outlet, useOutletContext } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useState, useCallback, useEffect } from 'react';
-import { dashboardApi } from '../api/client';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { Menu, X } from 'lucide-react';
-
-type BadgesContext = {
-  badges: Record<string, number>;
-  refetchBadges: () => void;
-  updateBadges: (updater: (prev: Record<string, number>) => Record<string, number>) => void;
-};
-
-export function useBadgesContext() {
-  return useOutletContext<BadgesContext>();
-}
+import { getBadges, subscribe, refetchBadges } from '../stores/badgesStore';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [badges, setBadges] = useState<Record<string, number>>({});
+  const badges = useSyncExternalStore(subscribe, getBadges);
 
-  const ladeBadges = useCallback(async () => {
-    try {
-      const res = await dashboardApi.get();
-      setBadges({
-        aufgaben: res.data.aufgabenGesamt,
-        termine: res.data.termineGesamt,
-        notizen: res.data.notizenGesamt,
-        teilnehmer: res.data.betreuteTeilnehmer,
-      });
-    } catch { /* ignore */ }
-  }, []);
-
-  useEffect(() => { ladeBadges(); }, [ladeBadges]);
-
-  const updateBadges = useCallback((updater: (prev: Record<string, number>) => Record<string, number>) => {
-    setBadges(prev => updater(prev));
-  }, []);
+  useEffect(() => { refetchBadges(); }, []);
 
   return (
     <div className="flex min-h-screen">
@@ -53,7 +27,7 @@ export default function MainLayout() {
       </button>
 
       <main className="flex-1 p-4 md:p-6 lg:p-8 bg-[#F9F5F0] lg:ml-[280px] pt-16 lg:pt-8">
-        <Outlet context={{ badges, refetchBadges: ladeBadges, updateBadges }} />
+        <Outlet />
       </main>
     </div>
   );

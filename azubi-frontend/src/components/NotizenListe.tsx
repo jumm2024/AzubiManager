@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notizenApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
 import Pagination from './Pagination';
-import { useBadgesContext } from './MainLayout';
+import { updateBadges, refetchBadges } from '../stores/badgesStore';
 
 interface Notiz {
   id: number;
@@ -47,8 +47,6 @@ export default function NotizenListe() {
   const [bearbeitenKategorie, setBearbeitenKategorie] = useState('Beobachtung');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
-  const { refetchBadges, updateBadges } = useBadgesContext();
-
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 

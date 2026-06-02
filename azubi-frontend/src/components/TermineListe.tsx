@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { termineApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
 import Pagination from './Pagination';
-import { useBadgesContext } from './MainLayout';
+import { updateBadges, refetchBadges } from '../stores/badgesStore';
 
 interface Termin {
   id: number;
@@ -37,7 +37,7 @@ export default function TermineListe() {
   const [bearbeitenOrt, setBearbeitenOrt] = useState('');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
-  const { refetchBadges, updateBadges } = useBadgesContext();
+
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
