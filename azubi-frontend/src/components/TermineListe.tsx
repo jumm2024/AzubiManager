@@ -53,7 +53,7 @@ export default function TermineListe() {
   const paginatedData = pageData?.items ?? [];
   const totalCount = pageData?.totalCount ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
-  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
+  useEffect(() => { if (totalPages > 0 && currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const anstehend = allData?.filter(t => new Date(t.datum) >= new Date()).length || 0;
   const vergangen = allData?.filter(t => new Date(t.datum) < new Date()).length || 0;

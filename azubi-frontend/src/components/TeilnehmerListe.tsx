@@ -82,7 +82,7 @@ export default function TeilnehmerListe() {
   const paginatedData = pageData?.items ?? [];
   const totalCount = pageData?.totalCount ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
-  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
+  useEffect(() => { if (totalPages > 0 && currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const counts = gruppen.map(g => ({
     gruppe: g,
