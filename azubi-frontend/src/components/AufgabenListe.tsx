@@ -111,7 +111,16 @@ export default function AufgabenListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['aufgaben'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
+    },
+    onError: (error: { response?: { data?: string | { title?: string } } }) => {
+      const data = error.response?.data;
+      if (typeof data === 'string') setFehler(data);
+      else if (data?.title) setFehler(data.title);
+      else setFehler('Fehler beim Löschen');
+    },
   });
 
   const aktualisierenMutation = useMutation({

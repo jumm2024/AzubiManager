@@ -15,7 +15,7 @@ export default function MainLayout() {
       notizen: res.data.notizenGesamt,
       teilnehmer: res.data.betreuteTeilnehmer,
     })),
-    staleTime: 10_000,
+    staleTime: 1_000,
   });
 
   return (
