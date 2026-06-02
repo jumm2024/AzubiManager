@@ -52,6 +52,7 @@ namespace AzubiManager.Api.Services
             int urlaub = statusMap.GetValueOrDefault("Urlaub");
             int krank = statusMap.GetValueOrDefault("Krank");
             int kindKrank = statusMap.GetValueOrDefault("Kind krank");
+            int vAmb = statusMap.GetValueOrDefault("VAmB");
             int freigestellt = statusMap.GetValueOrDefault("Freigestellt");
             int entschuldigt = statusMap.GetValueOrDefault("Entschuldigt");
             int unentschuldigt = statusMap.GetValueOrDefault("Unentschuldigt");
@@ -140,6 +141,7 @@ namespace AzubiManager.Api.Services
                 Urlaub = urlaub,
                 Krank = krank,
                 KindKrank = kindKrank,
+                VAmB = vAmb,
                 Freigestellt = freigestellt,
                 Entschuldigt = entschuldigt,
                 Unentschuldigt = unentschuldigt,

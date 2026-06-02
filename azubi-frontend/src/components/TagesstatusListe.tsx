@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagesstatusApi, teilnehmerApi } from '../api/client';
 import { Upload, Download, FileText, CalendarDays } from 'lucide-react';
 
-const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklärt', 'Feiertag', 'Wochenende'];
+const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'VAmB', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklärt', 'Feiertag', 'Wochenende'];
 
 const statusFarben: Record<string, string> = {
   Anwesend: 'bg-green-500',
@@ -13,6 +13,7 @@ const statusFarben: Record<string, string> = {
   Urlaub: 'bg-yellow-500',
   Krank: 'bg-red-400',
   'Kind krank': 'bg-pink-400',
+  VAmB: 'bg-cyan-500',
   Freigestellt: 'bg-teal-500',
   Entschuldigt: 'bg-emerald-500',
   Unentschuldigt: 'bg-orange-500',
@@ -29,6 +30,7 @@ const statusBgFarben: Record<string, string> = {
   Urlaub: 'bg-yellow-50 border-yellow-200 text-yellow-700',
   Krank: 'bg-red-50 border-red-200 text-red-700',
   'Kind krank': 'bg-pink-50 border-pink-200 text-pink-700',
+  VAmB: 'bg-cyan-50 border-cyan-200 text-cyan-700',
   Freigestellt: 'bg-teal-50 border-teal-200 text-teal-700',
   Entschuldigt: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   Unentschuldigt: 'bg-orange-50 border-orange-200 text-orange-700',

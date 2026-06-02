@@ -104,6 +104,7 @@ namespace AzubiManager.Api.Services
             ["UN"] = "Ungeklärt",
             ["FT"] = "Feiertag",
             ["WE"] = "Wochenende",
+            ["VB"] = "VAmB",
         };
 
         private static string MapStatus(string? raw)
@@ -439,7 +440,7 @@ namespace AzubiManager.Api.Services
             var ws = workbook.Worksheets.Add("Azubi-Bericht");
 
             // Header
-            var header = new[] { "Name", "Gruppe", "LJ", "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt", "Gesamt" };
+            var header = new[] { "Name", "Gruppe", "LJ", "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "VAmB", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt", "Gesamt" };
             for (int i = 0; i < header.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = header[i];
@@ -464,11 +465,12 @@ namespace AzubiManager.Api.Services
                 ws.Cell(i + 2, 8).Value = azubiStatus.Count(s => s.Status == "Urlaub");
                 ws.Cell(i + 2, 9).Value = azubiStatus.Count(s => s.Status == "Krank");
                 ws.Cell(i + 2, 10).Value = azubiStatus.Count(s => s.Status == "Kind krank");
-                ws.Cell(i + 2, 11).Value = azubiStatus.Count(s => s.Status == "Freigestellt");
-                ws.Cell(i + 2, 12).Value = azubiStatus.Count(s => s.Status == "Entschuldigt");
-                ws.Cell(i + 2, 13).Value = azubiStatus.Count(s => s.Status == "Unentschuldigt");
-                ws.Cell(i + 2, 14).Value = azubiStatus.Count(s => s.Status == "Ungeklärt");
-                ws.Cell(i + 2, 15).Value = azubiStatus.Count;
+                ws.Cell(i + 2, 11).Value = azubiStatus.Count(s => s.Status == "VAmB");
+                ws.Cell(i + 2, 12).Value = azubiStatus.Count(s => s.Status == "Freigestellt");
+                ws.Cell(i + 2, 13).Value = azubiStatus.Count(s => s.Status == "Entschuldigt");
+                ws.Cell(i + 2, 14).Value = azubiStatus.Count(s => s.Status == "Unentschuldigt");
+                ws.Cell(i + 2, 15).Value = azubiStatus.Count(s => s.Status == "Ungeklärt");
+                ws.Cell(i + 2, 16).Value = azubiStatus.Count;
             }
 
             ws.Columns().AdjustToContents();
@@ -507,7 +509,7 @@ namespace AzubiManager.Api.Services
                 .GroupBy(x => x.AzubiId)
                 .ToDictionary(g => g.Key, g => g.ToLookup(x => x.Status, x => x.Count));
 
-            var statusNamen = new[] { "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt" };
+            var statusNamen = new[] { "Anwesend", "Schule", "Praktikum", "Termin", "Urlaub", "Krank", "Kind krank", "VAmB", "Freigestellt", "Entschuldigt", "Unentschuldigt", "Ungeklärt" };
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Azubi-Bericht Gesamt");

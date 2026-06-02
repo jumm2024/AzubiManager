@@ -21,7 +21,7 @@ function renderDashboard() {
 
 const mockData = {
   anwesend: 5, schule: 2, praktikum: 1, termin: 0, urlaub: 1, krank: 1,
-  kindKrank: 0, freigestellt: 0, entschuldigt: 0, unentschuldigt: 0, ungeklaert: 0,
+  kindKrank: 0, vAmb: 0, freigestellt: 0, entschuldigt: 0, unentschuldigt: 0, ungeklaert: 0,
   offeneAufgaben: 3, ueberfaelligeAufgaben: 1, statusFehlt: 2,
   teilnehmerGesamt: 12, betreuteTeilnehmer: 10,
   aufgabenHeute: [
