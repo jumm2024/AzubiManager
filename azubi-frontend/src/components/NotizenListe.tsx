@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notizenApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
 import Pagination from './Pagination';
+import { useBadgesContext } from './MainLayout';
 
 interface Notiz {
   id: number;
@@ -46,6 +47,7 @@ export default function NotizenListe() {
   const [bearbeitenKategorie, setBearbeitenKategorie] = useState('Beobachtung');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
+  const { refetchBadges, updateBadges } = useBadgesContext();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,9 +77,10 @@ export default function NotizenListe() {
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
+    onMutate: () => { updateBadges(prev => ({ ...prev, notizen: prev.notizen + 1 })); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notizen'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       setTitel('');
       setInhalt('');
       setKategorie('Beobachtung');
@@ -93,14 +96,15 @@ export default function NotizenListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => notizenApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['notizen'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
+    onMutate: () => { updateBadges(prev => ({ ...prev, notizen: Math.max(0, prev.notizen - 1) })); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['notizen'] }); refetchBadges(); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { titel: string; inhalt: string; kategorie: string; azubiIds?: string } }) => notizenApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notizen'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       setBearbeitenNotiz(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {

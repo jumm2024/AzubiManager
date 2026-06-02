@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { termineApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
 import Pagination from './Pagination';
+import { useBadgesContext } from './MainLayout';
 
 interface Termin {
   id: number;
@@ -36,6 +37,7 @@ export default function TermineListe() {
   const [bearbeitenOrt, setBearbeitenOrt] = useState('');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
+  const { refetchBadges, updateBadges } = useBadgesContext();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,9 +71,10 @@ export default function TermineListe() {
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string }) => termineApi.erstellen(d),
+    onMutate: () => { updateBadges(prev => ({ ...prev, termine: prev.termine + 1 })); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['termine'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       setTitel('');
       setBeschreibung('');
       setDatum('');
@@ -90,14 +93,15 @@ export default function TermineListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => termineApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['termine'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
+    onMutate: () => { updateBadges(prev => ({ ...prev, termine: Math.max(0, prev.termine - 1) })); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['termine'] }); refetchBadges(); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string } }) => termineApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['termine'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       setBearbeitenTermin(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {

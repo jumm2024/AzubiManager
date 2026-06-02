@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aufgabenApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
 import Pagination from './Pagination';
+import { useBadgesContext } from './MainLayout';
 
 interface Aufgabe {
   id: number;
@@ -37,6 +38,7 @@ export default function AufgabenListe() {
   const [bearbeitenFaelligkeitsdatum, setBearbeitenFaelligkeitsdatum] = useState('');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
+  const { updateBadges, refetchBadges } = useBadgesContext();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,14 +79,11 @@ export default function AufgabenListe() {
   const erstelleMutation = useMutation({
     mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
     onMutate: () => {
-      queryClient.setQueryData<Record<string, number>>(['badges'], (old) => {
-        if (!old) return old;
-        return { ...old, aufgaben: old.aufgaben + 1 };
-      });
+      updateBadges(prev => ({ ...prev, aufgaben: prev.aufgaben + 1 }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       setTitel('');
       setBeschreibung('');
       setPrioritaet('Mittel');
@@ -111,24 +110,21 @@ export default function AufgabenListe() {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] }).then(() => {
         setOptimisticDone({});
       });
-      try { queryClient.invalidateQueries({ queryKey: ['badges'] }); } catch { /* ignore */ }
+      refetchBadges();
     },
   });
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.loeschen(id),
     onMutate: () => {
-      queryClient.setQueryData<Record<string, number>>(['badges'], (old) => {
-        if (!old) return old;
-        return { ...old, aufgaben: Math.max(0, old.aufgaben - 1) };
-      });
+      updateBadges(prev => ({ ...prev, aufgaben: Math.max(0, prev.aufgaben - 1) }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       const data = error.response?.data;
       if (typeof data === 'string') setFehler(data);
       else if (data?.title) setFehler(data.title);
@@ -140,7 +136,7 @@ export default function AufgabenListe() {
     mutationFn: ({ id, data }: { id: number; data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string } }) => aufgabenApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
+      refetchBadges();
       setBearbeitenAufgabe(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {

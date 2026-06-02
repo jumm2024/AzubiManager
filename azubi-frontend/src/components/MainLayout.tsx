@@ -1,11 +1,14 @@
 import { Outlet, useOutletContext } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useState, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback, useEffect } from 'react';
 import { dashboardApi } from '../api/client';
 import { Menu, X } from 'lucide-react';
 
-type BadgesContext = { refetchBadges: () => void };
+type BadgesContext = {
+  badges: Record<string, number>;
+  refetchBadges: () => void;
+  updateBadges: (updater: (prev: Record<string, number>) => Record<string, number>) => void;
+};
 
 export function useBadgesContext() {
   return useOutletContext<BadgesContext>();
@@ -13,26 +16,29 @@ export function useBadgesContext() {
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const [badges, setBadges] = useState<Record<string, number>>({});
 
-  const { data } = useQuery<Record<string, number>>({
-    queryKey: ['badges'],
-    queryFn: () => dashboardApi.get().then(res => ({
-      aufgaben: res.data.aufgabenGesamt,
-      termine: res.data.termineGesamt,
-      notizen: res.data.notizenGesamt,
-      teilnehmer: res.data.betreuteTeilnehmer,
-    })),
-    staleTime: 30_000,
-  });
+  const ladeBadges = useCallback(async () => {
+    try {
+      const res = await dashboardApi.get();
+      setBadges({
+        aufgaben: res.data.aufgabenGesamt,
+        termine: res.data.termineGesamt,
+        notizen: res.data.notizenGesamt,
+        teilnehmer: res.data.betreuteTeilnehmer,
+      });
+    } catch { /* ignore */ }
+  }, []);
 
-  const refetchBadges = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['badges'] });
-  }, [queryClient]);
+  useEffect(() => { ladeBadges(); }, [ladeBadges]);
+
+  const updateBadges = useCallback((updater: (prev: Record<string, number>) => Record<string, number>) => {
+    setBadges(prev => updater(prev));
+  }, []);
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar badges={data ?? {}} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar badges={badges} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/20 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -47,7 +53,7 @@ export default function MainLayout() {
       </button>
 
       <main className="flex-1 p-4 md:p-6 lg:p-8 bg-[#F9F5F0] lg:ml-[280px] pt-16 lg:pt-8">
-        <Outlet context={{ refetchBadges }} />
+        <Outlet context={{ badges, refetchBadges: ladeBadges, updateBadges }} />
       </main>
     </div>
   );
