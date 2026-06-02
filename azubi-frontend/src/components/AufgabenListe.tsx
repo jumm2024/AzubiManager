@@ -76,6 +76,12 @@ export default function AufgabenListe() {
 
   const erstelleMutation = useMutation({
     mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
+    onMutate: () => {
+      queryClient.setQueryData<Record<string, number>>(['badges'], (old) => {
+        if (!old) return old;
+        return { ...old, aufgaben: old.aufgaben + 1 };
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
       queryClient.invalidateQueries({ queryKey: ['badges'] });
@@ -111,11 +117,18 @@ export default function AufgabenListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.loeschen(id),
+    onMutate: () => {
+      queryClient.setQueryData<Record<string, number>>(['badges'], (old) => {
+        if (!old) return old;
+        return { ...old, aufgaben: Math.max(0, old.aufgaben - 1) };
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
       queryClient.invalidateQueries({ queryKey: ['badges'] });
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       const data = error.response?.data;
       if (typeof data === 'string') setFehler(data);
       else if (data?.title) setFehler(data.title);

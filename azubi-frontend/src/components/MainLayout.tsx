@@ -1,12 +1,20 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useOutletContext } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { dashboardApi } from '../api/client';
 import { Menu, X } from 'lucide-react';
 
+type BadgesContext = { refetchBadges: () => void };
+
+export function useBadgesContext() {
+  return useOutletContext<BadgesContext>();
+}
+
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const { data } = useQuery<Record<string, number>>({
     queryKey: ['badges'],
     queryFn: () => dashboardApi.get().then(res => ({
@@ -15,8 +23,12 @@ export default function MainLayout() {
       notizen: res.data.notizenGesamt,
       teilnehmer: res.data.betreuteTeilnehmer,
     })),
-    staleTime: 1_000,
   });
+
+  const refetchBadges = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['badges'] });
+    queryClient.refetchQueries({ queryKey: ['badges'] });
+  }, [queryClient]);
 
   return (
     <div className="flex min-h-screen">
@@ -35,7 +47,7 @@ export default function MainLayout() {
       </button>
 
       <main className="flex-1 p-4 md:p-6 lg:p-8 bg-[#F9F5F0] lg:ml-[280px] pt-16 lg:pt-8">
-        <Outlet />
+        <Outlet context={{ refetchBadges }} />
       </main>
     </div>
   );
