@@ -45,6 +45,7 @@ export default function TagesstatusListe() {
   const [datum, setDatum] = useState(heute);
   const [lokaleStatus, setLokaleStatus] = useState<Record<number, string>>({});
   const [importMsg, setImportMsg] = useState('');
+  const [importIsError, setImportIsError] = useState(false);
   const [importModal, setImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importLade, setImportLade] = useState(false);
@@ -97,6 +98,7 @@ export default function TagesstatusListe() {
     if (!importFile) return;
     setImportLade(true);
     setImportMsg('');
+    setImportIsError(false);
     try {
       const fd = new FormData();
       fd.append('file', importFile);
@@ -108,6 +110,7 @@ export default function TagesstatusListe() {
       setImportModal(false);
     } catch {
       setImportMsg('Import fehlgeschlagen');
+      setImportIsError(true);
     } finally {
       setImportLade(false);
     }
@@ -136,7 +139,7 @@ export default function TagesstatusListe() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tagesstatus</h2>
-        {importMsg && <span className="text-sm text-green-600">{importMsg}</span>}
+        {importMsg && <span className={`text-sm ${importIsError ? 'text-red-600' : 'text-green-600'}`}>{importMsg}</span>}
         <div className="flex items-center gap-3">
           <div className="relative group">
             <button onClick={handleImportOeffnen}
@@ -150,10 +153,17 @@ export default function TagesstatusListe() {
           </div>
           <div className="relative group">
             <button onClick={async () => {
-              const res = await tagesstatusApi.export(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
-              const url = URL.createObjectURL(res.data);
-              const a = document.createElement('a'); a.href = url; a.download = `Tagesstatus_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
-              URL.revokeObjectURL(url);
+              try {
+                setImportIsError(false);
+                setImportMsg('');
+                const res = await tagesstatusApi.export(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
+                const url = URL.createObjectURL(res.data);
+                const a = document.createElement('a'); a.href = url; a.download = `Tagesstatus_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                setImportIsError(true);
+                setImportMsg('Export fehlgeschlagen');
+              }
             }}
               className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
               <Download className="w-4 h-4" />
@@ -165,10 +175,17 @@ export default function TagesstatusListe() {
           </div>
           <div className="relative group">
             <button onClick={async () => {
-              const res = await tagesstatusApi.bericht(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
-              const url = URL.createObjectURL(res.data);
-              const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
-              URL.revokeObjectURL(url);
+              try {
+                setImportIsError(false);
+                setImportMsg('');
+                const res = await tagesstatusApi.bericht(new Date(datum).getFullYear(), new Date(datum).getMonth() + 1);
+                const url = URL.createObjectURL(res.data);
+                const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_${new Date(datum).getFullYear()}_${String(new Date(datum).getMonth() + 1).padStart(2, '0')}.xlsx`; a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                setImportIsError(true);
+                setImportMsg('Monatsbericht fehlgeschlagen');
+              }
             }}
               className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
               <FileText className="w-4 h-4" />
@@ -180,10 +197,17 @@ export default function TagesstatusListe() {
           </div>
           <div className="relative group">
             <button onClick={async () => {
-              const res = await tagesstatusApi.berichtGesamt();
-              const url = URL.createObjectURL(res.data);
-              const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_Gesamt.xlsx`; a.click();
-              URL.revokeObjectURL(url);
+              try {
+                setImportIsError(false);
+                setImportMsg('');
+                const res = await tagesstatusApi.berichtGesamt();
+                const url = URL.createObjectURL(res.data);
+                const a = document.createElement('a'); a.href = url; a.download = `AzubiBericht_Gesamt.xlsx`; a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                setImportIsError(true);
+                setImportMsg('Gesamtbericht fehlgeschlagen');
+              }
             }}
               className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
               <CalendarDays className="w-4 h-4" />
