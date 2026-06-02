@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useState, useEffect, useRef } from 'react';
-import { dashboardApi } from '../api/client';
+import { dashboardApi, type DashboardDto } from '../api/client';
 import { Menu, X } from 'lucide-react';
 
 export default function MainLayout() {
@@ -14,17 +14,12 @@ export default function MainLayout() {
     pendingRef.current = true;
     try {
       const res = await dashboardApi.get();
-      const d = res.data as {
-        betreuteTeilnehmer?: number;
-        aufgabenGesamt?: number;
-        termineGesamt?: number;
-        notizenGesamt?: number;
-      };
+      const d: DashboardDto = res.data;
       setBadges({
-        aufgaben: d.aufgabenGesamt ?? 0,
-        termine: d.termineGesamt ?? 0,
-        notizen: d.notizenGesamt ?? 0,
-        teilnehmer: d.betreuteTeilnehmer ?? 0,
+        aufgaben: d.aufgabenGesamt,
+        termine: d.termineGesamt,
+        notizen: d.notizenGesamt,
+        teilnehmer: d.betreuteTeilnehmer,
       });
     } catch {
       // ignorieren

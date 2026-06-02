@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagesstatusApi, teilnehmerApi } from '../api/client';
+import type { Tagesstatus, Teilnehmer } from '../api/client';
 import { Upload, Download, FileText, CalendarDays } from 'lucide-react';
 
 const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Krank', 'Kind krank', 'VAmB', 'Freigestellt', 'Entschuldigt', 'Unentschuldigt', 'Ungeklärt', 'Feiertag', 'Wochenende'];
@@ -61,7 +62,7 @@ export default function TagesstatusListe() {
   const { data: alleTeilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
     queryFn: () => teilnehmerApi.alle().then(res => res.data.items),
-    select: (alle) => (alle as unknown as { istBetreut?: boolean }[]).filter(t => t.istBetreut)
+    select: (alle: Teilnehmer[]) => alle.filter(t => t.istBetreut)
   });
 
   const setzenMutation = useMutation({
@@ -69,9 +70,9 @@ export default function TagesstatusListe() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] }),
   });
 
-  const mergeData = (alleTeilnehmer as unknown as { id: number; vorname: string; nachname: string; gruppe: string; lehrjahr: number; kurs?: string }[])?.map((t) => {
-    const existing = statusData?.find((s) => (s as { azubiId?: number }).azubiId === t.id);
-    return { ...t, statusId: existing?.id, status: (existing as { status?: string })?.status || '', bemerkung: (existing as { bemerkung?: string })?.bemerkung || '' };
+  const mergeData = (alleTeilnehmer as Teilnehmer[])?.map((t: Teilnehmer) => {
+    const existing = statusData?.find((s: Tagesstatus) => s.azubiId === t.id);
+    return { ...t, statusId: existing?.id, status: existing?.status || '', bemerkung: existing?.bemerkung || '' };
   }) || [];
 
   const statusCounts = statusListe.map(s => ({
@@ -201,14 +202,14 @@ export default function TagesstatusListe() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
         <div className="divide-y divide-gray-100">
-          {mergeData.map((t: { id: number; vorname: string; nachname: string; gruppe: string; lehrjahr: number; status: string; statusId?: number; bemerkung: string }) => (
+          {mergeData.map((t: { id: number; vorname: string; nachname: string; kurs?: string; gruppe: string; lehrjahr: number; status: string; statusId?: number; bemerkung: string }) => (
             <div key={t.id} className="flex items-center gap-4 px-6 py-3 transition-colors hover:bg-gray-50">
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold shrink-0 text-sm">
                 {t.vorname?.[0]}{t.nachname?.[0]}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-800 text-sm">{t.vorname} {t.nachname}</p>
-                <p className="text-xs text-gray-400">{(t as unknown as { kurs?: string }).kurs || t.gruppe} - Lehrjahr {t.lehrjahr}</p>
+                <p className="text-xs text-gray-400">{t.kurs || t.gruppe} - Lehrjahr {t.lehrjahr}</p>
               </div>
               <select id={`status-${t.id}`} name={`status-${t.id}`} value={lokaleStatus[t.id] ?? t.status} onChange={(e) => handleStatusChange(t.id, e.target.value)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border outline-none ${

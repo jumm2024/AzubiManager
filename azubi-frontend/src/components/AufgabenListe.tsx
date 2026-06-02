@@ -72,8 +72,7 @@ export default function AufgabenListe() {
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
     queryFn: () => teilnehmerApi.alle().then(res => {
-      const all = res.data as Teilnehmer[];
-      return all.filter(t => t.istBetreut);
+      return res.data.items.filter((t: Teilnehmer) => t.istBetreut);
     }),
   });
 

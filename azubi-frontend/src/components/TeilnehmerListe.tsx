@@ -78,7 +78,7 @@ export default function TeilnehmerListe() {
 
   const { data: allData } = useQuery({
     queryKey: ['teilnehmer', 'all', gruppeFilter, nurMeine],
-    queryFn: () => teilnehmerApi.alle(gruppeFilter || undefined, 0, 200, nurMeine || undefined).then(res => res.data.items as Teilnehmer[])
+    queryFn: () => teilnehmerApi.alle(gruppeFilter || undefined, 0, 200, nurMeine || undefined).then(res => res.data.items)
   });
 
   const paginatedData = pageData?.items ?? [];

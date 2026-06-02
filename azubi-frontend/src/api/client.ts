@@ -26,9 +26,16 @@ export interface Teilnehmer {
   id: number;
   vorname: string;
   nachname: string;
-  gruppe?: string;
-  status?: string;
-  istBetreut?: boolean;
+  geburtsdatum?: string;
+  kurs?: string;
+  lehrjahr: number;
+  abteilung?: string;
+  gruppe: string;
+  ausbildungsstart?: string;
+  ausbildungsende?: string;
+  ausbilderId?: number;
+  ausbilderName?: string;
+  istBetreut: boolean;
 }
 
 export interface Benutzer {
@@ -77,9 +84,11 @@ export interface Termin {
 
 export interface Tagesstatus {
   id: number;
-  teilnehmerId: number;
+  azubiId: number;
+  azubiName: string;
   datum: string;
   status: string;
+  bemerkung?: string;
 }
 
 export const authApi = {
@@ -91,8 +100,35 @@ export const authApi = {
     api.post('/auth/passwort-aendern', { altesPasswort, neuesPasswort }),
 };
 
+export interface DashboardDto {
+  anwesend: number;
+  schule: number;
+  praktikum: number;
+  termin: number;
+  urlaub: number;
+  krank: number;
+  kindKrank: number;
+  vAmb: number;
+  freigestellt: number;
+  entschuldigt: number;
+  unentschuldigt: number;
+  ungeklaert: number;
+  offeneAufgaben: number;
+  ueberfaelligeAufgaben: number;
+  aufgabenHeute: Aufgabe[];
+  roterBadge: number;
+  orangerBadge: number;
+  pinkerBadge: number;
+  aufgabenGesamt: number;
+  termineGesamt: number;
+  notizenGesamt: number;
+  statusFehlt: number;
+  teilnehmerGesamt: number;
+  betreuteTeilnehmer: number;
+}
+
 export const dashboardApi = {
-  get: () => api.get('/dashboard'),
+  get: () => api.get<DashboardDto>('/dashboard'),
 };
 
 export const teilnehmerApi = {
