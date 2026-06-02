@@ -62,7 +62,7 @@ export default function TeilnehmerListe() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
-  const PAGE_SIZE = 10;
+  const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -77,8 +77,8 @@ export default function TeilnehmerListe() {
   });
 
   const angezeigte = nurMeine ? (data?.filter(t => t.istBetreut) ?? []) : (data ?? []);
-  const totalPages = Math.ceil(angezeigte.length / PAGE_SIZE);
-  const paginatedData = angezeigte.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.ceil(angezeigte.length / pageSize);
+  const paginatedData = angezeigte.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const erstelleMutation = useMutation({
@@ -420,7 +420,7 @@ export default function TeilnehmerListe() {
             {angezeigte.length === 0 && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Teilnehmer vorhanden</p>
             )}
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
           </div>
         </div>
       </div>
