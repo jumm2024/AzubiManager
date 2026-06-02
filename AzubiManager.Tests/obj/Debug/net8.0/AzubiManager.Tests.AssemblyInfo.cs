@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AzubiManager.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b51f753163a7d8d65685a198a6957cb91529f103")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c5f0f3a63d6202dc04bb8bce79f8346a2d8a46b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("AzubiManager.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AzubiManager.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

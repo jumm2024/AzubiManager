@@ -1,4 +1,3 @@
-import { useOutletContext } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { termineApi, teilnehmerApi } from '../api/client';
@@ -37,7 +36,6 @@ export default function TermineListe() {
   const [bearbeitenOrt, setBearbeitenOrt] = useState('');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
-  const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,7 +71,7 @@ export default function TermineListe() {
     mutationFn: (d: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string }) => termineApi.erstellen(d),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['termine'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setTitel('');
       setBeschreibung('');
       setDatum('');
@@ -92,14 +90,14 @@ export default function TermineListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => termineApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['termine'] }); ladeBadges(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['termine'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string } }) => termineApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['termine'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setBearbeitenTermin(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {

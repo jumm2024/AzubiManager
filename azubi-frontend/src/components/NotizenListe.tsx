@@ -1,4 +1,3 @@
-import { useOutletContext } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notizenApi, teilnehmerApi } from '../api/client';
@@ -47,7 +46,6 @@ export default function NotizenListe() {
   const [bearbeitenKategorie, setBearbeitenKategorie] = useState('Beobachtung');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
-  const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,7 +77,7 @@ export default function NotizenListe() {
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notizen'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setTitel('');
       setInhalt('');
       setKategorie('Beobachtung');
@@ -95,14 +93,14 @@ export default function NotizenListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => notizenApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['notizen'] }); ladeBadges(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['notizen'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { titel: string; inhalt: string; kategorie: string; azubiIds?: string } }) => notizenApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notizen'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setBearbeitenNotiz(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {

@@ -1,4 +1,3 @@
-import { useOutletContext } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teilnehmerApi } from '../api/client';
@@ -60,7 +59,6 @@ export default function TeilnehmerListe() {
   const [bearbeitenAusbildungsende, setBearbeitenAusbildungsende] = useState('');
   const queryClient = useQueryClient();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,7 +93,7 @@ export default function TeilnehmerListe() {
     mutationFn: (d: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string }) => teilnehmerApi.erstellen(d),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       const created = res.data;
       setLetzterErstellterId(created.id);
       setVorname('');
@@ -119,14 +117,14 @@ export default function TeilnehmerListe() {
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => teilnehmerApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teilnehmer'] }); ladeBadges(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teilnehmer'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { vorname: string; nachname: string; gruppe: string; lehrjahr: number; abteilung?: string; ausbildungsstart?: string; ausbildungsende?: string } }) => teilnehmerApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setBearbeitenTeilnehmer(null);
       setErfolg('Teilnehmer aktualisiert');
       timerRef.current = setTimeout(() => setErfolg(''), 3000);
@@ -143,7 +141,7 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.betreuen(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
     },
     onError: (err: unknown) => {
       setFehler('Fehler beim Betreuen: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));
@@ -154,7 +152,7 @@ export default function TeilnehmerListe() {
     mutationFn: (id: number) => teilnehmerApi.nichtBetreuen(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teilnehmer'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
     },
     onError: (err: unknown) => {
       setFehler('Fehler beim Entfernen der Betreuung: ' + ((err as {response?: {data?: string}}).response?.data || 'Unbekannter Fehler'));

@@ -1,40 +1,26 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useState, useEffect, useRef } from 'react';
-import { dashboardApi, type DashboardDto } from '../api/client';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { dashboardApi } from '../api/client';
 import { Menu, X } from 'lucide-react';
 
 export default function MainLayout() {
-  const [badges, setBadges] = useState<Record<string, number>>({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const pendingRef = useRef(false);
-
-  const ladeBadges = async () => {
-    if (pendingRef.current) return;
-    pendingRef.current = true;
-    try {
-      const res = await dashboardApi.get();
-      const d: DashboardDto = res.data;
-      setBadges({
-        aufgaben: d.aufgabenGesamt,
-        termine: d.termineGesamt,
-        notizen: d.notizenGesamt,
-        teilnehmer: d.betreuteTeilnehmer,
-      });
-    } catch {
-      // ignorieren
-    } finally {
-      pendingRef.current = false;
-    }
-  };
-
-  useEffect(() => {
-    void ladeBadges();
-  }, []);
+  const { data } = useQuery<Record<string, number>>({
+    queryKey: ['badges'],
+    queryFn: () => dashboardApi.get().then(res => ({
+      aufgaben: res.data.aufgabenGesamt,
+      termine: res.data.termineGesamt,
+      notizen: res.data.notizenGesamt,
+      teilnehmer: res.data.betreuteTeilnehmer,
+    })),
+    staleTime: 10_000,
+  });
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar badges={badges} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar badges={data ?? {}} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/20 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -49,7 +35,7 @@ export default function MainLayout() {
       </button>
 
       <main className="flex-1 p-4 md:p-6 lg:p-8 bg-[#F9F5F0] lg:ml-[280px] pt-16 lg:pt-8">
-        <Outlet context={{ ladeBadges }} />
+        <Outlet />
       </main>
     </div>
   );

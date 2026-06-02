@@ -1,4 +1,3 @@
-import { useOutletContext } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aufgabenApi, teilnehmerApi } from '../api/client';
@@ -38,7 +37,6 @@ export default function AufgabenListe() {
   const [bearbeitenFaelligkeitsdatum, setBearbeitenFaelligkeitsdatum] = useState('');
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
-  const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,7 +78,7 @@ export default function AufgabenListe() {
     mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setTitel('');
       setBeschreibung('');
       setPrioritaet('Mittel');
@@ -107,20 +105,20 @@ export default function AufgabenListe() {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] }).then(() => {
         setOptimisticDone({});
       });
-      try { ladeBadges(); } catch { /* ignore */ }
+      try { queryClient.invalidateQueries({ queryKey: ['badges'] }); } catch { /* ignore */ }
     },
   });
 
   const loescheMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.loeschen(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['aufgaben'] }); ladeBadges(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['aufgaben'] }); queryClient.invalidateQueries({ queryKey: ['badges'] }); },
   });
 
   const aktualisierenMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string } }) => aufgabenApi.aktualisieren(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
-      ladeBadges();
+      queryClient.invalidateQueries({ queryKey: ['badges'] });
       setBearbeitenAufgabe(null);
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
