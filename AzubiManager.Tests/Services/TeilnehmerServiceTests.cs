@@ -35,13 +35,19 @@ namespace AzubiManager.Tests.Services
 
         private static IMemoryCache CreateCache() => new MemoryCache(new MemoryCacheOptions());
 
+        private TeilnehmerService CreateService(AppDbContext db, CurrentUserService user, IMemoryCache cache)
+        {
+            var dashboardService = new DashboardService(db, user, cache);
+            return new TeilnehmerService(db, user, cache, dashboardService);
+        }
+
         [Fact]
         public async Task MeineBetreuteIds_Leer_BeiNeuemBenutzer()
         {
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             var ids = await service.MeineBetreuteIdsAsync();
 
@@ -54,7 +60,7 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -80,7 +86,7 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -109,7 +115,7 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -137,7 +143,7 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -165,7 +171,7 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer
             {
@@ -192,7 +198,7 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             using var cache = CreateCache();
             var user = CreateUser(1);
-            var service = new TeilnehmerService(db, user, cache);
+            var service = CreateService(db, user, cache);
 
             db.Teilnehmer.Add(new Teilnehmer { Id = 1, Vorname = "A", Nachname = "B", Gruppe = "Ausbildung", Lehrjahr = 1, Ausbildungsstart = default, Ausbildungsende = default, AusbilderId = 1 });
             db.Teilnehmer.Add(new Teilnehmer { Id = 2, Vorname = "C", Nachname = "D", Gruppe = "BVB", Lehrjahr = 1, Ausbildungsstart = default, Ausbildungsende = default, AusbilderId = 1 });

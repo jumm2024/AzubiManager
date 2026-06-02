@@ -11,12 +11,14 @@ namespace AzubiManager.Api.Services
         private readonly AppDbContext _db;
         private readonly CurrentUserService _currentUser;
         private readonly IMemoryCache _cache;
+        private readonly DashboardService _dashboardService;
 
-        public TeilnehmerService(AppDbContext db, CurrentUserService currentUser, IMemoryCache cache)
+        public TeilnehmerService(AppDbContext db, CurrentUserService currentUser, IMemoryCache cache, DashboardService dashboardService)
         {
             _db = db;
             _currentUser = currentUser;
             _cache = cache;
+            _dashboardService = dashboardService;
         }
 
         public async Task<List<TeilnehmerDto>> AlleAbrufenAsync(string? gruppe = null, int? skip = null, int? take = null)
@@ -188,6 +190,7 @@ namespace AzubiManager.Api.Services
             await _db.SaveChangesAsync();
 
             _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
+            _dashboardService.InvalidateCache(_currentUser.BenutzerId);
         }
 
         public async Task RemoveBetreuungAsync(int teilnehmerId)
@@ -201,6 +204,7 @@ namespace AzubiManager.Api.Services
             await _db.SaveChangesAsync();
 
             _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
+            _dashboardService.InvalidateCache(_currentUser.BenutzerId);
         }
 
         private async Task<List<int>> GetBetreuteIdsAsync()
