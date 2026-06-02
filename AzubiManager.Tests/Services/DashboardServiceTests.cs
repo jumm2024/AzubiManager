@@ -200,6 +200,33 @@ namespace AzubiManager.Tests.Services
         }
 
         [Fact]
+        public async Task ErstellenAsync_ZaehltVAmBStatus()
+        {
+            using var db = CreateDb();
+            using var cache = CreateCache();
+            var heute = DateOnly.FromDateTime(DateTime.Today);
+            db.Teilnehmer.Add(new Teilnehmer
+            {
+                Id = 1, Vorname = "Test", Nachname = "User",
+                Gruppe = "Ausbildung", Lehrjahr = 1,
+                AusbilderId = 1
+            });
+            db.AzubiBetreuer.Add(new AzubiBetreuer { TeilnehmerId = 1, BenutzerId = 1 });
+            db.TagesstatusListe.Add(new Tagesstatus { AzubiId = 1, Datum = heute, Status = "VAmB" });
+            await db.SaveChangesAsync();
+            foreach (var e in db.ChangeTracker.Entries()) e.State = EntityState.Detached;
+
+            var user = CreateUser(1);
+            var service = new DashboardService(db, user, cache);
+
+            var result = await service.ErstellenAsync();
+
+            Assert.Equal(1, result.VAmB);
+            Assert.Equal(0, result.Anwesend);
+            Assert.Equal(0, result.Krank);
+        }
+
+        [Fact]
         public async Task ErstellenAsync_OhneBetreuteAzubis_GibtLeereWerte()
         {
             using var db = CreateDb();
