@@ -78,9 +78,11 @@ export default function AufgabenListe() {
   const erstelleMutation = useMutation({
     mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
     onMutate: () => {
+      console.log('create onMutate called');
       updateBadges(prev => ({ ...prev, aufgaben: prev.aufgaben + 1 }));
     },
     onSuccess: () => {
+      console.log('create onSuccess called');
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
       refetchBadges();
       setTitel('');
@@ -116,13 +118,16 @@ export default function AufgabenListe() {
   const loescheMutation = useMutation({
     mutationFn: (id: number) => aufgabenApi.loeschen(id),
     onMutate: () => {
+      console.log('delete onMutate called');
       updateBadges(prev => ({ ...prev, aufgaben: Math.max(0, prev.aufgaben - 1) }));
     },
     onSuccess: () => {
+      console.log('delete onSuccess called');
       queryClient.invalidateQueries({ queryKey: ['aufgaben'] });
       refetchBadges();
     },
     onError: (error: { response?: { data?: string | { title?: string } } }) => {
+      console.error('delete onError called:', error);
       refetchBadges();
       const data = error.response?.data;
       if (typeof data === 'string') setFehler(data);

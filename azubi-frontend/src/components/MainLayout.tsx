@@ -9,7 +9,10 @@ export default function MainLayout() {
   const [badges, setBadges] = useState<Record<string, number>>(() => getBadges());
 
   useEffect(() => {
-    const unsub = subscribe(() => setBadges({ ...getBadges() }));
+    const unsub = subscribe(() => {
+      console.log('MainLayout subscriber fired, badges:', JSON.stringify(getBadges()));
+      setBadges({ ...getBadges() });
+    });
     refetchBadges();
     return unsub;
   }, []);
