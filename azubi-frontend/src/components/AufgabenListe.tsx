@@ -1,8 +1,9 @@
 import { useOutletContext } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aufgabenApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
+import Pagination from './Pagination';
 
 interface Aufgabe {
   id: number;
@@ -38,6 +39,9 @@ export default function AufgabenListe() {
   const [bearbeitenAzubiIds, setBearbeitenAzubiIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
+
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading } = useQuery<Aufgabe[]>({
     queryKey: ['aufgaben', filter, prioritaetFilter, artFilter],
@@ -178,6 +182,9 @@ export default function AufgabenListe() {
   };
 
   const myData = data?.filter(a => !a.azubiId || betreuteIds.has(a.azubiId));
+  const totalPages = myData ? Math.ceil(myData.length / PAGE_SIZE) : 1;
+  const paginatedData = myData?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
   const gesamt = myData?.length || 0;
   const offene = myData ? myData.filter(a => !a.erledigt).length : 0;
   const erledigte = myData ? myData.filter(a => a.erledigt).length : 0;
@@ -311,7 +318,7 @@ export default function AufgabenListe() {
             <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {myData?.map((aufgabe: Aufgabe) => (
+            {paginatedData?.map((aufgabe: Aufgabe) => (
               <div key={aufgabe.id} onClick={() => setDetailAufgabe(aufgabe)}
                 className={`group flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                   aufgabe.erledigt
@@ -370,6 +377,7 @@ export default function AufgabenListe() {
             {data?.length === 0 && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Aufgaben vorhanden</p>
             )}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </div>
         </div>
       </div>

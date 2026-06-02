@@ -1,8 +1,9 @@
 import { useOutletContext } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { termineApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
+import Pagination from './Pagination';
 
 interface Termin {
   id: number;
@@ -38,6 +39,9 @@ export default function TermineListe() {
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   const { data, isLoading } = useQuery<Termin[]>({
     queryKey: ['termine', filter],
     queryFn: () => termineApi.alle().then(res => {
@@ -57,6 +61,9 @@ export default function TermineListe() {
   });
   const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
   const myData = data?.filter(t => !t.azubiId || betreuteIds.has(t.azubiId));
+  const totalPages = myData ? Math.ceil(myData.length / PAGE_SIZE) : 1;
+  const paginatedData = myData?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string }) => termineApi.erstellen(d),
@@ -271,7 +278,7 @@ export default function TermineListe() {
             <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {myData?.map((t: Termin) => (
+            {paginatedData?.map((t: Termin) => (
               <div key={t.id} className="group flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all">
                 <div className="flex flex-col items-center gap-1 w-12 shrink-0">
                   <span className="text-xs font-bold text-gray-400 uppercase">
@@ -317,6 +324,7 @@ export default function TermineListe() {
             {(!data || data.length === 0) && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Termine vorhanden</p>
             )}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </div>
         </div>
       </div>

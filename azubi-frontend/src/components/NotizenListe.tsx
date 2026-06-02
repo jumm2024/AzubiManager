@@ -1,8 +1,9 @@
 import { useOutletContext } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notizenApi, teilnehmerApi } from '../api/client';
 import type { Teilnehmer } from '../api/client';
+import Pagination from './Pagination';
 
 interface Notiz {
   id: number;
@@ -48,6 +49,9 @@ export default function NotizenListe() {
   const queryClient = useQueryClient();
   const { ladeBadges } = useOutletContext<{ ladeBadges: () => void }>();
 
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   const { data, isLoading } = useQuery({
     queryKey: ['notizen'],
     queryFn: () => notizenApi.alle().then(res => res.data as unknown as Notiz[])
@@ -62,6 +66,9 @@ export default function NotizenListe() {
   });
   const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
   const myData = data?.filter(n => !n.azubiId || betreuteIds.has(n.azubiId));
+  const totalPages = myData ? Math.ceil(myData.length / PAGE_SIZE) : 1;
+  const paginatedData = myData?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
@@ -226,7 +233,7 @@ export default function NotizenListe() {
             <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
-            {myData?.map((n: Notiz) => {
+            {paginatedData?.map((n: Notiz) => {
               const katFarbe = kategorieFarben[n.kategorie] || 'bg-gray-100 text-gray-600';
               const accentColor = kategoriePunkte[n.kategorie] || 'bg-gray-400';
               return (
@@ -264,6 +271,7 @@ export default function NotizenListe() {
             {(!data || data.length === 0) && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Notizen vorhanden</p>
             )}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </div>
         </div>
       </div>

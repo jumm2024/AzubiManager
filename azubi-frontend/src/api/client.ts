@@ -91,7 +91,7 @@ export const dashboardApi = {
 };
 
 export const teilnehmerApi = {
-  alle: (gruppe?: string, skip = 0, take = 500) => api.get<Teilnehmer[]>('/teilnehmer', { params: { gruppe, skip, take } }),
+  alle: (gruppe?: string, skip = 0, take = 200) => api.get<Teilnehmer[]>('/teilnehmer', { params: { gruppe, skip, take } }),
   erstellen: (data: Partial<Teilnehmer>) => api.post<Teilnehmer>('/teilnehmer', data),
   aktualisieren: (id: number, data: Partial<Teilnehmer>) => api.put<Teilnehmer>(`/teilnehmer/${id}`, data),
   loeschen: (id: number) => api.delete(`/teilnehmer/${id}`),
@@ -108,7 +108,7 @@ export const benutzerApi = {
 };
 
 export const aufgabenApi = {
-  alle: (erledigt?: boolean, skip = 0, take = 500) => api.get<Aufgabe[]>('/aufgaben', { params: { erledigt, skip, take } }),
+  alle: (erledigt?: boolean, skip = 0, take = 200) => api.get<Aufgabe[]>('/aufgaben', { params: { erledigt, skip, take } }),
   erstellen: (data: Partial<Aufgabe>) => api.post<Aufgabe>('/aufgaben', data),
   aktualisieren: (id: number, data: Partial<Aufgabe>) => api.put<Aufgabe>(`/aufgaben/${id}`, data),
   loeschen: (id: number) => api.delete(`/aufgaben/${id}`),
@@ -116,14 +116,14 @@ export const aufgabenApi = {
 };
 
 export const notizenApi = {
-  alle: (skip = 0, take = 500) => api.get<Notiz[]>('/notizen', { params: { skip, take } }),
+  alle: (skip = 0, take = 200) => api.get<Notiz[]>('/notizen', { params: { skip, take } }),
   erstellen: (data: Partial<Notiz>) => api.post<Notiz>('/notizen', data),
   aktualisieren: (id: number, data: Partial<Notiz>) => api.put<Notiz>(`/notizen/${id}`, data),
   loeschen: (id: number) => api.delete(`/notizen/${id}`),
 };
 
 export const termineApi = {
-  alle: (skip = 0, take = 500) => api.get<Termin[]>('/termine', { params: { skip, take } }),
+  alle: (skip = 0, take = 200) => api.get<Termin[]>('/termine', { params: { skip, take } }),
   erstellen: (data: Partial<Termin>) => api.post<Termin>('/termine', data),
   aktualisieren: (id: number, data: Partial<Termin>) => api.put<Termin>(`/termine/${id}`, data),
   loeschen: (id: number) => api.delete(`/termine/${id}`),
