@@ -19,13 +19,15 @@ namespace AzubiManager.Api.Services
             _cache = cache;
         }
 
-        public async Task<List<NotizDto>> AlleAbrufenAsync(int? skip = null, int? take = null)
+        public async Task<PagedResponse<NotizDto>> AlleAbrufenAsync(int? skip = null, int? take = null)
         {
             var betreuteIds = await GetBetreuteIdsAsync();
 
             IQueryable<Notiz> query = _db.Notizen.AsNoTracking()
                 .Where(n => (n.AzubiId != null && betreuteIds.Contains((int)n.AzubiId))
                          || (n.AzubiId == null && n.AusbilderId == _currentUser.BenutzerId));
+
+            var totalCount = await query.CountAsync();
 
             var resultQuery = query.OrderByDescending(n => n.ErstelltAm).Select(n => new NotizDto
             {
@@ -55,7 +57,7 @@ namespace AzubiManager.Api.Services
                     n.AzubiName = string.Join(", ", ids.Where(id => namenMap.ContainsKey(id)).Select(id => namenMap[id]));
                 }
             }
-            return result;
+            return new PagedResponse<NotizDto> { Items = result, TotalCount = totalCount };
         }
 
         public async Task<NotizDto> ErstellenAsync(NotizErstellenDto dto)

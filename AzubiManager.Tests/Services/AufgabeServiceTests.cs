@@ -118,10 +118,10 @@ namespace AzubiManager.Tests.Services
 
             var result = await service.AlleAbrufenAsync();
 
-            Assert.Contains(result, a => a.Id == 1);
-            Assert.Contains(result, a => a.Id == 2);
-            Assert.Contains(result, a => a.Id == 3);
-            Assert.DoesNotContain(result, a => a.Id == 4);
+            Assert.Contains(result.Items, a => a.Id == 1);
+            Assert.Contains(result.Items, a => a.Id == 2);
+            Assert.Contains(result.Items, a => a.Id == 3);
+            Assert.DoesNotContain(result.Items, a => a.Id == 4);
         }
 
         [Fact]
@@ -136,10 +136,10 @@ namespace AzubiManager.Tests.Services
             var offene = await service.AlleAbrufenAsync(erledigt: false);
             var erledigte = await service.AlleAbrufenAsync(erledigt: true);
 
-            Assert.Contains(offene, a => a.Id == 1);
-            Assert.Contains(erledigte, a => a.Id == 2);
-            Assert.DoesNotContain(offene, a => a.Id == 2);
-            Assert.DoesNotContain(erledigte, a => a.Id == 1);
+            Assert.Contains(offene.Items, a => a.Id == 1);
+            Assert.Contains(erledigte.Items, a => a.Id == 2);
+            Assert.DoesNotContain(offene.Items, a => a.Id == 2);
+            Assert.DoesNotContain(erledigte.Items, a => a.Id == 1);
         }
 
         [Fact]
@@ -154,8 +154,8 @@ namespace AzubiManager.Tests.Services
             var skip1 = await service.AlleAbrufenAsync(skip: 1);
             var take1 = await service.AlleAbrufenAsync(take: 1);
 
-            Assert.Single(take1);
-            Assert.Equal(2, skip1.Count);
+            Assert.Single(take1.Items);
+            Assert.Equal(2, skip1.Items.Count);
         }
 
         [Fact]

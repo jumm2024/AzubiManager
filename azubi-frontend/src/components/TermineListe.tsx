@@ -42,28 +42,32 @@ export default function TermineListe() {
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data, isLoading } = useQuery<Termin[]>({
-    queryKey: ['termine', filter],
-    queryFn: () => termineApi.alle().then(res => {
-      const alle: Termin[] = res.data;
-      if (filter === 'anstehend') return alle.filter(t => new Date(t.datum) >= new Date(new Date().toDateString()));
-      if (filter === 'vergangen') return alle.filter(t => new Date(t.datum) < new Date(new Date().toDateString()));
-      return alle;
-    })
+  const { data: allData } = useQuery<Termin[]>({
+    queryKey: ['termine', 'all'],
+    queryFn: () => termineApi.alle(0, 200).then(res => res.data.items)
   });
+
+  const { data: pageData, isLoading } = useQuery({
+    queryKey: ['termine', currentPage, pageSize, filter],
+    queryFn: () => termineApi.alle((currentPage - 1) * pageSize, pageSize, filter !== 'alle' ? filter : undefined).then(res => res.data)
+  });
+
+  const paginatedData = pageData?.items ?? [];
+  const totalCount = pageData?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
+
+  const anstehend = allData?.filter(t => new Date(t.datum) >= new Date()).length || 0;
+  const vergangen = allData?.filter(t => new Date(t.datum) < new Date()).length || 0;
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
     queryFn: () => teilnehmerApi.alle().then(res => {
-      const all = res.data as Teilnehmer[];
+      const all: Teilnehmer[] = res.data.items;
       return all.filter(t => t.istBetreut);
     }),
   });
   const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
-  const myData = data?.filter(t => !t.azubiId || betreuteIds.has(t.azubiId));
-  const totalPages = myData ? Math.ceil(myData.length / pageSize) : 1;
-  const paginatedData = myData?.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; beschreibung?: string; datum: string; endzeit?: string; kategorie: string; ort?: string; azubiIds?: string }) => termineApi.erstellen(d),
@@ -155,9 +159,6 @@ export default function TermineListe() {
     });
   };
 
-  const anstehend = myData?.filter(t => new Date(t.datum) >= new Date()).length || 0;
-  const vergangen = myData?.filter(t => new Date(t.datum) < new Date()).length || 0;
-
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
       <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -175,7 +176,7 @@ export default function TermineListe() {
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             <div>
               <p className="text-sm text-gray-500">Gesamt</p>
-              <p className="text-lg md:text-2xl font-bold">{myData?.length || 0}</p>
+              <p className="text-lg md:text-2xl font-bold">{allData?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -275,7 +276,7 @@ export default function TermineListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Termine</h3>
-            <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
+            <span className="text-xs text-gray-400">{totalCount} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
             {paginatedData?.map((t: Termin) => (
@@ -321,7 +322,7 @@ export default function TermineListe() {
                 </div>
               </div>
             ))}
-            {(!data || data.length === 0) && (
+            {(paginatedData.length === 0) && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Termine vorhanden</p>
             )}
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />

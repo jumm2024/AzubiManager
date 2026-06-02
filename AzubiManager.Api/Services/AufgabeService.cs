@@ -19,7 +19,7 @@ namespace AzubiManager.Api.Services
             _cache = cache;
         }
 
-        public async Task<List<AufgabeDto>> AlleAbrufenAsync(bool? erledigt = null, int? skip = null, int? take = null)
+        public async Task<PagedResponse<AufgabeDto>> AlleAbrufenAsync(bool? erledigt = null, int? skip = null, int? take = null, string? prioritaet = null, string? art = null)
         {
             var betreuteIds = await GetBetreuteIdsAsync();
 
@@ -29,6 +29,16 @@ namespace AzubiManager.Api.Services
 
             if (erledigt.HasValue)
                 query = query.Where(a => a.Erledigt == erledigt.Value);
+
+            if (!string.IsNullOrEmpty(prioritaet))
+                query = query.Where(a => a.Prioritaet == prioritaet);
+
+            if (art == "eigene")
+                query = query.Where(a => a.AzubiId == null && a.AusbilderId == _currentUser.BenutzerId);
+            else if (art == "azubi")
+                query = query.Where(a => a.AzubiId != null);
+
+            var totalCount = await query.CountAsync();
 
             var resultQuery = query
                 .OrderBy(a => a.Faelligkeitsdatum)
@@ -75,7 +85,7 @@ namespace AzubiManager.Api.Services
                 }
             }
 
-            return result;
+            return new PagedResponse<AufgabeDto> { Items = result, TotalCount = totalCount };
         }
 
         public async Task<AufgabeDto> ErstellenAsync(AufgabeErstellenDto dto)

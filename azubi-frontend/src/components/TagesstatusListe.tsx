@@ -60,7 +60,7 @@ export default function TagesstatusListe() {
 
   const { data: alleTeilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
-    queryFn: () => teilnehmerApi.alle().then(res => res.data),
+    queryFn: () => teilnehmerApi.alle().then(res => res.data.items),
     select: (alle) => (alle as unknown as { istBetreut?: boolean }[]).filter(t => t.istBetreut)
   });
 

@@ -15,9 +15,10 @@ namespace AzubiManager.Api.Controllers
         public TermineController(TerminService service) => _service = service;
 
         [HttpGet]
-        public async Task<ActionResult<List<TerminDto>>> Alle(
+        public async Task<ActionResult<PagedResponse<TerminDto>>> Alle(
             [FromQuery] int? skip = null,
-            [FromQuery] int? take = null) => Ok(await _service.AlleAbrufenAsync(skip, take));
+            [FromQuery] int? take = null,
+            [FromQuery] string? zeitFilter = null) => Ok(await _service.AlleAbrufenAsync(skip, take, zeitFilter));
 
         [HttpPost]
         public async Task<ActionResult<TerminDto>> Erstellen([FromBody] TerminErstellenDto dto)

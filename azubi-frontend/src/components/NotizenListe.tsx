@@ -52,23 +52,28 @@ export default function NotizenListe() {
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['notizen'],
-    queryFn: () => notizenApi.alle().then(res => res.data as unknown as Notiz[])
+  const { data: allData } = useQuery({
+    queryKey: ['notizen', 'all'],
+    queryFn: () => notizenApi.alle(0, 200).then(res => res.data.items)
   });
+
+  const { data: pageData, isLoading } = useQuery({
+    queryKey: ['notizen', currentPage, pageSize],
+    queryFn: () => notizenApi.alle((currentPage - 1) * pageSize, pageSize).then(res => res.data)
+  });
+
+  const paginatedData = pageData?.items ?? [];
+  const totalCount = pageData?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
     queryFn: () => teilnehmerApi.alle().then(res => {
-      const all = res.data as Teilnehmer[];
+      const all: Teilnehmer[] = res.data.items;
       return all.filter(t => t.istBetreut);
     }),
   });
-  const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
-  const myData = data?.filter(n => !n.azubiId || betreuteIds.has(n.azubiId));
-  const totalPages = myData ? Math.ceil(myData.length / pageSize) : 1;
-  const paginatedData = myData?.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
@@ -156,8 +161,8 @@ export default function NotizenListe() {
     </div>
   );
 
-  const kategorieCounts = myData
-    ? kategorien.map(k => ({ kategorie: k, count: myData.filter(n => n.kategorie === k).length }))
+  const kategorieCounts = allData
+    ? kategorien.map(k => ({ kategorie: k, count: allData.filter(n => n.kategorie === k).length }))
     : [];
 
   return (
@@ -230,7 +235,7 @@ export default function NotizenListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Notizen</h3>
-            <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
+            <span className="text-xs text-gray-400">{totalCount} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
             {paginatedData?.map((n: Notiz) => {
@@ -268,7 +273,7 @@ export default function NotizenListe() {
                 </div>
               );
             })}
-            {(!data || data.length === 0) && (
+            {(paginatedData.length === 0) && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Notizen vorhanden</p>
             )}
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />

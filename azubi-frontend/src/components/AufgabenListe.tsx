@@ -43,19 +43,31 @@ export default function AufgabenListe() {
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data, isLoading } = useQuery<Aufgabe[]>({
-    queryKey: ['aufgaben', filter, prioritaetFilter, artFilter],
-    queryFn: () => {
-      const erledigtParam = filter === 'erledigt' ? true : filter === 'offen' ? false : undefined;
-      return aufgabenApi.alle(erledigtParam).then(res => {
-        let result = res.data;
-        if (prioritaetFilter) result = result.filter((a: Aufgabe) => a.prioritaet === prioritaetFilter);
-        if (artFilter === 'eigene') result = result.filter((a: Aufgabe) => !a.azubiId);
-        if (artFilter === 'azubi') result = result.filter((a: Aufgabe) => a.azubiId);
-        return result;
-      });
-    }
+  const erledigtParam = filter === 'erledigt' ? true : filter === 'offen' ? false : undefined;
+
+  const { data: pageData, isLoading } = useQuery({
+    queryKey: ['aufgaben', currentPage, pageSize, filter, prioritaetFilter, artFilter],
+    queryFn: () => aufgabenApi.alle(erledigtParam, (currentPage - 1) * pageSize, pageSize, prioritaetFilter || undefined, artFilter || undefined).then(res => res.data)
   });
+
+  const { data: allData } = useQuery({
+    queryKey: ['aufgaben', 'all', filter, prioritaetFilter, artFilter],
+    queryFn: () => aufgabenApi.alle(erledigtParam, 0, 200, prioritaetFilter || undefined, artFilter || undefined).then(res => res.data.items)
+  });
+
+  const paginatedData = pageData?.items ?? [];
+  const totalCount = pageData?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
+
+  const heuteHeute = new Date();
+  const heute = heuteHeute.toISOString().slice(0, 10);
+  const statsData = allData ?? [];
+  const gesamt = statsData.length;
+  const offene = statsData.filter((a: Aufgabe) => !a.erledigt).length;
+  const erledigte = statsData.filter((a: Aufgabe) => a.erledigt).length;
+  const ueberfaellig = statsData.filter((a: Aufgabe) => !a.erledigt && new Date(a.faelligkeitsdatum) < new Date()).length;
+  const heuteFaellig = statsData.filter((a: Aufgabe) => !a.erledigt && a.faelligkeitsdatum === heute).length;
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
@@ -64,7 +76,6 @@ export default function AufgabenListe() {
       return all.filter(t => t.istBetreut);
     }),
   });
-  const betreuteIds = new Set(teilnehmer?.map(t => t.id) ?? []);
 
   const erstelleMutation = useMutation({
     mutationFn: (data: { titel: string; beschreibung?: string; prioritaet: string; faelligkeitsdatum: string; istGlobal?: boolean; azubiIds?: string }) => aufgabenApi.erstellen(data),
@@ -181,17 +192,7 @@ export default function AufgabenListe() {
     });
   };
 
-  const myData = data?.filter(a => !a.azubiId || betreuteIds.has(a.azubiId));
-  const totalPages = myData ? Math.ceil(myData.length / pageSize) : 1;
-  const paginatedData = myData?.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  useEffect(() => { if (currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
-  const gesamt = myData?.length || 0;
-  const offene = myData ? myData.filter(a => !a.erledigt).length : 0;
-  const erledigte = myData ? myData.filter(a => a.erledigt).length : 0;
-  const ueberfaellig = myData ? myData.filter(a => !a.erledigt && new Date(a.faelligkeitsdatum) < new Date()).length : 0;
-  const heuteHeute = new Date();
-  const heute = heuteHeute.toISOString().slice(0, 10);
-  const heuteFaellig = myData ? myData.filter(a => !a.erledigt && a.faelligkeitsdatum === heute).length : 0;
+
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
@@ -204,7 +205,7 @@ export default function AufgabenListe() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">Aufgaben</h2>
-        <span className="text-sm text-gray-400">{myData?.length || 0} Aufgaben</span>
+         <span className="text-sm text-gray-400">{gesamt} Aufgaben</span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
@@ -315,7 +316,7 @@ export default function AufgabenListe() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-800">Alle Aufgaben</h3>
-            <span className="text-xs text-gray-400">{myData?.length || 0} Einträge</span>
+            <span className="text-xs text-gray-400">{totalCount} Einträge</span>
           </div>
           <div className="p-3 space-y-2">
             {paginatedData?.map((aufgabe: Aufgabe) => (
@@ -374,7 +375,7 @@ export default function AufgabenListe() {
                 </div>
               </div>
             ))}
-            {data?.length === 0 && (
+            {paginatedData.length === 0 && (
               <p className="text-gray-400 text-center py-10 text-sm">Keine Aufgaben vorhanden</p>
             )}
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />

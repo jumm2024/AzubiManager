@@ -27,12 +27,13 @@ namespace AzubiManager.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<TeilnehmerDto>>> Alle(
+        public async Task<ActionResult<PagedResponse<TeilnehmerDto>>> Alle(
             [FromQuery] string? gruppe = null,
             [FromQuery] int? skip = null,
-            [FromQuery] int? take = null)
+            [FromQuery] int? take = null,
+            [FromQuery] bool? nurMeine = null)
         {
-            return Ok(await _service.AlleAbrufenAsync(gruppe, skip, take));
+            return Ok(await _service.AlleAbrufenAsync(gruppe, skip, take, nurMeine));
         }
 
         [HttpGet("{id}")]

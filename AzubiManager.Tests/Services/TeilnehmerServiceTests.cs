@@ -161,8 +161,8 @@ namespace AzubiManager.Tests.Services
 
             var alle = await service.AlleAbrufenAsync();
 
-            Assert.Single(alle);
-            Assert.True(alle[0].IstBetreut);
+            Assert.Single(alle.Items);
+            Assert.True(alle.Items[0].IstBetreut);
         }
 
         [Fact]
@@ -188,8 +188,8 @@ namespace AzubiManager.Tests.Services
 
             var alle = await service.AlleAbrufenAsync();
 
-            Assert.Single(alle);
-            Assert.False(alle[0].IstBetreut);
+            Assert.Single(alle.Items);
+            Assert.False(alle.Items[0].IstBetreut);
         }
 
         [Fact]
@@ -206,8 +206,8 @@ namespace AzubiManager.Tests.Services
 
             var nurBvb = await service.AlleAbrufenAsync("BVB");
 
-            Assert.Single(nurBvb);
-            Assert.Equal("BVB", nurBvb[0].Gruppe);
+            Assert.Single(nurBvb.Items);
+            Assert.Equal("BVB", nurBvb.Items[0].Gruppe);
         }
     }
 }

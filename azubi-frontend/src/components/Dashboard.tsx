@@ -11,7 +11,7 @@ export default function Dashboard() {
   const { data: termine } = useQuery({
     queryKey: ['termine', 'anstehend'],
     queryFn: () => termineApi.alle().then(res =>
-      res.data
+      res.data.items
         .filter((t: Termin) => new Date(t.datum) >= new Date(new Date().toDateString()))
         .sort((a: Termin, b: Termin) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
         .slice(0, 5)
@@ -21,7 +21,7 @@ export default function Dashboard() {
   const { data: notizen } = useQuery({
     queryKey: ['notizen', 'dashboard'],
     queryFn: () => notizenApi.alle().then(res =>
-      res.data
+      res.data.items
         .sort((a: Notiz, b: Notiz) => new Date(b.erstelltAm).getTime() - new Date(a.erstelltAm).getTime())
         .slice(0, 5)
     ),

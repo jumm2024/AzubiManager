@@ -107,9 +107,9 @@ namespace AzubiManager.Tests.Services
 
             var result = await service.AlleAbrufenAsync();
 
-            Assert.Contains(result, t => t.Id == 1);
-            Assert.Contains(result, t => t.Id == 2);
-            Assert.DoesNotContain(result, t => t.Id == 3);
+            Assert.Contains(result.Items, t => t.Id == 1);
+            Assert.Contains(result.Items, t => t.Id == 2);
+            Assert.DoesNotContain(result.Items, t => t.Id == 3);
         }
 
         [Fact]
@@ -124,8 +124,8 @@ namespace AzubiManager.Tests.Services
             var take1 = await service.AlleAbrufenAsync(take: 1);
             var skip1 = await service.AlleAbrufenAsync(skip: 1);
 
-            Assert.Single(take1);
-            Assert.Single(skip1);
+            Assert.Single(take1.Items);
+            Assert.Single(skip1.Items);
         }
 
         [Fact]

@@ -15,7 +15,7 @@ namespace AzubiManager.Api.Controllers
         public NotizenController(NotizService service) => _service = service;
 
         [HttpGet]
-        public async Task<ActionResult<List<NotizDto>>> Alle(
+        public async Task<ActionResult<PagedResponse<NotizDto>>> Alle(
             [FromQuery] int? skip = null,
             [FromQuery] int? take = null) => Ok(await _service.AlleAbrufenAsync(skip, take));
 

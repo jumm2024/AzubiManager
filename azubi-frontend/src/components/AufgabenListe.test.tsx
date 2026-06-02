@@ -45,8 +45,8 @@ describe('AufgabenListe', () => {
   });
 
   it('zeigt leere Liste', async () => {
-    mockAufgabenApi.mockResolvedValue({ data: [] } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockAufgabenApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderAufgabenListe();
 
@@ -57,12 +57,15 @@ describe('AufgabenListe', () => {
 
   it('rendert Aufgaben aus der API', async () => {
     mockAufgabenApi.mockResolvedValue({
-      data: [
-        { id: 1, titel: 'Bericht schreiben', prioritaet: 'Hoch', faelligkeitsdatum: '2026-06-15', erledigt: false, azubiName: 'Max Mustermann' },
-        { id: 2, titel: 'Dokumentation lesen', prioritaet: 'Niedrig', faelligkeitsdatum: '2026-06-20', erledigt: true, azubiName: '' },
-      ]
+      data: {
+        items: [
+          { id: 1, titel: 'Bericht schreiben', prioritaet: 'Hoch', faelligkeitsdatum: '2026-06-15', erledigt: false, azubiName: 'Max Mustermann' },
+          { id: 2, titel: 'Dokumentation lesen', prioritaet: 'Niedrig', faelligkeitsdatum: '2026-06-20', erledigt: true, azubiName: '' },
+        ],
+        totalCount: 2
+      }
     } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderAufgabenListe();
 
@@ -75,13 +78,16 @@ describe('AufgabenListe', () => {
 
   it('zeigt Statistik-Kacheln', async () => {
     mockAufgabenApi.mockResolvedValue({
-      data: [
-        { id: 1, titel: 'A1', prioritaet: 'Hoch', faelligkeitsdatum: '2026-06-01', erledigt: false },
-        { id: 2, titel: 'A2', prioritaet: 'Mittel', faelligkeitsdatum: '2026-07-01', erledigt: true },
-        { id: 3, titel: 'A3', prioritaet: 'Hoch', faelligkeitsdatum: '2025-01-01', erledigt: false },
-      ]
+      data: {
+        items: [
+          { id: 1, titel: 'A1', prioritaet: 'Hoch', faelligkeitsdatum: '2026-06-01', erledigt: false },
+          { id: 2, titel: 'A2', prioritaet: 'Mittel', faelligkeitsdatum: '2026-07-01', erledigt: true },
+          { id: 3, titel: 'A3', prioritaet: 'Hoch', faelligkeitsdatum: '2025-01-01', erledigt: false },
+        ],
+        totalCount: 3
+      }
     } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderAufgabenListe();
 
@@ -94,8 +100,8 @@ describe('AufgabenListe', () => {
   });
 
   it('enthält Formular zum Erstellen', async () => {
-    mockAufgabenApi.mockResolvedValue({ data: [] } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockAufgabenApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderAufgabenListe();
 

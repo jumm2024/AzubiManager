@@ -48,8 +48,8 @@ describe('Dashboard', () => {
 
   it('zeigt Dashboard-Daten nach erfolgreichem Laden', async () => {
     mockDashboardApi.mockResolvedValue({ data: mockData } as never);
-    mockTermineApi.mockResolvedValue({ data: [] } as never);
-    mockNotizenApi.mockResolvedValue({ data: [] } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockNotizenApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderDashboard();
 
@@ -62,8 +62,8 @@ describe('Dashboard', () => {
 
   it('zeigt leere Listen wenn keine Daten vorhanden', async () => {
     mockDashboardApi.mockResolvedValue({ data: { ...mockData, aufgabenHeute: [] } } as never);
-    mockTermineApi.mockResolvedValue({ data: [] } as never);
-    mockNotizenApi.mockResolvedValue({ data: [] } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockNotizenApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderDashboard();
 

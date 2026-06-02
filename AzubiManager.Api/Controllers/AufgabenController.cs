@@ -22,12 +22,14 @@ namespace AzubiManager.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AufgabeDto>>> Alle(
+        public async Task<ActionResult<PagedResponse<AufgabeDto>>> Alle(
             [FromQuery] bool? erledigt = null,
             [FromQuery] int? skip = null,
-            [FromQuery] int? take = null)
+            [FromQuery] int? take = null,
+            [FromQuery] string? prioritaet = null,
+            [FromQuery] string? art = null)
         {
-            return Ok(await _service.AlleAbrufenAsync(erledigt, skip, take));
+            return Ok(await _service.AlleAbrufenAsync(erledigt, skip, take, prioritaet, art));
         }
 
         [HttpPost]

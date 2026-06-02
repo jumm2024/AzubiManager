@@ -45,8 +45,8 @@ describe('TermineListe', () => {
   });
 
   it('zeigt leere Liste', async () => {
-    mockTermineApi.mockResolvedValue({ data: [] } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderTermineListe();
 
@@ -61,12 +61,15 @@ describe('TermineListe', () => {
     morgen.setDate(morgen.getDate() + 1);
 
     mockTermineApi.mockResolvedValue({
-      data: [
-        { id: 1, titel: 'Meeting mit Azubi', datum: morgen.toISOString(), kategorie: 'Sonstiges', azubiName: 'Max Mustermann' },
-        { id: 2, titel: 'Prüfungsvorbereitung', datum: heute.toISOString(), kategorie: 'Prüfung', ort: 'Raum 101' },
-      ]
+      data: {
+        items: [
+          { id: 1, titel: 'Meeting mit Azubi', datum: morgen.toISOString(), kategorie: 'Sonstiges', azubiName: 'Max Mustermann' },
+          { id: 2, titel: 'Prüfungsvorbereitung', datum: morgen.toISOString(), kategorie: 'Prüfung', ort: 'Raum 101' },
+        ],
+        totalCount: 2
+      }
     } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderTermineListe();
 
@@ -78,8 +81,8 @@ describe('TermineListe', () => {
   });
 
   it('zeigt Statistik-Kacheln', async () => {
-    mockTermineApi.mockResolvedValue({ data: [] } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderTermineListe();
 
@@ -91,8 +94,8 @@ describe('TermineListe', () => {
   });
 
   it('enthält Formular zum Erstellen', async () => {
-    mockTermineApi.mockResolvedValue({ data: [] } as never);
-    mockTeilnehmerApi.mockResolvedValue({ data: [] } as never);
+    mockTermineApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
+    mockTeilnehmerApi.mockResolvedValue({ data: { items: [], totalCount: 0 } } as never);
 
     renderTermineListe();
 

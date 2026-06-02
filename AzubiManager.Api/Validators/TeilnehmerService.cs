@@ -21,7 +21,7 @@ namespace AzubiManager.Api.Services
             _dashboardService = dashboardService;
         }
 
-        public async Task<List<TeilnehmerDto>> AlleAbrufenAsync(string? gruppe = null, int? skip = null, int? take = null)
+        public async Task<PagedResponse<TeilnehmerDto>> AlleAbrufenAsync(string? gruppe = null, int? skip = null, int? take = null, bool? nurMeine = null)
         {
             var query = _db.Teilnehmer.AsNoTracking();
 
@@ -34,6 +34,11 @@ namespace AzubiManager.Api.Services
             }
 
             var betreuteIds = await GetBetreuteIdsAsync();
+
+            if (nurMeine == true)
+                query = query.Where(t => betreuteIds.Contains(t.Id));
+
+            var totalCount = await query.CountAsync();
 
             var resultQuery = query
                 .OrderBy(t => t.Nachname).ThenBy(t => t.Vorname)
@@ -59,7 +64,7 @@ namespace AzubiManager.Api.Services
             var result = await resultQuery.ToListAsync();
             foreach (var r in result)
                 r.Lehrjahr = LehrjahrBerechner.Berechne(r.Ausbildungsstart, r.Ausbildungsende);
-            return result;
+            return new PagedResponse<TeilnehmerDto> { Items = result, TotalCount = totalCount };
         }
 
         public async Task<TeilnehmerDto?> EinzelnenAbrufenAsync(int id)

@@ -19,13 +19,20 @@ namespace AzubiManager.Api.Services
             _cache = cache;
         }
 
-        public async Task<List<TerminDto>> AlleAbrufenAsync(int? skip = null, int? take = null)
+        public async Task<PagedResponse<TerminDto>> AlleAbrufenAsync(int? skip = null, int? take = null, string? zeitFilter = null)
         {
             var betreuteIds = await GetBetreuteIdsAsync();
 
             IQueryable<Termin> query = _db.Termine.AsNoTracking()
                 .Where(t => (t.AzubiId != null && betreuteIds.Contains((int)t.AzubiId))
                          || (t.AzubiId == null && t.AusbilderId == _currentUser.BenutzerId));
+
+            if (zeitFilter == "anstehend")
+                query = query.Where(t => t.Datum >= DateTime.Now);
+            else if (zeitFilter == "vergangen")
+                query = query.Where(t => t.Datum < DateTime.Now);
+
+            var totalCount = await query.CountAsync();
 
             var resultQuery = query.OrderBy(t => t.Datum).Select(t => new TerminDto
             {
@@ -56,7 +63,7 @@ namespace AzubiManager.Api.Services
                     t.AzubiName = string.Join(", ", ids.Where(id => namenMap.ContainsKey(id)).Select(id => namenMap[id]));
                 }
             }
-            return result;
+            return new PagedResponse<TerminDto> { Items = result, TotalCount = totalCount };
         }
 
         public async Task<TerminDto> ErstellenAsync(TerminErstellenDto dto)
