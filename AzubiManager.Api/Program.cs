@@ -297,9 +297,14 @@ try
         {
             await db.Database.MigrateAsync();
         }
-        catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 1801)
+        catch (Exception ex) when (ex.Message.Contains("already exists") || ex.Message.Contains("1801"))
         {
             logger.LogWarning("Database already exists, continuing with existing database.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Database migration failed");
+            throw;
         }
         
         try
