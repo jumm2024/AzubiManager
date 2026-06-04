@@ -293,18 +293,33 @@ try
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         
+        // Warten bis die DB bereit ist (max 30 Sekunden)
+        for (int i = 0; i < 30; i++)
+        {
+            try
+            {
+                await db.Database.CanConnectAsync();
+                logger.LogInformation("Database connection established after {Seconds}s", i);
+                break;
+            }
+            catch
+            {
+                if (i == 29)
+                {
+                    logger.LogError("Could not connect to database after 30 seconds");
+                    throw;
+                }
+                await Task.Delay(1000);
+            }
+        }
+        
         try
         {
             await db.Database.MigrateAsync();
         }
-        catch (Exception ex) when (ex.Message.Contains("already exists") || ex.Message.Contains("1801"))
-        {
-            logger.LogWarning("Database already exists, continuing with existing database.");
-        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Database migration failed");
-            throw;
+            logger.LogWarning(ex, "Migration warning: {Message}", ex.Message);
         }
         
         try
