@@ -86,7 +86,7 @@ try
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = app.Environment.IsProduction();
+        options.RequireHttpsMetadata = builder.Environment.IsProduction();
         options.SaveToken = true;
         options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
         {
@@ -366,3 +366,5 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program { }

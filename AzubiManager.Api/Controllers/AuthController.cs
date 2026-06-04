@@ -105,9 +105,14 @@ namespace AzubiManager.Api.Controllers
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdClaim, out var userId))
             {
-                await _db.RefreshTokens
+                var tokens = await _db.RefreshTokens
                     .Where(rt => rt.BenutzerId == userId && rt.VerwendetAm == null)
-                    .ExecuteUpdateAsync(rt => rt.SetProperty(r => r.LaeuftAb, DateTime.UtcNow));
+                    .ToListAsync();
+                foreach (var token in tokens)
+                {
+                    token.LaeuftAb = DateTime.UtcNow;
+                }
+                await _db.SaveChangesAsync();
             }
 
             Response.Cookies.Delete("token");

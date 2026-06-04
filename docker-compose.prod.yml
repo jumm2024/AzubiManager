@@ -23,6 +23,7 @@ services:
       - Jwt__Key=AzubiManagerSuperGeheimerSchluesselMindestens32ZeichenLangFuerJwtHmacSha256
       - Jwt__Issuer=AzubiManager
       - Jwt__Audience=AzubiManagerUsers
+      - Admin__InitialPassword=AzubiAdmin2026!Secure
     depends_on:
       - db
     restart: unless-stopped
