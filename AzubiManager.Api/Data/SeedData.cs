@@ -5,12 +5,20 @@ namespace AzubiManager.Api.Data
 {
     public static class SeedData
     {
-        public static async Task InitialisierenAsync(AppDbContext db, ILogger logger)
+        public static async Task InitialisierenAsync(AppDbContext db, IConfiguration configuration, ILogger logger)
         {
             if (await db.Benutzer.AnyAsync(b => b.Rolle == "Admin"))
                 return;
 
-            var password = GenerateSecurePassword();
+            var password = configuration["Admin:InitialPassword"];
+            var generated = false;
+
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            {
+                password = GenerateSecurePassword();
+                generated = true;
+            }
+
             var admin = new Benutzer
             {
                 Benutzername = "admin",
@@ -18,13 +26,29 @@ namespace AzubiManager.Api.Data
                 Vorname = "System",
                 Nachname = "Administrator",
                 Rolle = "Admin",
-                ErstelltAm = DateTime.UtcNow
+                ErstelltAm = DateTime.UtcNow,
+                PasswortGeandert = false
             };
 
             db.Benutzer.Add(admin);
             await db.SaveChangesAsync();
 
-            logger.LogWarning("Initial admin user created. Password: {Password} - CHANGE IMMEDIATELY!", password);
+            var passwordFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "admin-initial-password.txt");
+            await File.WriteAllTextAsync(passwordFilePath, password);
+
+            if (generated)
+            {
+                logger.LogWarning("========================================");
+                logger.LogWarning("INITIAL ADMIN PASSWORD GENERATED");
+                logger.LogWarning("Password: {Password}", password);
+                logger.LogWarning("Also saved to: {Path}", passwordFilePath);
+                logger.LogWarning("CHANGE IMMEDIATELY after first login!");
+                logger.LogWarning("========================================");
+            }
+            else
+            {
+                logger.LogWarning("Admin user created with password from Admin__InitialPassword env var. CHANGE IMMEDIATELY!");
+            }
         }
 
         private static string GenerateSecurePassword()
