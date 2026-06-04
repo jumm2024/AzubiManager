@@ -86,7 +86,7 @@ try
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = true;
+        options.RequireHttpsMetadata = app.Environment.IsProduction();
         options.SaveToken = true;
         options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
         {
@@ -328,6 +328,23 @@ try
             await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Aufgaben') AND name = 'AzubiIds') ALTER TABLE Aufgaben ADD AzubiIds nvarchar(max) NULL");
             await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Termine') AND name = 'AzubiIds') ALTER TABLE Termine ADD AzubiIds nvarchar(max) NULL");
             await db.Database.ExecuteSqlRawAsync("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Notizen') AND name = 'AzubiIds') ALTER TABLE Notizen ADD AzubiIds nvarchar(max) NULL");
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'RefreshTokens')
+                BEGIN
+                    CREATE TABLE RefreshTokens (
+                        Id INT IDENTITY(1,1) PRIMARY KEY,
+                        BenutzerId INT NOT NULL,
+                        Token NVARCHAR(500) NOT NULL,
+                        ErstelltAm DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                        LaeuftAb DATETIME2 NOT NULL,
+                        VerwendetAm DATETIME2 NULL,
+                        IpAdresse NVARCHAR(100) NULL,
+                        UserAgent NVARCHAR(500) NULL
+                    );
+                    CREATE UNIQUE INDEX IX_RefreshTokens_Token ON RefreshTokens(Token);
+                    CREATE INDEX IX_RefreshTokens_BenutzerId ON RefreshTokens(BenutzerId);
+                END
+            ");
             await SeedData.InitialisierenAsync(db, builder.Configuration, logger);
         }
         catch (Exception ex)
