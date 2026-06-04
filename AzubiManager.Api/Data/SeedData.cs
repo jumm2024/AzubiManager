@@ -33,7 +33,7 @@ namespace AzubiManager.Api.Data
             db.Benutzer.Add(admin);
             await db.SaveChangesAsync();
 
-            var passwordFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "admin-initial-password.txt");
+            var passwordFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "admin-password", "admin-initial-password.txt");
             await File.WriteAllTextAsync(passwordFilePath, password);
 
             if (generated)

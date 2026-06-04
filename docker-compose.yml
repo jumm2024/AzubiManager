@@ -25,6 +25,8 @@ services:
       - "5112:8080"
     depends_on:
       - db
+    volumes:
+      - ./admin-password:/app/admin-password
 
 volumes:
   sqldata:
