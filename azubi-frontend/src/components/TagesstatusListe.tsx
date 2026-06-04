@@ -8,7 +8,7 @@ const statusListe = ['Anwesend', 'Schule', 'Praktikum', 'Termin', 'Urlaub', 'Kra
 
 const statusFarben: Record<string, string> = {
   Anwesend: 'bg-green-500',
-  Schule: 'bg-blue-500',
+  Schule: 'bg-sky-500',
   Praktikum: 'bg-purple-500',
   Termin: 'bg-indigo-500',
   Urlaub: 'bg-yellow-500',
@@ -25,7 +25,7 @@ const statusFarben: Record<string, string> = {
 
 const statusBgFarben: Record<string, string> = {
   Anwesend: 'bg-green-50 border-green-200 text-green-700',
-  Schule: 'bg-blue-50 border-blue-200 text-blue-700',
+  Schule: 'bg-sky-50 border-sky-200 text-sky-700',
   Praktikum: 'bg-purple-50 border-purple-200 text-purple-700',
   Termin: 'bg-indigo-50 border-indigo-200 text-indigo-700',
   Urlaub: 'bg-yellow-50 border-yellow-200 text-yellow-700',
@@ -130,7 +130,7 @@ export default function TagesstatusListe() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-500">Lade Tagesstatus...</span>
     </div>
   );
@@ -143,7 +143,7 @@ export default function TagesstatusListe() {
         <div className="flex items-center gap-3">
           <div className="relative group">
             <button onClick={handleImportOeffnen}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer">
+              className="flex items-center gap-2 px-4 py-2.5 bg-violet-500 text-white rounded-xl hover:bg-violet-600 transition-colors text-sm font-medium cursor-pointer">
               <Upload className="w-4 h-4" />
               Import
             </button>
@@ -209,7 +209,7 @@ export default function TagesstatusListe() {
                 setImportMsg('Gesamtbericht fehlgeschlagen');
               }
             }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
               <CalendarDays className="w-4 h-4" />
               Gesamt-Bericht
             </button>
@@ -218,7 +218,7 @@ export default function TagesstatusListe() {
             </div>
           </div>
           <input id="tagesstatus-datum" name="datum" type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setLokaleStatus({}); }}
-            className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+            className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
         </div>
       </div>
 
@@ -287,7 +287,7 @@ export default function TagesstatusListe() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Import-Monat</label>
                 <div className="flex gap-3">
                   <select value={importMonth} onChange={(e) => setImportMonth(parseInt(e.target.value))}
-                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none">
                     {Array.from({ length: 12 }, (_, i) => (
                       <option key={i + 1} value={i + 1}>
                         {new Date(2026, i, 1).toLocaleDateString('de-DE', { month: 'long' })}
@@ -295,7 +295,7 @@ export default function TagesstatusListe() {
                     ))}
                   </select>
                   <input type="number" value={importYear} onChange={(e) => setImportYear(parseInt(e.target.value))}
-                    className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                     min="2020" max="2030" />
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default function TagesstatusListe() {
               {/* Datei-Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Excel-Datei</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+                <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-violet-400 transition-colors">
                   <input type="file" accept=".xlsx,.xls" onChange={(e) => setImportFile(e.target.files?.[0] || null)}
                     className="hidden" id="modal-import-file" />
                   <label htmlFor="modal-import-file" className="cursor-pointer">
@@ -345,7 +345,7 @@ export default function TagesstatusListe() {
                 Abbrechen
               </button>
               <button onClick={handleImportStart} disabled={!importFile || importLade}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                className="px-6 py-2.5 bg-violet-500 text-white rounded-xl text-sm font-medium hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 {importLade ? 'Wird importiert...' : 'Import starten'}
               </button>
             </div>

@@ -18,11 +18,11 @@ export default function MainLayout() {
   const badges = getBadges();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen text-gray-800">
       <Sidebar badges={badges} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/20 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       <button
@@ -33,7 +33,7 @@ export default function MainLayout() {
         {sidebarOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
       </button>
 
-      <main className="flex-1 p-4 md:p-6 lg:p-8 bg-[#F9F5F0] lg:ml-[280px] pt-16 lg:pt-8">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-[280px] pt-16 lg:pt-8">
         <Outlet />
       </main>
     </div>

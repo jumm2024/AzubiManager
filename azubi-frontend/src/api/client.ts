@@ -91,6 +91,12 @@ export interface Tagesstatus {
   bemerkung?: string;
 }
 
+export interface AdminKontakt {
+  vorname?: string;
+  nachname?: string;
+  benutzername: string;
+}
+
 export const authApi = {
   login: (benutzername: string, passwort: string) =>
     api.post('/auth/login', { benutzername, passwort }),
@@ -98,6 +104,7 @@ export const authApi = {
   me: () => api.get('/auth/me'),
   passwortAendern: (altesPasswort: string, neuesPasswort: string) =>
     api.post('/auth/passwort-aendern', { altesPasswort, neuesPasswort }),
+  adminKontakte: () => api.get<AdminKontakt[]>('/auth/admin-kontakte'),
 };
 
 export interface DashboardDto {

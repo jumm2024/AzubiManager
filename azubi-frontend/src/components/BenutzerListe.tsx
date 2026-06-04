@@ -141,7 +141,7 @@ export default function BenutzerListe() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-500">Lade Benutzer...</span>
     </div>
   );
@@ -201,7 +201,7 @@ export default function BenutzerListe() {
                   type="text"
                   value={vorname}
                   onChange={(e) => setVorname(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Vorname"
                 />
               </div>
@@ -213,7 +213,7 @@ export default function BenutzerListe() {
                   type="text"
                   value={nachname}
                   onChange={(e) => setNachname(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Nachname"
                 />
               </div>
@@ -225,7 +225,7 @@ export default function BenutzerListe() {
                   type="text"
                   value={neuerBenutzername}
                   onChange={(e) => setNeuerBenutzername(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Benutzername"
                   required
                 />
@@ -238,7 +238,7 @@ export default function BenutzerListe() {
                   type="password"
                   value={neuesPasswort}
                   onChange={(e) => setNeuesPasswort(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Passwort"
                   required
                 />
@@ -250,7 +250,7 @@ export default function BenutzerListe() {
                   name="rolle"
                   value={neueRolle}
                   onChange={(e) => setNeueRolle(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white"
                 >
                   <option value="Ausbilder">Ausbilder</option>
                   <option value="Admin">Admin</option>
@@ -267,7 +267,7 @@ export default function BenutzerListe() {
             <button
               type="submit"
               disabled={erstelleMutation.isPending}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="w-full py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors"
             >
               {erstelleMutation.isPending ? 'Wird erstellt...' : 'Benutzer erstellen'}
             </button>
@@ -280,13 +280,13 @@ export default function BenutzerListe() {
             <div>
               <label htmlFor="pw-alt" className="block text-sm font-medium text-gray-700 mb-1">Altes Passwort</label>
               <input id="pw-alt" name="altesPasswort" type="password" value={altesPw} onChange={(e) => setAltesPw(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                 placeholder="Altes Passwort" required />
             </div>
             <div>
               <label htmlFor="pw-neu" className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort</label>
               <input id="pw-neu" name="neuesPasswort" type="password" value={neuesEigenesPw} onChange={(e) => setNeuesEigenesPw(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                 placeholder="Neues Passwort (min. 6 Zeichen)" required />
             </div>
             {pwMsg && (
@@ -295,7 +295,7 @@ export default function BenutzerListe() {
               </div>
             )}
             <button type="submit" disabled={pwLoading}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              className="w-full py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
               Passwort ändern
             </button>
           </form>
@@ -317,13 +317,13 @@ export default function BenutzerListe() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    u.rolle === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    u.rolle === 'Admin' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'
                   }`}>
                     {u.rolle}
                   </span>
                   <button
                     onClick={() => { setPwModal({ id: u.id, name: u.benutzername }); setPwValue(''); }}
-                    className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg text-sm transition-colors"
+                    className="text-violet-500 hover:text-violet-700 hover:bg-violet-50 px-2.5 py-1.5 rounded-lg text-sm transition-colors"
                     title="Passwort zuruecksetzen"
                   >
                     Passwort
@@ -355,7 +355,7 @@ export default function BenutzerListe() {
               type="password"
               value={pwValue}
               onChange={(e) => setPwValue(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none mb-1"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none mb-1"
               placeholder="Neues Passwort (min. 6 Zeichen)"
               autoFocus
             />
@@ -379,7 +379,7 @@ export default function BenutzerListe() {
                   pwMutation.mutate({ id: pwModal.id, passwort: pwValue });
                 }}
                 disabled={pwMutation.isPending}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors"
               >
                 {pwMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
               </button>

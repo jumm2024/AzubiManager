@@ -166,7 +166,7 @@ export default function NotizenListe() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-500">Lade Notizen...</span>
     </div>
   );
@@ -200,20 +200,20 @@ export default function NotizenListe() {
             <div>
               <label htmlFor="notiz-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
               <input id="notiz-titel" name="titel" type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                 placeholder="Titel" required />
             </div>
             <div>
               <label htmlFor="notiz-kategorie" className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
               <select id="notiz-kategorie" name="kategorie" value={kategorie} onChange={(e) => setKategorie(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                 {kategorien.map(k => <option key={k} value={k}>{k}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="notiz-inhalt" className="block text-sm font-medium text-gray-700 mb-1">Inhalt *</label>
               <textarea id="notiz-inhalt" name="inhalt" value={inhalt} onChange={(e) => setInhalt(e.target.value)} rows={4}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none resize-none"
                 placeholder="Notizinhalt..." required />
             </div>
             <div>
@@ -223,7 +223,7 @@ export default function NotizenListe() {
                   <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                     <input type="checkbox" name={`azubi-${t.id}`} checked={azubiIds.includes(t.id)}
                       onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
-                      className="w-4 h-4 rounded accent-blue-600" />
+                      className="w-4 h-4 rounded accent-violet-500" />
                     {t.vorname} {t.nachname}
                   </label>
                 ))}
@@ -236,7 +236,7 @@ export default function NotizenListe() {
             )}
 
             <button type="submit" disabled={erstelleMutation.isPending}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              className="w-full py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
               {erstelleMutation.isPending ? 'Wird erstellt...' : 'Notiz erstellen'}
             </button>
           </form>
@@ -259,7 +259,7 @@ export default function NotizenListe() {
                       <h4 className="font-medium text-gray-800 text-sm">{n.titel}</h4>
                       <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => handleBearbeitenOeffnen(n)}
-                          className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">Bearbeiten</button>
+                          className="text-xs text-violet-400 hover:text-violet-600 px-1.5 py-0.5 rounded hover:bg-violet-50 transition-colors">Bearbeiten</button>
                         <button onClick={() => { if (confirm('Notiz loeschen?')) loescheMutation.mutate(n.id); }}
                           className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
                       </div>
@@ -301,19 +301,19 @@ export default function NotizenListe() {
               <div>
                 <label htmlFor="edit-notiz-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
                 <input id="edit-notiz-titel" name="titel" type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
               </div>
               <div>
                 <label htmlFor="edit-notiz-kategorie" className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
                 <select id="edit-notiz-kategorie" name="kategorie" value={bearbeitenKategorie} onChange={(e) => setBearbeitenKategorie(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                   {kategorien.map(k => <option key={k} value={k}>{k}</option>)}
                 </select>
               </div>
               <div>
                 <label htmlFor="edit-notiz-inhalt" className="block text-sm font-medium text-gray-700 mb-1">Inhalt *</label>
                 <textarea id="edit-notiz-inhalt" name="inhalt" value={bearbeitenInhalt} onChange={(e) => setBearbeitenInhalt(e.target.value)} rows={4}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none" required />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none resize-none" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer</label>
@@ -322,7 +322,7 @@ export default function NotizenListe() {
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                       <input type="checkbox" name={`edit-azubi-${t.id}`} checked={bearbeitenAzubiIds.includes(t.id)}
                         onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
-                        className="w-4 h-4 rounded accent-blue-600" />
+                        className="w-4 h-4 rounded accent-violet-500" />
                       {t.vorname} {t.nachname}
                     </label>
                   ))}
@@ -336,7 +336,7 @@ export default function NotizenListe() {
 
               <div className="flex gap-2">
                 <button type="submit" disabled={aktualisierenMutation.isPending}
-                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  className="flex-1 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
                   {aktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
                 </button>
                 <button type="button" onClick={() => setBearbeitenNotiz(null)}

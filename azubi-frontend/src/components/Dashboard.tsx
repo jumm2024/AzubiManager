@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   const statKacheln = [
     { label: 'Anwesend', wert: data?.anwesend, color: 'bg-green-500', bg: 'bg-green-50' },
-    { label: 'Schule', wert: data?.schule, color: 'bg-blue-500', bg: 'bg-blue-50' },
+    { label: 'Schule', wert: data?.schule, color: 'bg-sky-500', bg: 'bg-sky-50' },
     { label: 'Praktikum', wert: data?.praktikum, color: 'bg-purple-500', bg: 'bg-purple-50' },
     { label: 'Termin', wert: data?.termin, color: 'bg-indigo-500', bg: 'bg-indigo-50' },
     { label: 'Urlaub', wert: data?.urlaub, color: 'bg-yellow-500', bg: 'bg-yellow-50' },
@@ -43,7 +43,7 @@ export default function Dashboard() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-600 font-semibold">Lade Dashboard...</span>
     </div>
   );
@@ -67,7 +67,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">Dashboard</h2>
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
-          <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           <span className="text-sm font-medium text-gray-700">
@@ -95,7 +95,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <div className="w-3 h-3 rounded-full bg-violet-500" />
               <p className="text-xs md:text-sm text-gray-600 font-semibold">Offene Aufgaben</p>
             </div>
             <p className="text-lg md:text-2xl font-extrabold">{data?.offeneAufgaben ?? 0}</p>
@@ -122,7 +122,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <div className="w-3 h-3 rounded-full bg-violet-500" />
               <p className="text-xs md:text-sm text-gray-600 font-semibold">Teilnehmer</p>
             </div>
             <p className="text-lg md:text-2xl font-extrabold">{data?.teilnehmerGesamt ?? 0}</p>
@@ -151,10 +151,10 @@ export default function Dashboard() {
                     <span className="text-xs font-bold text-gray-400 uppercase">
                       {start.toLocaleDateString('de-DE', { month: 'short' })}
                     </span>
-                    <span className={`text-xl font-bold leading-none ${isToday ? 'text-blue-600' : 'text-gray-800'}`}>
+                    <span className={`text-xl font-bold leading-none ${isToday ? 'text-violet-600' : 'text-gray-800'}`}>
                       {start.getDate()}
                     </span>
-                    {isToday && <span className="text-[10px] font-semibold text-blue-600">Heute</span>}
+                    {isToday && <span className="text-[10px] font-semibold text-violet-600">Heute</span>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-gray-800 text-sm">{t.titel}</h4>
@@ -169,10 +169,10 @@ export default function Dashboard() {
                         <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{t.ort}</span>
                       )}
                       {t.kategorie && t.kategorie !== 'Sonstiges' && (
-                        <span className="text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{t.kategorie}</span>
+                        <span className="text-[11px] text-violet-600 bg-violet-50 px-2 py-0.5 rounded">{t.kategorie}</span>
                       )}
                       {t.azubiName && (
-                        <span className="text-[11px] text-gray-500 bg-indigo-50 px-2 py-0.5 rounded">{t.azubiName}</span>
+                        <span className="text-[11px] text-gray-500 bg-violet-50 px-2 py-0.5 rounded">{t.azubiName}</span>
                       )}
                     </div>
                     {t.beschreibung && (
@@ -241,7 +241,7 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2">{n.inhalt}</p>
                   )}
                   {n.azubiName && (
-                    <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mt-1 inline-block">{n.azubiName}</span>
+                    <span className="text-[10px] text-violet-600 bg-violet-50 px-2 py-0.5 rounded mt-1 inline-block">{n.azubiName}</span>
                   )}
                 </div>
               ))}

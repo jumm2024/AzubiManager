@@ -21,7 +21,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, page
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="border border-gray-300 rounded-lg px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+          className="border border-gray-200 rounded-lg px-2 py-1 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none"
         >
           {PAGE_SIZE_OPTIONS.map(s => (
             <option key={s} value={s}>{s}</option>
@@ -44,7 +44,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, page
               onClick={() => onPageChange(p)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 p === currentPage
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-violet-500 text-white shadow-sm shadow-violet-500/30'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               }`}
             >

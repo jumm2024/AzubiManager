@@ -3,5 +3,15 @@
 body {
   margin: 0;
   font-family: 'Roboto', sans-serif;
-  background-color: #f9fafb;
+  background-color: #F7F5FB;
+  color: #1F2937;
+}
+
+@theme {
+  --color-bg: #F7F5FB;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+  --color-accent: #7C3AED;
+  --color-accent-soft: #A78BFA;
 }

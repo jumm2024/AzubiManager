@@ -173,7 +173,7 @@ export default function TermineListe() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-500">Lade Termine...</span>
     </div>
   );
@@ -233,23 +233,23 @@ export default function TermineListe() {
               <div className="col-span-2">
                 <label htmlFor="termin-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
                 <input id="termin-titel" name="titel" type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Titel" required />
               </div>
               <div>
                 <label htmlFor="termin-start" className="block text-sm font-medium text-gray-700 mb-1">Startzeit *</label>
                 <input id="termin-start" name="datum" type="datetime-local" value={datum} onChange={(e) => setDatum(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
               </div>
               <div>
                 <label htmlFor="termin-endzeit" className="block text-sm font-medium text-gray-700 mb-1">Endzeit</label>
                 <input id="termin-endzeit" name="endzeit" type="datetime-local" value={endzeit} onChange={(e) => setEndzeit(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
               </div>
               <div>
                 <label htmlFor="termin-ort" className="block text-sm font-medium text-gray-700 mb-1">Ort</label>
                 <input id="termin-ort" name="ort" type="text" value={ort} onChange={(e) => setOrt(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="z.B. Raum 101" />
               </div>
               <div>
@@ -259,7 +259,7 @@ export default function TermineListe() {
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                       <input type="checkbox" name={`termin-azubi-${t.id}`} checked={azubiIds.includes(t.id)}
                         onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
-                        className="w-4 h-4 rounded accent-blue-600" />
+                        className="w-4 h-4 rounded accent-violet-500" />
                       {t.vorname} {t.nachname}
                     </label>
                   ))}
@@ -269,7 +269,7 @@ export default function TermineListe() {
               <div className="col-span-2">
                 <label htmlFor="termin-beschreibung" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
                 <textarea id="termin-beschreibung" name="beschreibung" value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none resize-none"
                   placeholder="Beschreibung (optional)" />
               </div>
             </div>
@@ -279,7 +279,7 @@ export default function TermineListe() {
             )}
 
             <button type="submit" disabled={erstelleMutation.isPending}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              className="w-full py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
               {erstelleMutation.isPending ? 'Wird erstellt...' : 'Termin erstellen'}
             </button>
           </form>
@@ -306,7 +306,7 @@ export default function TermineListe() {
                     <h4 className="font-medium text-gray-800 text-sm">{t.titel}</h4>
                     <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => handleBearbeitenOeffnen(t)}
-                        className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">Bearbeiten</button>
+                        className="text-xs text-violet-400 hover:text-violet-600 px-1.5 py-0.5 rounded hover:bg-violet-50 transition-colors">Bearbeiten</button>
                       <button onClick={() => { if (confirm('Termin loeschen?')) loescheMutation.mutate(t.id); }}
                         className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
                     </div>
@@ -322,7 +322,7 @@ export default function TermineListe() {
                       <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{t.ort}</span>
                     )}
                     {t.azubiName && (
-                      <span className="text-[11px] text-gray-500 bg-indigo-50 px-2 py-0.5 rounded">{t.azubiName}</span>
+                      <span className="text-[11px] text-gray-500 bg-violet-50 px-2 py-0.5 rounded">{t.azubiName}</span>
                     )}
                     {t.ausbilderName && (
                       <span className="text-[10px] text-gray-400">von {t.ausbilderName}</span>
@@ -353,22 +353,22 @@ export default function TermineListe() {
                 <div className="col-span-2">
                   <label htmlFor="edit-termin-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
                   <input id="edit-termin-titel" name="titel" type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
                 </div>
                 <div>
                   <label htmlFor="edit-termin-start" className="block text-sm font-medium text-gray-700 mb-1">Startzeit *</label>
                   <input id="edit-termin-start" name="datum" type="datetime-local" value={bearbeitenDatum} onChange={(e) => setBearbeitenDatum(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
                 </div>
                 <div>
                   <label htmlFor="edit-termin-endzeit" className="block text-sm font-medium text-gray-700 mb-1">Endzeit</label>
                   <input id="edit-termin-endzeit" name="endzeit" type="datetime-local" value={bearbeitenEndzeit} onChange={(e) => setBearbeitenEndzeit(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
                 </div>
                 <div>
                   <label htmlFor="edit-termin-ort" className="block text-sm font-medium text-gray-700 mb-1">Ort</label>
                   <input id="edit-termin-ort" name="ort" type="text" value={bearbeitenOrt} onChange={(e) => setBearbeitenOrt(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                     placeholder="z.B. Raum 101" />
                 </div>
                 <div>
@@ -378,7 +378,7 @@ export default function TermineListe() {
                       <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                         <input type="checkbox" name={`edit-termin-azubi-${t.id}`} checked={bearbeitenAzubiIds.includes(t.id)}
                           onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
-                          className="w-4 h-4 rounded accent-blue-600" />
+                          className="w-4 h-4 rounded accent-violet-500" />
                         {t.vorname} {t.nachname}
                       </label>
                     ))}
@@ -388,7 +388,7 @@ export default function TermineListe() {
                 <div className="col-span-2">
                   <label htmlFor="edit-termin-beschreibung" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
                   <textarea id="edit-termin-beschreibung" name="beschreibung" value={bearbeitenBeschreibung} onChange={(e) => setBearbeitenBeschreibung(e.target.value)} rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none resize-none"
                     placeholder="Beschreibung (optional)" />
                 </div>
               </div>
@@ -399,7 +399,7 @@ export default function TermineListe() {
 
               <div className="flex gap-2">
                 <button type="submit" disabled={aktualisierenMutation.isPending}
-                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  className="flex-1 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
                   {aktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
                 </button>
                 <button type="button" onClick={() => setBearbeitenTermin(null)}

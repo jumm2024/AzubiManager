@@ -21,13 +21,13 @@ interface Teilnehmer {
 
 const gruppen = ['Ausbildung', 'BVB', 'Erprober', 'Praktikant'];
 const gruppePunkte: Record<string, string> = {
-  Ausbildung: 'bg-blue-500',
+  Ausbildung: 'bg-sky-500',
   BVB: 'bg-orange-500',
   Erprober: 'bg-green-500',
   Praktikant: 'bg-purple-500',
 };
 const gruppeFarben: Record<string, string> = {
-  Ausbildung: 'bg-blue-100 text-blue-700',
+  Ausbildung: 'bg-sky-100 text-sky-700',
   BVB: 'bg-orange-100 text-orange-700',
   Erprober: 'bg-green-100 text-green-700',
   Praktikant: 'bg-purple-100 text-purple-700',
@@ -245,7 +245,7 @@ export default function TeilnehmerListe() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-500">Lade Teilnehmer...</span>
     </div>
   );
@@ -324,19 +324,19 @@ export default function TeilnehmerListe() {
               <div>
                 <label htmlFor="tn-vorname" className="block text-sm font-medium text-gray-700 mb-1">Vorname *</label>
                 <input id="tn-vorname" name="vorname" type="text" value={vorname} onChange={(e) => setVorname(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Vorname" required />
               </div>
               <div>
                 <label htmlFor="tn-nachname" className="block text-sm font-medium text-gray-700 mb-1">Nachname *</label>
                 <input id="tn-nachname" name="nachname" type="text" value={nachname} onChange={(e) => setNachname(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Nachname" required />
               </div>
               <div>
                 <label htmlFor="tn-gruppe" className="block text-sm font-medium text-gray-700 mb-1">Gruppe</label>
                 <select id="tn-gruppe" name="gruppe" value={gruppe} onChange={(e) => { setGruppe(e.target.value); if (e.target.value !== 'Ausbildung') setLehrjahr(0); else if (lehrjahr === 0) setLehrjahr(1); }}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                   {gruppen.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
@@ -344,7 +344,7 @@ export default function TeilnehmerListe() {
                 <div>
                   <label htmlFor="tn-lehrjahr" className="block text-sm font-medium text-gray-700 mb-1">Lehrjahr</label>
                   <select id="tn-lehrjahr" name="lehrjahr" value={lehrjahr} onChange={(e) => setLehrjahr(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                     {[1,2,3,4].map(j => <option key={j} value={j}>{j}</option>)}
                   </select>
                 </div>
@@ -352,18 +352,18 @@ export default function TeilnehmerListe() {
               <div>
                 <label htmlFor="tn-abteilung" className="block text-sm font-medium text-gray-700 mb-1">Abteilung</label>
                 <input id="tn-abteilung" name="abteilung" type="text" value={abteilung} onChange={(e) => setAbteilung(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="z.B. IT" />
               </div>
               <div>
                 <label htmlFor="tn-start" className="block text-sm font-medium text-gray-700 mb-1">Start {gruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
                 <input id="tn-start" name="ausbildungsstart" type="date" value={ausbildungsstart} onChange={(e) => setAusbildungsstart(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
               </div>
               <div>
                 <label htmlFor="tn-ende" className="block text-sm font-medium text-gray-700 mb-1">Ende {gruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
                 <input id="tn-ende" name="ausbildungsende" type="date" value={ausbildungsende} onChange={(e) => setAusbildungsende(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
               </div>
             </div>
 
@@ -372,7 +372,7 @@ export default function TeilnehmerListe() {
             )}
 
             <button type="submit" disabled={erstelleMutation.isPending}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              className="w-full py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
               {erstelleMutation.isPending ? 'Wird erstellt...' : 'Teilnehmer erstellen'}
             </button>
           </form>
@@ -387,7 +387,7 @@ export default function TeilnehmerListe() {
             {paginatedData.map((t: Teilnehmer) => (
               <div key={t.id} className="group flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 ${
-                  t.gruppe === 'Ausbildung' ? 'bg-blue-500' :
+                  t.gruppe === 'Ausbildung' ? 'bg-sky-500' :
                   t.gruppe === 'BVB' ? 'bg-orange-500' :
                   t.gruppe === 'Erprober' ? 'bg-green-500' : 'bg-purple-500'
                 }`}>
@@ -405,7 +405,7 @@ export default function TeilnehmerListe() {
                           className="text-xs text-green-400 hover:text-green-600 px-1.5 py-0.5 rounded hover:bg-green-50 transition-colors">+ Betreuen</button>
                       )}
                       <button onClick={() => handleBearbeitenOeffnen(t)}
-                        className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">Bearbeiten</button>
+                        className="text-xs text-violet-400 hover:text-violet-600 px-1.5 py-0.5 rounded hover:bg-violet-50 transition-colors">Bearbeiten</button>
                       {user?.rolle === 'Admin' && (
                         <button onClick={() => { if (confirm('Teilnehmer löschen?')) loescheMutation.mutate(t.id); }}
                           className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
@@ -451,17 +451,17 @@ export default function TeilnehmerListe() {
                 <div>
                   <label htmlFor="edit-tn-vorname" className="block text-sm font-medium text-gray-700 mb-1">Vorname *</label>
                   <input id="edit-tn-vorname" name="vorname" type="text" value={bearbeitenVorname} onChange={(e) => setBearbeitenVorname(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
                 </div>
                 <div>
                   <label htmlFor="edit-tn-nachname" className="block text-sm font-medium text-gray-700 mb-1">Nachname *</label>
                   <input id="edit-tn-nachname" name="nachname" type="text" value={bearbeitenNachname} onChange={(e) => setBearbeitenNachname(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
                 </div>
                 <div>
                   <label htmlFor="edit-tn-gruppe" className="block text-sm font-medium text-gray-700 mb-1">Gruppe</label>
                   <select id="edit-tn-gruppe" name="gruppe" value={bearbeitenGruppe} onChange={(e) => { setBearbeitenGruppe(e.target.value); if (e.target.value !== 'Ausbildung') setBearbeitenLehrjahr(0); else if (bearbeitenLehrjahr === 0) setBearbeitenLehrjahr(1); }}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                     {gruppen.map(g => <option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
@@ -469,7 +469,7 @@ export default function TeilnehmerListe() {
                   <div>
                     <label htmlFor="edit-tn-lehrjahr" className="block text-sm font-medium text-gray-700 mb-1">Lehrjahr</label>
                     <select id="edit-tn-lehrjahr" name="lehrjahr" value={bearbeitenLehrjahr} onChange={(e) => setBearbeitenLehrjahr(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                       {[1,2,3,4].map(j => <option key={j} value={j}>{j}</option>)}
                     </select>
                   </div>
@@ -477,18 +477,18 @@ export default function TeilnehmerListe() {
                 <div>
                   <label htmlFor="edit-tn-abteilung" className="block text-sm font-medium text-gray-700 mb-1">Abteilung</label>
                   <input id="edit-tn-abteilung" name="abteilung" type="text" value={bearbeitenAbteilung} onChange={(e) => setBearbeitenAbteilung(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                     placeholder="z.B. IT" />
                 </div>
                 <div>
                   <label htmlFor="edit-tn-start" className="block text-sm font-medium text-gray-700 mb-1">Start {bearbeitenGruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
                   <input id="edit-tn-start" name="ausbildungsstart" type="date" value={bearbeitenAusbildungsstart} onChange={(e) => setBearbeitenAusbildungsstart(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
                 </div>
                 <div>
                   <label htmlFor="edit-tn-ende" className="block text-sm font-medium text-gray-700 mb-1">Ende {bearbeitenGruppe === 'Ausbildung' && <span className="text-red-500">*</span>}</label>
                   <input id="edit-tn-ende" name="ausbildungsende" type="date" value={bearbeitenAusbildungsende} onChange={(e) => setBearbeitenAusbildungsende(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
                 </div>
               </div>
 
@@ -498,7 +498,7 @@ export default function TeilnehmerListe() {
 
               <div className="flex gap-2">
                 <button type="submit" disabled={aktualisierenMutation.isPending}
-                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  className="flex-1 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
                   {aktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
                 </button>
                 <button type="button" onClick={() => setBearbeitenTeilnehmer(null)}
@@ -524,7 +524,7 @@ export default function TeilnehmerListe() {
                 Nein
               </button>
               <button onClick={handleConfirmJa}
-                className="px-5 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors text-sm">
+                className="px-5 py-2 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 transition-colors text-sm">
                 Ja
               </button>
             </div>

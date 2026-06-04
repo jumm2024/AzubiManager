@@ -31,8 +31,8 @@ function renderLogin() {
 describe('Login', () => {
   it('rendert das Login-Formular', () => {
     renderLogin();
-    expect(screen.getByPlaceholderText('Benutzername')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Passwort')).toBeInTheDocument();
+    expect(screen.getByLabelText('Benutzername')).toBeInTheDocument();
+    expect(screen.getByLabelText('Passwort')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Anmelden/i })).toBeInTheDocument();
   });
 
@@ -49,8 +49,8 @@ describe('Login', () => {
 
     renderLogin();
 
-    await userEvent.type(screen.getByPlaceholderText('Benutzername'), 'max');
-    await userEvent.type(screen.getByPlaceholderText('Passwort'), 'geheim');
+    await userEvent.type(screen.getByLabelText('Benutzername'), 'max');
+    await userEvent.type(screen.getByLabelText('Passwort'), 'geheim');
     await userEvent.click(screen.getByRole('button', { name: /Anmelden/i }));
 
     await waitFor(() => {
@@ -64,8 +64,8 @@ describe('Login', () => {
 
     renderLogin();
 
-    await userEvent.type(screen.getByPlaceholderText('Benutzername'), 'max');
-    await userEvent.type(screen.getByPlaceholderText('Passwort'), 'falsch');
+    await userEvent.type(screen.getByLabelText('Benutzername'), 'max');
+    await userEvent.type(screen.getByLabelText('Passwort'), 'falsch');
     await userEvent.click(screen.getByRole('button', { name: /Anmelden/i }));
 
     await waitFor(() => {

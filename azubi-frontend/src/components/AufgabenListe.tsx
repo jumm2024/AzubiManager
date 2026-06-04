@@ -218,7 +218,7 @@ export default function AufgabenListe() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       <span className="ml-3 text-gray-500">Lade Aufgaben...</span>
     </div>
   );
@@ -285,19 +285,19 @@ export default function AufgabenListe() {
               <div>
                 <label htmlFor="aufgabe-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
                 <input id="aufgabe-titel" name="titel" type="text" value={titel} onChange={(e) => setTitel(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Aufgabentitel" required />
               </div>
               <div className="col-span-2">
                 <label htmlFor="aufgabe-beschreibung" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
                 <textarea id="aufgabe-beschreibung" name="beschreibung" value={beschreibung} onChange={(e) => setBeschreibung(e.target.value)} rows={2}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none resize-none"
                   placeholder="Beschreibung (optional)" />
               </div>
               <div>
                 <label htmlFor="aufgabe-prioritaet" className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
                 <select id="aufgabe-prioritaet" name="prioritaet" value={prioritaet} onChange={(e) => setPrioritaet(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                   <option value="Hoch">Hoch</option>
                   <option value="Mittel">Mittel</option>
                   <option value="Niedrig">Niedrig</option>
@@ -306,7 +306,7 @@ export default function AufgabenListe() {
               <div>
                 <label htmlFor="aufgabe-faelligkeit" className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
                 <input id="aufgabe-faelligkeit" name="faelligkeitsdatum" type="date" value={faelligkeitsdatum} onChange={(e) => setFaelligkeitsdatum(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Teilnehmer (mehrere wählbar)</label>
@@ -315,7 +315,7 @@ export default function AufgabenListe() {
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                       <input type="checkbox" name={`aufgabe-azubi-${t.id}`} checked={azubiIds.includes(t.id)}
                         onChange={(e) => setAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
-                        className="w-4 h-4 rounded accent-blue-600" />
+                        className="w-4 h-4 rounded accent-violet-500" />
                       {t.vorname} {t.nachname}
                     </label>
                   ))}
@@ -329,7 +329,7 @@ export default function AufgabenListe() {
             )}
 
             <button type="submit" disabled={erstelleMutation.isPending}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              className="w-full py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
               {erstelleMutation.isPending ? 'Wird erstellt...' : 'Aufgabe erstellen'}
             </button>
           </form>
@@ -354,7 +354,7 @@ export default function AufgabenListe() {
                 }`} />
                 <input type="checkbox" id={`aufgabe-done-${aufgabe.id}`} name={`aufgabe-done-${aufgabe.id}`} checked={aufgabe.id in optimisticDone ? optimisticDone[aufgabe.id] : aufgabe.erledigt}
                   onChange={() => { setOptimisticDone(prev => ({ ...prev, [aufgabe.id]: !(prev[aufgabe.id] ?? aufgabe.erledigt) })); toggleMutation.mutate(aufgabe.id); }}
-                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0 mt-0.5" />
+                  className="w-4 h-4 rounded accent-violet-500 cursor-pointer shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <span className={`text-sm truncate ${aufgabe.erledigt ? 'text-gray-400 line-through' : 'text-gray-800 font-medium'}`}>
@@ -362,7 +362,7 @@ export default function AufgabenListe() {
                     </span>
                     <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={(e) => { e.stopPropagation(); handleBearbeitenOeffnen(aufgabe); }}
-                        className="text-xs text-blue-400 hover:text-blue-600 px-1.5 py-0.5 rounded hover:bg-blue-50 transition-colors">✎</button>
+                        className="text-xs text-violet-400 hover:text-violet-600 px-1.5 py-0.5 rounded hover:bg-violet-50 transition-colors">✎</button>
                       <button onClick={(e) => { e.stopPropagation(); if (confirm('Aufgabe löschen?')) loescheMutation.mutate(aufgabe.id); }}
                         className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">✕</button>
                     </div>
@@ -453,12 +453,12 @@ export default function AufgabenListe() {
             <div className="flex gap-2 mt-6 pt-4 border-t border-gray-100">
               <input type="checkbox" id="detail-aufgabe-done" name="detail-aufgabe-done" checked={detailAufgabe.id in optimisticDone ? optimisticDone[detailAufgabe.id] : detailAufgabe.erledigt}
                 onChange={() => { setOptimisticDone(prev => ({ ...prev, [detailAufgabe.id]: !(prev[detailAufgabe.id] ?? detailAufgabe.erledigt) })); toggleMutation.mutate(detailAufgabe.id); }}
-                className="w-4 h-4 rounded accent-blue-600 cursor-pointer mt-0.5" />
+                className="w-4 h-4 rounded accent-violet-500 cursor-pointer mt-0.5" />
               <label htmlFor="detail-aufgabe-done" className="text-sm text-gray-600 cursor-pointer select-none" onClick={() => { setOptimisticDone(prev => ({ ...prev, [detailAufgabe.id]: !(prev[detailAufgabe.id] ?? detailAufgabe.erledigt) })); toggleMutation.mutate(detailAufgabe.id); }}>
                 {detailAufgabe.id in optimisticDone ? (optimisticDone[detailAufgabe.id] ? 'Als offen markieren' : 'Als erledigt markieren') : (detailAufgabe.erledigt ? 'Als offen markieren' : 'Als erledigt markieren')}
               </label>
               <button onClick={() => { handleBearbeitenOeffnen(detailAufgabe); setDetailAufgabe(null); }}
-                className="ml-2 text-sm text-blue-500 hover:text-blue-700 font-medium">Bearbeiten</button>
+                className="ml-2 text-sm text-violet-500 hover:text-violet-700 font-medium">Bearbeiten</button>
               <button onClick={async () => { if (confirm('Aufgabe löschen?')) { await loescheMutation.mutateAsync(detailAufgabe.id); setDetailAufgabe(null); } }}
                 className="ml-auto text-sm text-red-500 hover:text-red-700 font-medium">Löschen</button>
               <button onClick={() => setDetailAufgabe(null)}
@@ -479,20 +479,20 @@ export default function AufgabenListe() {
               <div>
                 <label htmlFor="edit-aufgabe-titel" className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
                 <input id="edit-aufgabe-titel" name="titel" type="text" value={bearbeitenTitel} onChange={(e) => setBearbeitenTitel(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none"
                   placeholder="Aufgabentitel" required />
               </div>
               <div>
                 <label htmlFor="edit-aufgabe-beschreibung" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
                 <textarea id="edit-aufgabe-beschreibung" name="beschreibung" value={bearbeitenBeschreibung} onChange={(e) => setBearbeitenBeschreibung(e.target.value)} rows={2}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none resize-none"
                   placeholder="Beschreibung (optional)" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="edit-aufgabe-prioritaet" className="block text-sm font-medium text-gray-700 mb-1">Priorität</label>
                   <select id="edit-aufgabe-prioritaet" name="prioritaet" value={bearbeitenPrioritaet} onChange={(e) => setBearbeitenPrioritaet(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none bg-white">
                     <option value="Hoch">Hoch</option>
                     <option value="Mittel">Mittel</option>
                     <option value="Niedrig">Niedrig</option>
@@ -501,7 +501,7 @@ export default function AufgabenListe() {
                 <div>
                   <label htmlFor="edit-aufgabe-faelligkeit" className="block text-sm font-medium text-gray-700 mb-1">Fälligkeitsdatum *</label>
                   <input id="edit-aufgabe-faelligkeit" name="faelligkeitsdatum" type="date" value={bearbeitenFaelligkeitsdatum} onChange={(e) => setBearbeitenFaelligkeitsdatum(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
                 </div>
               </div>
               <div>
@@ -511,7 +511,7 @@ export default function AufgabenListe() {
                     <label key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
                       <input type="checkbox" name={`edit-aufgabe-azubi-${t.id}`} checked={bearbeitenAzubiIds.includes(t.id)}
                         onChange={(e) => setBearbeitenAzubiIds(prev => e.target.checked ? [...prev, t.id] : prev.filter(id => id !== t.id))}
-                        className="w-4 h-4 rounded accent-blue-600" />
+                        className="w-4 h-4 rounded accent-violet-500" />
                       {t.vorname} {t.nachname}
                     </label>
                   ))}
@@ -524,7 +524,7 @@ export default function AufgabenListe() {
 
               <div className="flex gap-2">
                 <button type="submit" disabled={aktualisierenMutation.isPending}
-                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  className="flex-1 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
                   {aktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
                 </button>
                 <button type="button" onClick={() => setBearbeitenAufgabe(null)}

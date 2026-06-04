@@ -34,7 +34,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function LoadingFallback() {
   return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 }
