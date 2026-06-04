@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
+using Moq;
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
 using AzubiManager.Api.Models.DTOs;
@@ -31,12 +33,19 @@ namespace AzubiManager.Tests.Services
                 .Build();
         }
 
+        private static IHttpContextAccessor CreateHttpContextAccessor()
+        {
+            var mock = new Mock<IHttpContextAccessor>();
+            mock.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+            return mock.Object;
+        }
+
         [Fact]
         public async Task RegistrierenAsync_ErzeugtBenutzer()
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var dto = new RegisterDto
             {
@@ -60,7 +69,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             db.Benutzer.Add(new Benutzer { Benutzername = "doppelt", PasswortHash = "hash", Rolle = "Ausbilder" });
             await db.SaveChangesAsync();
@@ -80,7 +89,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var hash = BCrypt.Net.BCrypt.HashPassword("GeheimesPasswort1", 10);
             db.Benutzer.Add(new Benutzer
@@ -108,7 +117,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var hash = BCrypt.Net.BCrypt.HashPassword("RichtigesPasswort", 10);
             db.Benutzer.Add(new Benutzer { Benutzername = "testuser", PasswortHash = hash, Rolle = "Ausbilder" });
@@ -124,7 +133,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var dto = new LoginDto { Benutzername = "unbekannt", Passwort = "egal" };
 
@@ -136,7 +145,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var hash = BCrypt.Net.BCrypt.HashPassword("AltesPasswort1", 10);
             var benutzer = new Benutzer
@@ -173,7 +182,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var hash = BCrypt.Net.BCrypt.HashPassword("RichtigesAltpasswort", 10);
             db.Benutzer.Add(new Benutzer { Id = 1, Benutzername = "testuser", PasswortHash = hash, Rolle = "Ausbilder" });
@@ -197,7 +206,7 @@ namespace AzubiManager.Tests.Services
         {
             using var db = CreateDb();
             var config = CreateConfig();
-            var service = new AuthService(db, config);
+            var service = new AuthService(db, config, CreateHttpContextAccessor());
 
             var principal = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity());
 

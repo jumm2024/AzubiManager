@@ -16,6 +16,7 @@ namespace AzubiManager.Api.Data
         public DbSet<Termin> Termine { get; set; } = null!;
         public DbSet<Notiz> Notizen { get; set; } = null!;
         public DbSet<AzubiBetreuer> AzubiBetreuer { get; set; } = null!;
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -139,6 +140,16 @@ namespace AzubiManager.Api.Data
                 .HasIndex(b => b.Benutzername)
                 .IsUnique()
                 .HasDatabaseName("IX_Benutzer_Benutzername");
+
+            // RefreshToken Konfiguration
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique()
+                .HasDatabaseName("IX_RefreshTokens_Token");
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.BenutzerId)
+                .HasDatabaseName("IX_RefreshTokens_BenutzerId");
 
             // Index für Notizen-Sortierung nach ErstelltAm
             modelBuilder.Entity<Notiz>()

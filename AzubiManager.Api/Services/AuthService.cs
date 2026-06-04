@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,11 +14,13 @@ namespace AzubiManager.Api.Services
     {
         private readonly AppDbContext _db;
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(AppDbContext db, IConfiguration configuration)
+        public AuthService(AppDbContext db, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -79,10 +82,41 @@ namespace AzubiManager.Api.Services
             benutzer.PasswortHash = BCrypt.Net.BCrypt.HashPassword(dto.NeuesPasswort, 10);
             benutzer.PasswortGeandert = true;
             await _db.SaveChangesAsync();
+
+            // Alle Refresh Tokens invalidieren bei Passwortänderung
+            await _db.RefreshTokens
+                .Where(rt => rt.BenutzerId == userId && rt.VerwendetAm == null)
+                .ExecuteUpdateAsync(rt => rt.SetProperty(r => r.LaeuftAb, DateTime.UtcNow));
         }
 
         /// <summary>
-        /// Erstellt das JWT-Token (30 Minuten für Sicherheit).
+        /// Erstellt ein neues Access Token mit einem bestehenden Refresh Token.
+        /// </summary>
+        public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string? ipAdresse, string? userAgent)
+        {
+            var tokenEntity = await _db.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+            if (tokenEntity == null || !tokenEntity.IstAktiv)
+                throw new UnauthorizedAccessException("Ungültiger oder abgelaufener Refresh Token");
+
+            var benutzer = await _db.Benutzer
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Id == tokenEntity.BenutzerId);
+
+            if (benutzer == null)
+                throw new UnauthorizedAccessException("Benutzer nicht gefunden");
+
+            // Alten Refresh Token als verwendet markieren
+            tokenEntity.VerwendetAm = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            // Neuen Token erstellen
+            return ErstelleToken(benutzer);
+        }
+
+        /// <summary>
+        /// Erstellt das JWT-Token (60 Minuten Access Token).
         /// </summary>
         private AuthResponseDto ErstelleToken(Benutzer benutzer)
         {
@@ -108,15 +142,41 @@ namespace AzubiManager.Api.Services
                 signingCredentials: credentials
             );
 
+            // Refresh Token generieren und speichern
+            var refreshToken = GeneriereRefreshToken(benutzer.Id);
+
             return new AuthResponseDto
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
+                RefreshToken = refreshToken,
                 Benutzername = benutzer.Benutzername,
                 Rolle = benutzer.Rolle,
                 Vorname = benutzer.Vorname,
                 BenutzerId = benutzer.Id,
                 PasswortGeandert = benutzer.PasswortGeandert
             };
+        }
+
+        private string GeneriereRefreshToken(int benutzerId)
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            var token = Convert.ToBase64String(randomNumber);
+
+            var refreshToken = new RefreshToken
+            {
+                BenutzerId = benutzerId,
+                Token = token,
+                LaeuftAb = DateTime.UtcNow.AddDays(7),
+                IpAdresse = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                UserAgent = _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString()
+            };
+
+            _db.RefreshTokens.Add(refreshToken);
+            _db.SaveChanges();
+
+            return token;
         }
     }
 }

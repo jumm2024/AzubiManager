@@ -3,6 +3,7 @@
     public class AuthResponseDto
     {
         public string Token { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
         public string Benutzername { get; set; } = string.Empty;
         public string Rolle { get; set; } = string.Empty;
         public string? Vorname { get; set; }

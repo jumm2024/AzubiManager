@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using AzubiManager.Api.Data;
 using AzubiManager.Api.Models.DTOs;
 using AzubiManager.Api.Services;
 
@@ -11,10 +13,12 @@ namespace AzubiManager.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
+        private readonly AppDbContext _db;
 
-        public AuthController(AuthService authService)
+        public AuthController(AuthService authService, AppDbContext db)
         {
             _authService = authService;
+            _db = db;
         }
 
         /// <summary>
@@ -36,6 +40,14 @@ namespace AzubiManager.Api.Controllers
                     Expires = DateTime.UtcNow.AddMinutes(60)
                 });
 
+                Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    Secure = true
+                });
+
                 return Ok(new { response.BenutzerId, response.Benutzername, response.Rolle, response.Vorname, response.PasswortGeandert });
             }
             catch (UnauthorizedAccessException)
@@ -44,14 +56,62 @@ namespace AzubiManager.Api.Controllers
             }
         }
 
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        [EnableRateLimiting("login")]
+        public async Task<ActionResult<AuthResponseDto>> Refresh()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return BadRequest(new { Fehler = "Refresh Token fehlt" });
+
+            try
+            {
+                var response = await _authService.RefreshTokenAsync(
+                    refreshToken,
+                    HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    HttpContext.Request.Headers["User-Agent"].ToString());
+
+                Response.Cookies.Append("token", response.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddMinutes(60)
+                });
+
+                Response.Cookies.Append("refreshToken", response.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    Secure = true
+                });
+
+                return Ok(new { response.BenutzerId, response.Benutzername, response.Rolle, response.Vorname, response.PasswortGeandert });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { Fehler = "Session abgelaufen, bitte neu anmelden" });
+            }
+        }
+
         /// <summary>
         /// Registriert einen neuen Ausbilder.
         /// </summary>
         [HttpPost("logout")]
         [Authorize]
-        public ActionResult Logout()
+        public async Task<ActionResult> Logout()
         {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out var userId))
+            {
+                await _db.RefreshTokens
+                    .Where(rt => rt.BenutzerId == userId && rt.VerwendetAm == null)
+                    .ExecuteUpdateAsync(rt => rt.SetProperty(r => r.LaeuftAb, DateTime.UtcNow));
+            }
+
             Response.Cookies.Delete("token");
+            Response.Cookies.Delete("refreshToken");
             return Ok();
         }
 
