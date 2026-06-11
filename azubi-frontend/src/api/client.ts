@@ -11,12 +11,34 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let pendingRequests: Array<() => void> = [];
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          pendingRequests.push(() => resolve(api(originalRequest)));
+        });
+      }
+      originalRequest._retry = true;
+      isRefreshing = true;
+      try {
+        await api.post('/auth/refresh');
+        pendingRequests.forEach((cb) => cb());
+        pendingRequests = [];
+        return api(originalRequest);
+      } catch {
+        pendingRequests = [];
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      } finally {
+        isRefreshing = false;
+      }
     }
     return Promise.reject(error);
   }
@@ -91,6 +113,13 @@ export interface Tagesstatus {
   bemerkung?: string;
 }
 
+export interface AllgemeineInfo {
+  id: number;
+  bezeichnung: string;
+  wert?: string;
+  sortierung: number;
+}
+
 export interface AdminKontakt {
   vorname?: string;
   nachname?: string;
@@ -115,7 +144,7 @@ export interface DashboardDto {
   urlaub: number;
   krank: number;
   kindKrank: number;
-  vAmb: number;
+  vAmB: number;
   freigestellt: number;
   entschuldigt: number;
   unentschuldigt: number;
@@ -185,6 +214,13 @@ export const tagesstatusApi = {
   bericht: (year: number, month: number) => api.get(`/tagesstatus/bericht/${year}/${month}`, { responseType: 'blob' }),
   berichtGesamt: () => api.get('/tagesstatus/bericht/gesamt', { responseType: 'blob' }),
   import: (file: File, year: number, month: number) => { const fd = new FormData(); fd.append('file', file); return api.post(`/tagesstatus/import?year=${year}&month=${month}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } }); },
+};
+
+export const allgemeineInfoApi = {
+  alle: () => api.get<AllgemeineInfo[]>('/allgemeineinfo'),
+  erstellen: (data: { bezeichnung: string; wert?: string; sortierung: number }) => api.post<AllgemeineInfo>('/allgemeineinfo', data),
+  aktualisieren: (id: number, data: { bezeichnung: string; wert?: string; sortierung: number }) => api.put<AllgemeineInfo>(`/allgemeineinfo/${id}`, data),
+  loeschen: (id: number) => api.delete(`/allgemeineinfo/${id}`),
 };
 
 export default api;

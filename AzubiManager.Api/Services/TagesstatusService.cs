@@ -3,6 +3,7 @@ using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
 using AzubiManager.Api.Models.DTOs;
 using ClosedXML.Excel;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AzubiManager.Api.Services
 {
@@ -10,11 +11,15 @@ namespace AzubiManager.Api.Services
     {
         private readonly AppDbContext _db;
         private readonly CurrentUserService _currentUser;
+        private readonly IMemoryCache _cache;
+        private readonly DashboardService _dashboardService;
 
-        public TagesstatusService(AppDbContext db, CurrentUserService currentUser)
+        public TagesstatusService(AppDbContext db, CurrentUserService currentUser, IMemoryCache cache, DashboardService dashboardService)
         {
             _db = db;
             _currentUser = currentUser;
+            _cache = cache;
+            _dashboardService = dashboardService;
         }
 
         /// <summary>
@@ -76,6 +81,7 @@ namespace AzubiManager.Api.Services
             }
 
             await _db.SaveChangesAsync();
+            _dashboardService.InvalidateCache(_currentUser.BenutzerId);
 
             return new TagesstatusDto
             {
@@ -343,6 +349,9 @@ namespace AzubiManager.Api.Services
 
             await _db.SaveChangesAsync();
 
+            _cache.Remove($"betreuteIds_{_currentUser.BenutzerId}");
+            _dashboardService.InvalidateCache(_currentUser.BenutzerId);
+
             return imported;
         }
 
@@ -567,6 +576,7 @@ namespace AzubiManager.Api.Services
 
             _db.TagesstatusListe.Remove(status);
             await _db.SaveChangesAsync();
+            _dashboardService.InvalidateCache(_currentUser.BenutzerId);
             return true;
         }
     }

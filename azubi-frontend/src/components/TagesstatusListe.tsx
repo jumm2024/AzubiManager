@@ -68,7 +68,10 @@ export default function TagesstatusListe() {
 
   const setzenMutation = useMutation({
     mutationFn: (d: { azubiId: number; datum: string; status: string; bemerkung?: string }) => tagesstatusApi.setzen(d),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tagesstatus', datum] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 
   const mergeData = (alleTeilnehmer as Teilnehmer[])?.map((t: Teilnehmer) => {
@@ -107,6 +110,7 @@ export default function TagesstatusListe() {
       const neuesDatum = `${importYear}-${String(importMonth).padStart(2, '0')}-01`;
       setDatum(neuesDatum);
       queryClient.invalidateQueries({ queryKey: ['tagesstatus', neuesDatum] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setImportModal(false);
     } catch {
       setImportMsg('Import fehlgeschlagen');

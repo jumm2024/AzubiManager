@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { dashboardApi, termineApi, notizenApi } from '../api/client';
-import type { Termin, Notiz, Aufgabe } from '../api/client';
+import { dashboardApi, termineApi, notizenApi, allgemeineInfoApi } from '../api/client';
+import type { Termin, Notiz, Aufgabe, AllgemeineInfo } from '../api/client';
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useQuery({
@@ -16,6 +16,11 @@ export default function Dashboard() {
         .sort((a: Termin, b: Termin) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
         .slice(0, 5)
     ),
+  });
+
+  const { data: infos } = useQuery({
+    queryKey: ['allgemeineInfo'],
+    queryFn: () => allgemeineInfoApi.alle().then(res => res.data),
   });
 
   const { data: notizen, error: notizenError } = useQuery({
@@ -34,7 +39,7 @@ export default function Dashboard() {
     { label: 'Termin', wert: data?.termin, color: 'bg-indigo-500', bg: 'bg-indigo-50' },
     { label: 'Urlaub', wert: data?.urlaub, color: 'bg-yellow-500', bg: 'bg-yellow-50' },
     { label: 'Krank', wert: data?.krank, color: 'bg-red-400', bg: 'bg-red-50' },
-    { label: 'VAmB', wert: data?.vAmb, color: 'bg-cyan-500', bg: 'bg-cyan-50' },
+    { label: 'VAmB', wert: data?.vAmB, color: 'bg-cyan-500', bg: 'bg-cyan-50' },
     { label: 'Freigestellt', wert: data?.freigestellt, color: 'bg-teal-500', bg: 'bg-teal-50' },
     { label: 'Entschuldigt', wert: data?.entschuldigt, color: 'bg-emerald-500', bg: 'bg-emerald-50' },
     { label: 'Unentschuldigt', wert: data?.unentschuldigt, color: 'bg-orange-500', bg: 'bg-orange-50' },
@@ -130,62 +135,83 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-gray-800">Anstehende Termine</h3>
-            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">{termine?.length || 0} Eintraege</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-800">Anstehende Termine</h3>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">{termine?.length || 0} Eintraege</span>
+            </div>
           </div>
-        </div>
-        {termineError ? (
-          <p className="text-red-400 text-center py-8 text-sm">Fehler beim Laden der Termine</p>
-        ) : termine && termine.length > 0 ? (
-          <div className="space-y-2">
-            {termine.map((t: Termin) => {
-              const start = new Date(t.datum);
-              const end = t.endzeit ? new Date(t.endzeit) : null;
-              const isToday = start.toDateString() === new Date().toDateString();
-              return (
-                <div key={t.id} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all bg-white group">
-                  <div className="flex flex-col items-center gap-1 w-14 shrink-0">
-                    <span className="text-xs font-bold text-gray-400 uppercase">
-                      {start.toLocaleDateString('de-DE', { month: 'short' })}
-                    </span>
-                    <span className={`text-xl font-bold leading-none ${isToday ? 'text-violet-600' : 'text-gray-800'}`}>
-                      {start.getDate()}
-                    </span>
-                    {isToday && <span className="text-[10px] font-semibold text-violet-600">Heute</span>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-800 text-sm">{t.titel}</h4>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        {start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+          {termineError ? (
+            <p className="text-red-400 text-center py-8 text-sm">Fehler beim Laden der Termine</p>
+          ) : termine && termine.length > 0 ? (
+            <div className="space-y-2">
+              {termine.map((t: Termin) => {
+                const start = new Date(t.datum);
+                const end = t.endzeit ? new Date(t.endzeit) : null;
+                const isToday = start.toDateString() === new Date().toDateString();
+                return (
+                  <div key={t.id} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all bg-white group">
+                    <div className="flex flex-col items-center gap-1 w-14 shrink-0">
+                      <span className="text-xs font-bold text-gray-400 uppercase">
+                        {start.toLocaleDateString('de-DE', { month: 'short' })}
                       </span>
-                      {end && (
-                        <span className="text-[11px] text-gray-400">– {end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
-                      )}
-                      {t.ort && (
-                        <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{t.ort}</span>
-                      )}
-                      {t.kategorie && t.kategorie !== 'Sonstiges' && (
-                        <span className="text-[11px] text-violet-600 bg-violet-50 px-2 py-0.5 rounded">{t.kategorie}</span>
-                      )}
-                      {t.azubiName && (
-                        <span className="text-[11px] text-gray-500 bg-violet-50 px-2 py-0.5 rounded">{t.azubiName}</span>
+                      <span className={`text-xl font-bold leading-none ${isToday ? 'text-violet-600' : 'text-gray-800'}`}>
+                        {start.getDate()}
+                      </span>
+                      {isToday && <span className="text-[10px] font-semibold text-violet-600">Heute</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-800 text-sm">{t.titel}</h4>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                          {start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {end && (
+                          <span className="text-[11px] text-gray-400">– {end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
+                        )}
+                        {t.ort && (
+                          <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{t.ort}</span>
+                        )}
+                        {t.kategorie && t.kategorie !== 'Sonstiges' && (
+                          <span className="text-[11px] text-violet-600 bg-violet-50 px-2 py-0.5 rounded">{t.kategorie}</span>
+                        )}
+                        {t.azubiName && (
+                          <span className="text-[11px] text-gray-500 bg-violet-50 px-2 py-0.5 rounded">{t.azubiName}</span>
+                        )}
+                      </div>
+                      {t.beschreibung && (
+                        <p className="text-xs text-gray-400 mt-1.5">{t.beschreibung}</p>
                       )}
                     </div>
-                    {t.beschreibung && (
-                      <p className="text-xs text-gray-400 mt-1.5">{t.beschreibung}</p>
-                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-center py-8 text-sm">Keine anstehenden Termine</p>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Allgemeine Informationen</h3>
+          {infos && infos.length > 0 ? (
+            <div className="space-y-2">
+              {infos.map((info: AllgemeineInfo) => (
+                <div key={info.id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-gray-700">{info.bezeichnung}</p>
+                    {info.wert && <p className="text-xs text-gray-500 mt-0.5">{info.wert}</p>}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-gray-400 text-center py-8 text-sm">Keine anstehenden Termine</p>
-        )}
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-center py-6 text-sm">Keine Informationen hinterlegt</p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
