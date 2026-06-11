@@ -67,7 +67,10 @@ namespace AzubiManager.Api.Services
             int statusFehlt = betreuteIds.Count - idsMitStatusHeute;
 
             var aufgabenQuery = _db.Aufgaben.AsNoTracking()
-                .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId));
+                .Where(a => !a.Erledigt && (
+                    (a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId)) ||
+                    (a.AzubiId == null && a.AusbilderId == _currentUser.BenutzerId)
+                ));
 
             var aufgabenCounts = await aufgabenQuery
                 .GroupBy(a => 1)
@@ -84,7 +87,10 @@ namespace AzubiManager.Api.Services
             int hohePrioritaet = aufgabenCounts?.HohePrioritaet ?? 0;
 
             var aufgabenHeute = await _db.Aufgaben.AsNoTracking()
-                .Where(a => !a.Erledigt && a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId) && a.Faelligkeitsdatum == heute)
+                .Where(a => !a.Erledigt && a.Faelligkeitsdatum == heute && (
+                    (a.AzubiId != null && betreuteIds.Contains((int)a.AzubiId)) ||
+                    (a.AzubiId == null && a.AusbilderId == _currentUser.BenutzerId)
+                ))
                 .OrderBy(a => a.Prioritaet)
                 .Take(5)
                 .Select(a => new AufgabeDto

@@ -96,45 +96,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-violet-500" />
-              <p className="text-xs md:text-sm text-gray-600 font-semibold">Offene Aufgaben</p>
-            </div>
-            <p className="text-lg md:text-2xl font-extrabold">{data?.offeneAufgaben ?? 0}</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <p className="text-xs md:text-sm text-gray-600 font-semibold">Überfällig</p>
-            </div>
-            <p className="text-lg md:text-2xl font-extrabold">{data?.ueberfaelligeAufgaben ?? 0}</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <p className="text-xs md:text-sm text-gray-600 font-semibold">Status fehlt</p>
-            </div>
-            <p className="text-lg md:text-2xl font-extrabold">{data?.statusFehlt ?? 0}</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-violet-500" />
-              <p className="text-xs md:text-sm text-gray-600 font-semibold">Teilnehmer</p>
-            </div>
-            <p className="text-lg md:text-2xl font-extrabold">{data?.teilnehmerGesamt ?? 0}</p>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">

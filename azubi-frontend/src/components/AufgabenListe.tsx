@@ -176,7 +176,7 @@ export default function AufgabenListe() {
         prioritaet: bearbeitenPrioritaet,
         faelligkeitsdatum: bearbeitenFaelligkeitsdatum,
         istGlobal: false,
-        azubiIds: bearbeitenAzubiIds.length > 0 ? bearbeitenAzubiIds.join(',') : undefined,
+        azubiIds: bearbeitenAzubiIds.join(','),
       }
     });
   };

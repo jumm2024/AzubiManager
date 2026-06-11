@@ -122,8 +122,15 @@ namespace AzubiManager.Api.Services
                 aufgabe.ErledigtVonId = _currentUser.BenutzerId;
             else if (!dto.Erledigt)
                 aufgabe.ErledigtVonId = null;
-            aufgabe.AzubiId = dto.AzubiId ?? ExtractFirstId(dto.AzubiIds) ?? aufgabe.AzubiId;
-            if (dto.AzubiIds != null) aufgabe.AzubiIds = dto.AzubiIds;
+            if (dto.AzubiIds != null)
+            {
+                aufgabe.AzubiIds = string.IsNullOrEmpty(dto.AzubiIds) ? null : dto.AzubiIds;
+                aufgabe.AzubiId = string.IsNullOrEmpty(dto.AzubiIds) ? null : (dto.AzubiId ?? ExtractFirstId(dto.AzubiIds));
+            }
+            else if (dto.AzubiId.HasValue)
+            {
+                aufgabe.AzubiId = dto.AzubiId;
+            }
 
             await _db.SaveChangesAsync();
             return await AlsDtoAsync(aufgabe.Id);
