@@ -96,6 +96,27 @@ export default function Dashboard() {
         ))}
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 font-semibold">Offene Aufgaben</p>
+            <p className="text-2xl font-extrabold text-violet-600">{data?.offeneAufgaben ?? 0}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 font-semibold">Termine demnächst</p>
+            <p className="text-2xl font-extrabold text-indigo-600">{data?.termineDemnachst ?? 0}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 font-semibold">Aufgaben heute</p>
+            <p className="text-2xl font-extrabold text-amber-600">{data?.aufgabenHeute?.length ?? 0}</p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">

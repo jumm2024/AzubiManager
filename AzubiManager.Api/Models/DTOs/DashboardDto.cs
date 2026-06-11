@@ -21,6 +21,9 @@
         public int UeberfaelligeAufgaben { get; set; }
         public List<AufgabeDto> AufgabenHeute { get; set; } = new();
 
+        // Termine
+        public int TermineDemnachst { get; set; }
+
         // Badges
         public int RoterBadge { get; set; }
         public int OrangerBadge { get; set; }

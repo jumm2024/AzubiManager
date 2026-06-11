@@ -152,6 +152,7 @@ export interface DashboardDto {
   offeneAufgaben: number;
   ueberfaelligeAufgaben: number;
   aufgabenHeute: Aufgabe[];
+  termineDemnachst: number;
   roterBadge: number;
   orangerBadge: number;
   pinkerBadge: number;

@@ -155,6 +155,7 @@ namespace AzubiManager.Api.Services
                 OffeneAufgaben = offeneAufgaben,
                 UeberfaelligeAufgaben = ueberfaelligeAufgaben,
                 AufgabenHeute = aufgabenHeute,
+                TermineDemnachst = orangerBadge,
                 RoterBadge = roterBadge,
                 OrangerBadge = orangerBadge,
                 PinkerBadge = pinkerBadge,
