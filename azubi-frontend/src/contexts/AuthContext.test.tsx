@@ -32,12 +32,14 @@ describe('AuthContext', () => {
     expect(result.current.user).toBeNull();
   });
 
-  it('startet mit Benutzer aus localStorage', () => {
+  it('startet mit Benutzer aus localStorage', async () => {
     const userData = { benutzerId: 1, benutzername: 'test', rolle: 'Ausbilder' };
     localStorage.setItem('user', JSON.stringify(userData));
 
     const { result } = renderHook(() => useAuth(), { wrapper });
-    expect(result.current.user).toEqual(userData);
+    await waitFor(() => {
+      expect(result.current.user).toEqual(userData);
+    });
   });
 
   it('login setzt Benutzer und speichert in localStorage', async () => {
