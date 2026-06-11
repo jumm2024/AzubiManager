@@ -138,6 +138,9 @@ try
     // Notizen
     builder.Services.AddScoped<NotizService>();
 
+    // Allgemeine Info
+    builder.Services.AddScoped<AllgemeineInfoService>();
+
     // Dashboard
     builder.Services.AddScoped<DashboardService>();
 

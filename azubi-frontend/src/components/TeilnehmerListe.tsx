@@ -398,16 +398,16 @@ export default function TeilnehmerListe() {
                     <h4 className="font-medium text-gray-800 text-sm">{t.vorname} {t.nachname}</h4>
                     <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       {t.istBetreut ? (
-                        <button onClick={() => nichtBetreuenMutation.mutate(t.id)}
+                        <button type="button" onClick={() => nichtBetreuenMutation.mutate(t.id)}
                           className="text-xs text-orange-400 hover:text-orange-600 px-1.5 py-0.5 rounded hover:bg-orange-50 transition-colors">Entfernen</button>
                       ) : (
-                        <button onClick={() => betreuenMutation.mutate(t.id)}
+                        <button type="button" onClick={() => betreuenMutation.mutate(t.id)}
                           className="text-xs text-green-400 hover:text-green-600 px-1.5 py-0.5 rounded hover:bg-green-50 transition-colors">+ Betreuen</button>
                       )}
-                      <button onClick={() => handleBearbeitenOeffnen(t)}
+                      <button type="button" onClick={() => handleBearbeitenOeffnen(t)}
                         className="text-xs text-violet-400 hover:text-violet-600 px-1.5 py-0.5 rounded hover:bg-violet-50 transition-colors">Bearbeiten</button>
                       {user?.rolle === 'Admin' && (
-                        <button onClick={() => { if (confirm('Teilnehmer löschen?')) loescheMutation.mutate(t.id); }}
+                        <button type="button" onClick={() => { if (confirm('Teilnehmer löschen?')) loescheMutation.mutate(t.id); }}
                           className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
                       )}
                     </div>

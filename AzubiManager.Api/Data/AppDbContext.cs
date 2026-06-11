@@ -17,6 +17,7 @@ namespace AzubiManager.Api.Data
         public DbSet<Notiz> Notizen { get; set; } = null!;
         public DbSet<AzubiBetreuer> AzubiBetreuer { get; set; } = null!;
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+        public DbSet<AllgemeineInfo> AllgemeineInfos { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

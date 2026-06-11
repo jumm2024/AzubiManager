@@ -8,6 +8,7 @@ import {
   notizenApi,
   termineApi,
   tagesstatusApi,
+  allgemeineInfoApi,
 } from './client';
 
 describe('API client', () => {
@@ -69,5 +70,12 @@ describe('API client', () => {
     expect(tagesstatusApi.bericht).toBeDefined();
     expect(tagesstatusApi.berichtGesamt).toBeDefined();
     expect(tagesstatusApi.import).toBeDefined();
+  });
+
+  it('allgemeineInfoApi hat alle Endpunkte', () => {
+    expect(allgemeineInfoApi.alle).toBeDefined();
+    expect(allgemeineInfoApi.erstellen).toBeDefined();
+    expect(allgemeineInfoApi.aktualisieren).toBeDefined();
+    expect(allgemeineInfoApi.loeschen).toBeDefined();
   });
 });

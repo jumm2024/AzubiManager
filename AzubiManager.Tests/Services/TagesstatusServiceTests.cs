@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using AzubiManager.Api.Data;
 using AzubiManager.Api.Models;
 using AzubiManager.Api.Services;
@@ -30,6 +31,8 @@ namespace AzubiManager.Tests.Services
             var accessor = new Microsoft.AspNetCore.Http.HttpContextAccessor { HttpContext = httpCtx };
             return new CurrentUserService(accessor);
         }
+
+        private static IMemoryCache CreateCache() => new MemoryCache(new MemoryCacheOptions());
 
         private async Task SetupTestData(AppDbContext db)
         {
@@ -69,7 +72,9 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             await SetupTestData(db);
             var user = CreateUser(1);
-            var service = new TagesstatusService(db, user);
+            using var cache = CreateCache();
+            var dashboardService = new DashboardService(db, user, cache);
+            var service = new TagesstatusService(db, user, cache, dashboardService);
 
             var result = await service.ExcelExportAsync(2026, 5);
 
@@ -83,7 +88,9 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             await SetupTestData(db);
             var user = CreateUser(99);
-            var service = new TagesstatusService(db, user);
+            using var cache = CreateCache();
+            var dashboardService = new DashboardService(db, user, cache);
+            var service = new TagesstatusService(db, user, cache, dashboardService);
 
             var result = await service.ExcelExportAsync(2026, 5);
 
@@ -97,7 +104,9 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             await SetupTestData(db);
             var user = CreateUser(1);
-            var service = new TagesstatusService(db, user);
+            using var cache = CreateCache();
+            var dashboardService = new DashboardService(db, user, cache);
+            var service = new TagesstatusService(db, user, cache, dashboardService);
 
             var result = await service.AzubiBerichtExportAsync(2026, 5);
 
@@ -111,7 +120,9 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             await SetupTestData(db);
             var user = CreateUser(1);
-            var service = new TagesstatusService(db, user);
+            using var cache = CreateCache();
+            var dashboardService = new DashboardService(db, user, cache);
+            var service = new TagesstatusService(db, user, cache, dashboardService);
 
             var result = await service.AzubiBerichtGesamtExportAsync();
 
@@ -125,7 +136,9 @@ namespace AzubiManager.Tests.Services
             using var db = CreateDb();
             await SetupTestData(db);
             var user = CreateUser(1);
-            var service = new TagesstatusService(db, user);
+            using var cache = CreateCache();
+            var dashboardService = new DashboardService(db, user, cache);
+            var service = new TagesstatusService(db, user, cache, dashboardService);
 
             var result = await service.AlleFuerDatumAsync(new DateOnly(2026, 5, 4));
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { notizenApi, teilnehmerApi } from '../api/client';
-import type { Teilnehmer } from '../api/client';
+import { notizenApi, teilnehmerApi, allgemeineInfoApi } from '../api/client';
+import type { Teilnehmer, AllgemeineInfo } from '../api/client';
 import Pagination from './Pagination';
 import { updateBadges, refetchBadges } from '../stores/badgesStore';
 
@@ -50,6 +50,15 @@ export default function NotizenListe() {
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [infoBezeichnung, setInfoBezeichnung] = useState('');
+  const [infoWert, setInfoWert] = useState('');
+  const [infoSortierung, setInfoSortierung] = useState(0);
+  const [infoFehler, setInfoFehler] = useState('');
+  const [bearbeitenInfo, setBearbeitenInfo] = useState<AllgemeineInfo | null>(null);
+  const [bearbeitenInfoBezeichnung, setBearbeitenInfoBezeichnung] = useState('');
+  const [bearbeitenInfoWert, setBearbeitenInfoWert] = useState('');
+  const [bearbeitenInfoSortierung, setBearbeitenInfoSortierung] = useState(0);
+
   const { data: allData } = useQuery({
     queryKey: ['notizen', 'all'],
     queryFn: () => notizenApi.alle(0, 200).then(res => res.data.items)
@@ -72,6 +81,70 @@ export default function NotizenListe() {
       return all.filter(t => t.istBetreut);
     }),
   });
+
+  const { data: infos, isLoading: infosLaden } = useQuery({
+    queryKey: ['allgemeineInfo'],
+    queryFn: () => allgemeineInfoApi.alle().then(res => res.data),
+  });
+
+  const infoErstellenMutation = useMutation({
+    mutationFn: (d: { bezeichnung: string; wert?: string; sortierung: number }) => allgemeineInfoApi.erstellen(d),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allgemeineInfo'] });
+      setInfoBezeichnung('');
+      setInfoWert('');
+      setInfoSortierung(0);
+    },
+    onError: () => setInfoFehler('Fehler beim Erstellen'),
+  });
+
+  const infoLoeschenMutation = useMutation({
+    mutationFn: (id: number) => allgemeineInfoApi.loeschen(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['allgemeineInfo'] }),
+  });
+
+  const infoAktualisierenMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { bezeichnung: string; wert?: string; sortierung: number } }) => allgemeineInfoApi.aktualisieren(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allgemeineInfo'] });
+      setBearbeitenInfo(null);
+    },
+    onError: () => setInfoFehler('Fehler beim Aktualisieren'),
+  });
+
+  const handleInfoErstellen = (e: React.FormEvent) => {
+    e.preventDefault();
+    setInfoFehler('');
+    if (!infoBezeichnung.trim()) { setInfoFehler('Bezeichnung ist erforderlich'); return; }
+    infoErstellenMutation.mutate({
+      bezeichnung: infoBezeichnung.trim(),
+      wert: infoWert.trim() || undefined,
+      sortierung: infoSortierung,
+    });
+  };
+
+  const infoBearbeitenOeffnen = (info: AllgemeineInfo) => {
+    setBearbeitenInfo(info);
+    setBearbeitenInfoBezeichnung(info.bezeichnung);
+    setBearbeitenInfoWert(info.wert || '');
+    setBearbeitenInfoSortierung(info.sortierung);
+    setInfoFehler('');
+  };
+
+  const handleInfoAktualisieren = (e: React.FormEvent) => {
+    e.preventDefault();
+    setInfoFehler('');
+    if (!bearbeitenInfo) return;
+    if (!bearbeitenInfoBezeichnung.trim()) { setInfoFehler('Bezeichnung ist erforderlich'); return; }
+    infoAktualisierenMutation.mutate({
+      id: bearbeitenInfo.id,
+      data: {
+        bezeichnung: bearbeitenInfoBezeichnung.trim(),
+        wert: bearbeitenInfoWert.trim() || undefined,
+        sortierung: bearbeitenInfoSortierung,
+      }
+    });
+  };
 
   const erstelleMutation = useMutation({
     mutationFn: (d: { titel: string; inhalt: string; kategorie: string; azubiIds?: string }) => notizenApi.erstellen(d),
@@ -290,6 +363,108 @@ export default function NotizenListe() {
           </div>
         </div>
       </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Allgemeine Informationen verwalten</h3>
+          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">{infos?.length || 0} Eintraege</span>
+        </div>
+
+        <form onSubmit={handleInfoErstellen} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label htmlFor="info-bezeichnung" className="block text-xs font-medium text-gray-700 mb-1">Bezeichnung *</label>
+            <input id="info-bezeichnung" name="bezeichnung" type="text" value={infoBezeichnung} onChange={(e) => setInfoBezeichnung(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500/20 outline-none text-sm"
+              placeholder="z.B. Kassenöffnungszeiten" required />
+          </div>
+          <div>
+            <label htmlFor="info-wert" className="block text-xs font-medium text-gray-700 mb-1">Wert</label>
+            <input id="info-wert" name="wert" type="text" value={infoWert} onChange={(e) => setInfoWert(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500/20 outline-none text-sm"
+              placeholder="z.B. Mo–Fr 08:00–18:00" />
+          </div>
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label htmlFor="info-sortierung" className="block text-xs font-medium text-gray-700 mb-1">Sortierung</label>
+              <input id="info-sortierung" name="sortierung" type="number" value={infoSortierung} onChange={(e) => setInfoSortierung(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500/20 outline-none text-sm" />
+            </div>
+            <button type="submit" disabled={infoErstellenMutation.isPending}
+              className="px-4 py-2 bg-violet-500 text-white rounded-lg text-sm font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors whitespace-nowrap">
+              {infoErstellenMutation.isPending ? '...' : 'Hinzufügen'}
+            </button>
+          </div>
+        </form>
+
+        {infoFehler && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mb-3">{infoFehler}</div>
+        )}
+
+        {infosLaden ? (
+          <p className="text-gray-400 text-center py-4 text-sm">Lade...</p>
+        ) : infos && infos.length > 0 ? (
+          <div className="space-y-2">
+            {infos.map((info: AllgemeineInfo) => (
+              <div key={info.id} className="group flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white hover:shadow-sm transition-all">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800">{info.bezeichnung}</p>
+                  {info.wert && <p className="text-xs text-gray-500 mt-0.5">{info.wert}</p>}
+                </div>
+                <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded">#{info.sortierung}</span>
+                <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => infoBearbeitenOeffnen(info)}
+                    className="text-xs text-violet-400 hover:text-violet-600 px-1.5 py-0.5 rounded hover:bg-violet-50 transition-colors">Bearbeiten</button>
+                  <button onClick={() => { if (confirm('Eintrag löschen?')) infoLoeschenMutation.mutate(info.id); }}
+                    className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 transition-colors">Löschen</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-center py-6 text-sm">Keine allgemeinen Informationen vorhanden</p>
+        )}
+      </div>
+
+      {bearbeitenInfo && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Info bearbeiten</h3>
+              <button onClick={() => setBearbeitenInfo(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+            <form onSubmit={handleInfoAktualisieren} className="space-y-4">
+              <div>
+                <label htmlFor="edit-info-bezeichnung" className="block text-sm font-medium text-gray-700 mb-1">Bezeichnung *</label>
+                <input id="edit-info-bezeichnung" name="bezeichnung" type="text" value={bearbeitenInfoBezeichnung}
+                  onChange={(e) => setBearbeitenInfoBezeichnung(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" required />
+              </div>
+              <div>
+                <label htmlFor="edit-info-wert" className="block text-sm font-medium text-gray-700 mb-1">Wert</label>
+                <input id="edit-info-wert" name="wert" type="text" value={bearbeitenInfoWert}
+                  onChange={(e) => setBearbeitenInfoWert(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
+              </div>
+              <div>
+                <label htmlFor="edit-info-sortierung" className="block text-sm font-medium text-gray-700 mb-1">Sortierung</label>
+                <input id="edit-info-sortierung" name="sortierung" type="number" value={bearbeitenInfoSortierung}
+                  onChange={(e) => setBearbeitenInfoSortierung(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500/20 outline-none" />
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" disabled={infoAktualisierenMutation.isPending}
+                  className="flex-1 py-2.5 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors">
+                  {infoAktualisierenMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                </button>
+                <button type="button" onClick={() => setBearbeitenInfo(null)}
+                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                  Abbrechen
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {bearbeitenNotiz && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
