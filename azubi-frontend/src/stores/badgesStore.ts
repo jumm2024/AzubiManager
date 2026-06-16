@@ -30,8 +30,9 @@ export async function refetchBadges() {
       termineApi.alle(0, 200),
     ]);
     const res = dashboardRes.data;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const anstehend = termineRes.data.items.filter(
-      t => new Date(t.datum) >= new Date()
+      t => new Date(t.datum) >= today
     ).length;
     setBadges({
       aufgaben: res.offeneAufgaben,

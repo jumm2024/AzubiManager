@@ -28,9 +28,9 @@ namespace AzubiManager.Api.Services
                          || (t.AzubiId == null && t.AusbilderId == _currentUser.BenutzerId));
 
             if (zeitFilter == "anstehend")
-                query = query.Where(t => t.Datum >= DateTime.Now);
+                query = query.Where(t => t.Datum >= DateTime.Today);
             else if (zeitFilter == "vergangen")
-                query = query.Where(t => t.Datum < DateTime.Now);
+                query = query.Where(t => t.Datum < DateTime.Today);
 
             var totalCount = await query.CountAsync();
 

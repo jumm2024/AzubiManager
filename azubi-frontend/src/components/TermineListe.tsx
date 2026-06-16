@@ -57,8 +57,9 @@ export default function TermineListe() {
   const totalPages = Math.ceil(totalCount / pageSize);
   useEffect(() => { if (totalPages > 0 && currentPage > totalPages) setCurrentPage(1); }, [currentPage, totalPages]);
 
-  const anstehend = allData?.filter(t => new Date(t.datum) >= new Date()).length || 0;
-  const vergangen = allData?.filter(t => new Date(t.datum) < new Date()).length || 0;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const anstehend = allData?.filter(t => new Date(t.datum) >= today).length || 0;
+  const vergangen = allData?.filter(t => new Date(t.datum) < today).length || 0;
 
   const { data: teilnehmer } = useQuery({
     queryKey: ['teilnehmer'],
