@@ -1,4 +1,4 @@
-import { dashboardApi } from '../api/client';
+import { dashboardApi, termineApi } from '../api/client';
 
 type Listener = () => void;
 
@@ -25,12 +25,19 @@ export function updateBadges(updater: (prev: Record<string, number>) => Record<s
 
 export async function refetchBadges() {
   try {
-    const res = await dashboardApi.get();
+    const [dashboardRes, termineRes] = await Promise.all([
+      dashboardApi.get(),
+      termineApi.alle(0, 200),
+    ]);
+    const res = dashboardRes.data;
+    const anstehend = termineRes.data.items.filter(
+      t => new Date(t.datum) >= new Date()
+    ).length;
     setBadges({
-      aufgaben: res.data.aufgabenGesamt,
-      termine: res.data.termineGesamt,
-      notizen: res.data.notizenGesamt,
-      teilnehmer: res.data.betreuteTeilnehmer,
+      aufgaben: res.offeneAufgaben,
+      termine: anstehend,
+      notizen: res.notizenGesamt,
+      teilnehmer: res.betreuteTeilnehmer,
     });
   } catch { /* ignore */ }
 }

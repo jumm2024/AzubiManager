@@ -133,6 +133,12 @@ namespace AzubiManager.Api.Services
                          || (t.AzubiId == null && t.AusbilderId == _currentUser.BenutzerId))
                 .CountAsync();
 
+            int termineDemnachst = await _db.Termine.AsNoTracking()
+                .Where(t => t.Datum >= DateTime.Today && (
+                    (t.AzubiId != null && betreuteIds.Contains((int)t.AzubiId))
+                 || (t.AzubiId == null && t.AusbilderId == _currentUser.BenutzerId)))
+                .CountAsync();
+
             int notizenGesamt = await _db.Notizen.AsNoTracking()
                 .Where(n => (n.AzubiId != null && betreuteIds.Contains((int)n.AzubiId))
                          || (n.AzubiId == null && n.AusbilderId == _currentUser.BenutzerId))
@@ -155,7 +161,7 @@ namespace AzubiManager.Api.Services
                 OffeneAufgaben = offeneAufgaben,
                 UeberfaelligeAufgaben = ueberfaelligeAufgaben,
                 AufgabenHeute = aufgabenHeute,
-                TermineDemnachst = orangerBadge,
+                TermineDemnachst = termineDemnachst,
                 RoterBadge = roterBadge,
                 OrangerBadge = orangerBadge,
                 PinkerBadge = pinkerBadge,
